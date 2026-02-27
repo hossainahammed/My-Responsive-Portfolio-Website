@@ -478,6 +478,34 @@ section .title::after{
     background: crimson!important;
 }
 
+/* Report Table Styling */
+.report-table-wrapper {
+    overflow-x: auto;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    text-align: left;
+}
+
+.data-table th, .data-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.data-table th {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.status-success { color: #27ae60; font-weight: bold; }
+.status-pending { color: #f39c12; font-weight: bold; }
+
 /* contact section styling */
 .contact .title::after{
     content: "get in touch";
