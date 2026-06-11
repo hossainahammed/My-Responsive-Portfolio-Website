@@ -21,9 +21,14 @@ $(document).ready(function () {
     const current = document.documentElement.getAttribute("data-theme");
     const nextTheme = current === "dark" ? "light" : "dark";
 
+    $("html").addClass("theme-in-transition");
     document.documentElement.setAttribute("data-theme", nextTheme);
     localStorage.setItem("theme", nextTheme);
     updateThemeIcon(nextTheme);
+
+    setTimeout(function () {
+      $("html").removeClass("theme-in-transition");
+    }, 500);
   });
 
   // Handle system theme updates if the user has not pinned their preference
@@ -32,8 +37,13 @@ $(document).ready(function () {
     .addEventListener("change", function (e) {
       if (!localStorage.getItem("theme")) {
         const systemTheme = e.matches ? "dark" : "light";
+        $("html").addClass("theme-in-transition");
         document.documentElement.setAttribute("data-theme", systemTheme);
         updateThemeIcon(systemTheme);
+
+        setTimeout(function () {
+          $("html").removeClass("theme-in-transition");
+        }, 500);
       }
     });
 
@@ -401,4 +411,17 @@ $(document).ready(function () {
     // Fallback for browsers that don't support IntersectionObserver
     $(".reveal, .reveal-grid").addClass("active");
   }
+
+  // Card Cursor Spotlight Tracker
+  $(document).on(
+    "mousemove",
+    ".project-card, .services .card, .teams .card",
+    function (e) {
+      const rect = this.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      this.style.setProperty("--mouse-x", x + "px");
+      this.style.setProperty("--mouse-y", y + "px");
+    },
+  );
 });
