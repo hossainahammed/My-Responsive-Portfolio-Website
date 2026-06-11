@@ -537,25 +537,73 @@ section .title::after {
   font-weight: 600;
 }
 
-.home .home-content a {
+.home .home-content .hero-intro {
+  font-size: 18px;
+  line-height: 1.6;
+  max-width: 700px;
+  margin: 15px 0 25px 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-main);
+}
+
+.home .home-content .hero-cta {
+  margin-top: 25px;
+  border-left: 3px solid var(--primary-color);
+  padding-left: 15px;
+}
+
+.home .home-content .cta-text {
+  font-size: 19px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 15px;
+  font-family: var(--font-title);
+}
+
+.home .home-content .hero-btns {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+.home .home-content .hero-btn {
   display: inline-block;
+  font-size: 18px;
+  padding: 12px 28px;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: var(--theme-transition);
+  font-family: var(--font-title);
+  text-align: center;
+}
+
+.home .home-content .contact-btn {
   background: var(--accent-gradient);
   color: #fff;
-  font-size: 22px;
-  padding: 12px 36px;
-  margin-top: 25px;
-  font-weight: 500;
-  border-radius: 6px;
   border: 1px solid transparent;
-  transition: var(--theme-transition);
   box-shadow: 0 4px 15px var(--primary-glow);
 }
 
-.home .home-content a:hover {
-  color: #fff;
+.home .home-content .contact-btn:hover {
   transform: translateY(-3px);
   background: var(--accent-gradient-hover);
   box-shadow: 0 8px 25px var(--primary-glow-strong);
+  color: #fff;
+}
+
+.home .home-content .projects-btn {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+.home .home-content .projects-btn:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #fff;
 }
 
 /* about section styling */
@@ -712,6 +760,14 @@ section .title::after {
   content: "What I Know";
 }
 
+.practices .title::after {
+  content: "How I Work";
+}
+
+.github-stats .title::after {
+  content: "My Contributions";
+}
+
 .skills .skills-content .column {
   width: calc(50% - 30px);
 }
@@ -784,60 +840,172 @@ section .title::after {
   box-shadow: 0 8px 25px var(--primary-glow-strong);
 }
 
-.skills .skills-content .right .bars {
-  margin-bottom: 15px;
-}
-
-.skills .skills-content .right .info {
+.skills-grid {
   display: flex;
-  margin-bottom: 5px;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.skills .skills-content .right span {
-  font-weight: 500;
-  font-size: 18px;
-}
-
-.skills .skills-content .right .line {
-  height: 6px;
-  width: 100%;
-  background: var(--input-border);
-  position: relative;
-  border-radius: 3px;
+.skills-category-card {
+  background: var(--bg-sec);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  padding: 20px;
   transition: var(--theme-transition);
 }
 
-.skills .skills-content .right .line::before {
-  content: "";
-  position: absolute;
-  height: 100%;
-  left: 0;
-  top: 0;
+.skills-category-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px var(--primary-glow-strong);
+  border-color: var(--primary-color);
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.category-header i {
+  color: var(--primary-color);
+  font-size: 20px;
+}
+
+.category-header span {
+  font-family: var(--font-title);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-chip {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-card);
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 14px;
+  font-family: var(--font-main);
+  font-weight: 500;
+  transition: var(--theme-transition);
+}
+
+.skill-chip:hover {
   background: var(--accent-gradient);
-  box-shadow: 0 0 10px var(--primary-glow-strong);
-  border-radius: 3px;
+  border-color: transparent;
+  color: #fff;
+  transform: scale(1.05);
 }
 
-.skills-content .right .html::before {
-  width: 90%;
+/* Development Practices styling */
+.practices .practices-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 50px;
 }
 
-.skills-content .right .css::before {
-  width: 60%;
+.practices .practice-card {
+  background: var(--bg-sec);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  padding: 30px 25px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  transition: var(--theme-transition);
 }
 
-.skills-content .right .js::before {
-  width: 80%;
+.practices .practice-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px var(--primary-glow-strong);
+  border-color: var(--primary-color);
 }
 
-.skills-content .right .php::before {
-  width: 50%;
+.practices .practice-icon {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: var(--theme-transition);
 }
 
-.skills-content .right .mysql::before {
-  width: 70%;
+.practices .practice-card:hover .practice-icon {
+  background: var(--primary-color);
+  border-color: transparent;
+}
+
+.practices .practice-card:hover .practice-icon i {
+  color: #fff;
+}
+
+.practices .practice-icon i {
+  color: var(--primary-color);
+  font-size: 22px;
+  transition: var(--theme-transition);
+}
+
+.practices .practice-text h3 {
+  font-family: var(--font-title);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.practices .practice-text p {
+  font-family: var(--font-main);
+  font-size: 14px;
+  color: var(--text-sec);
+  line-height: 1.6;
+}
+
+/* GitHub Stats styling */
+.github-stats .stats-container {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 25px;
+  flex-wrap: wrap;
+  margin-top: 50px;
+}
+
+.github-stats .stats-card {
+  background: var(--bg-sec);
+  border: 1px solid var(--border-card);
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: var(--theme-transition);
+  flex: 1 1 450px;
+  max-width: 550px;
+}
+
+.github-stats .stats-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px var(--primary-glow-strong);
+  border-color: var(--primary-color);
+}
+
+.github-stats .stats-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  object-fit: contain;
 }
 
 /* teams section styling */
@@ -1216,9 +1384,9 @@ footer span a:hover {
     font-size: 35px;
   }
 
-  .home .home-content a {
-    font-size: 23px;
-    padding: 10px 30px;
+  .home .home-content .hero-btn {
+    font-size: 20px;
+    padding: 10px 24px;
   }
 
   .max-width {
@@ -1264,8 +1432,9 @@ footer span a:hover {
     font-size: 32px;
   }
 
-  .home .home-content a {
-    font-size: 20px;
+  .home .home-content .hero-btn {
+    font-size: 18px;
+    padding: 8px 20px;
   }
 
   .services .serv-content .card {
@@ -1339,9 +1508,9 @@ footer span a:hover {
 
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-  margin-top: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin-top: 35px;
 }
 
 .project-card {
@@ -1357,20 +1526,23 @@ footer span a:hover {
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border-radius: 8px;
-  padding: 12px;
-  text-align: center;
+  padding: 18px;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .project-img-wrapper {
   width: 100%;
-  height: 160px;
+  height: 170px;
   overflow: hidden;
   border-radius: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   border: 1px solid var(--border-card);
   transition: border-color 0.4s ease;
+  flex-shrink: 0;
 }
 
 .project-card img {
@@ -1381,10 +1553,63 @@ footer span a:hover {
   transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
+.project-card .project-info-body {
+  text-align: left;
+  flex-grow: 1;
+}
+
 .project-card .proj-title {
-  font-weight: 600;
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 20px;
   color: var(--text-main);
+  text-align: center;
+  margin-bottom: 12px;
   transition: var(--theme-transition);
+}
+
+.project-card .proj-desc {
+  font-family: var(--font-main);
+  font-size: 13.5px;
+  color: var(--text-sec);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.project-card .proj-desc strong {
+  color: var(--text-main);
+}
+
+.project-card .proj-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.project-card .tech-pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  color: var(--text-main);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: var(--font-main);
+}
+
+.project-card .proj-features {
+  padding-left: 15px;
+  margin-bottom: 15px;
+  list-style-type: disc;
+}
+
+.project-card .proj-features li {
+  font-family: var(--font-main);
+  font-size: 13px;
+  color: var(--text-sec);
+  line-height: 1.5;
+  margin-bottom: 4px;
 }
 
 .project-card:hover {
@@ -1404,23 +1629,27 @@ footer span a:hover {
 .project-card .project-links {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 12px;
+  margin-top: 10px;
+  flex-shrink: 0;
 }
 
 .project-card .proj-link-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
+  padding: 8px 16px;
+  font-size: 13.5px;
   font-weight: 600;
-  border-radius: 4px;
+  border-radius: 6px;
   border: 1px solid var(--border-card);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  color: var(--text-sec);
+  color: var(--text-main);
   text-decoration: none;
+  font-family: var(--font-title);
+  flex: 1;
 }
 
 .project-card .proj-link-btn.live-btn {

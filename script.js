@@ -2,14 +2,15 @@ $(document).ready(function () {
   // Initialize Lenis smooth scroll
   // NOTE: scroll-behavior:smooth is set to 'auto' in CSS to avoid double-easing conflict.
   const lenis = new Lenis({
-    duration: 0.9,           // snappier feel (was 1.2)
-    lerp: 0.1,               // linear interpolation factor — lower = silkier glide
-    easing: (t) => t < 0.5  // easeInOutQuart — feels natural and premium
-      ? 8 * t * t * t * t
-      : 1 - Math.pow(-2 * t + 2, 4) / 2,
+    duration: 0.9, // snappier feel (was 1.2)
+    lerp: 0.1, // linear interpolation factor — lower = silkier glide
+    easing: (t) =>
+      t < 0.5 // easeInOutQuart — feels natural and premium
+        ? 8 * t * t * t * t
+        : 1 - Math.pow(-2 * t + 2, 4) / 2,
     smoothWheel: true,
-    smoothTouch: false,      // keep native touch on mobile (better UX)
-    wheelMultiplier: 1.0,    // 1:1 wheel ratio — no over-scroll
+    smoothTouch: false, // keep native touch on mobile (better UX)
+    wheelMultiplier: 1.0, // 1:1 wheel ratio — no over-scroll
     touchMultiplier: 1.5,
     infinite: false,
   });
@@ -51,10 +52,28 @@ $(document).ready(function () {
     }
   }
 
+  function updateGithubStatsUrls(theme) {
+    const username = "hossainahammed";
+    let statsUrl = "";
+    let streakUrl = "";
+
+    if (theme === "light") {
+      statsUrl = `https://github-readme-stats.vercel.app/api?username=${username}&show_icons=true&bg_color=f8fafc&title_color=ff007f&text_color=0f172a&icon_color=ff007f&border_color=e2e8f0&hide_border=false`;
+      streakUrl = `https://github-readme-streak-stats.herokuapp.com/?user=${username}&theme=default&background=f8fafc&ring=ff007f&fire=ff007f&currStreakNum=0f172a&sideNums=0f172a&sideLabels=475569&dates=475569&border=e2e8f0`;
+    } else {
+      statsUrl = `https://github-readme-stats.vercel.app/api?username=${username}&show_icons=true&bg_color=0d0d12&title_color=ff007f&text_color=ffffff&icon_color=ff007f&border_color=2d2d3d&hide_border=false`;
+      streakUrl = `https://github-readme-streak-stats.herokuapp.com/?user=${username}&theme=dark&background=0d0d12&ring=ff007f&fire=ff007f&currStreakNum=ffffff&sideNums=ffffff&sideLabels=aaaaaa&dates=aaaaaa&border=2d2d3d`;
+    }
+
+    $("#githubStatsImg").attr("src", statsUrl);
+    $("#githubStreakImg").attr("src", streakUrl);
+  }
+
   // Set initial icon state
   const currentTheme =
     document.documentElement.getAttribute("data-theme") || "dark";
   updateThemeIcon(currentTheme);
+  updateGithubStatsUrls(currentTheme);
 
   // Toggle button click listener with premium fade-cross view transition
   $themeToggle.on("click", function (e) {
@@ -68,6 +87,7 @@ $(document).ready(function () {
       document.documentElement.setAttribute("data-theme", nextTheme);
       localStorage.setItem("theme", nextTheme);
       updateThemeIcon(nextTheme);
+      updateGithubStatsUrls(nextTheme);
       setTimeout(function () {
         $("html").removeClass("theme-in-transition");
       }, 500);
@@ -78,6 +98,7 @@ $(document).ready(function () {
       document.documentElement.setAttribute("data-theme", nextTheme);
       localStorage.setItem("theme", nextTheme);
       updateThemeIcon(nextTheme);
+      updateGithubStatsUrls(nextTheme);
     });
   });
 
@@ -93,11 +114,13 @@ $(document).ready(function () {
           document.startViewTransition(() => {
             document.documentElement.setAttribute("data-theme", systemTheme);
             updateThemeIcon(systemTheme);
+            updateGithubStatsUrls(systemTheme);
           });
         } else {
           $("html").addClass("theme-in-transition");
           document.documentElement.setAttribute("data-theme", systemTheme);
           updateThemeIcon(systemTheme);
+          updateGithubStatsUrls(systemTheme);
           setTimeout(function () {
             $("html").removeClass("theme-in-transition");
           }, 500);
@@ -199,14 +222,22 @@ $(document).ready(function () {
 
   // typing text animation script
   var typed = new Typed(".typing", {
-    strings: [" Flutter Developer", "Competitive Programmer", "Web Developer"],
+    strings: [
+      " Flutter Developer",
+      " SaaS Product Builder",
+      " Software Engineer",
+    ],
     typeSpeed: 100,
     backSpeed: 60,
     loop: true,
   });
 
   var typed = new Typed(".typing-2", {
-    strings: [" Flutter Developer", "Competitive Programmer", "Web Developer"],
+    strings: [
+      " Flutter Developer",
+      " SaaS Product Builder",
+      " Software Engineer",
+    ],
     typeSpeed: 100,
     backSpeed: 60,
     loop: true,
@@ -480,893 +511,4 @@ $(document).ready(function () {
       this.style.setProperty("--mouse-y", y + "px");
     },
   );
-
-  // Preloaded structural configurations for all projects
-  const PROJECT_TREES = {
-    "flutter-task": {
-      name: "task_manager",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "lib",
-          type: "folder",
-          expanded: true,
-          children: [
-            {
-              name: "controllers",
-              type: "folder",
-              expanded: true,
-              children: [
-                {
-                  name: "task_controller.dart",
-                  type: "file",
-                  fileKey: "task_controller",
-                  lang: "dart",
-                },
-              ],
-            },
-            {
-              name: "models",
-              type: "folder",
-              expanded: true,
-              children: [
-                {
-                  name: "task_model.dart",
-                  type: "file",
-                  fileKey: "task_model",
-                  lang: "dart",
-                },
-              ],
-            },
-            {
-              name: "views",
-              type: "folder",
-              expanded: true,
-              children: [
-                {
-                  name: "home_view.dart",
-                  type: "file",
-                  fileKey: "home_view",
-                  lang: "dart",
-                },
-              ],
-            },
-            { name: "main.dart", type: "file", fileKey: "main", lang: "dart" },
-          ],
-        },
-        {
-          name: "pubspec.yaml",
-          type: "file",
-          fileKey: "pubspec",
-          lang: "yaml",
-        },
-      ],
-    },
-    "flutter-ecom": {
-      name: "ecommerce_app",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "lib",
-          type: "folder",
-          expanded: true,
-          children: [
-            {
-              name: "controllers",
-              type: "folder",
-              expanded: true,
-              children: [
-                {
-                  name: "cart_controller.dart",
-                  type: "file",
-                  fileKey: "cart_controller",
-                  lang: "dart",
-                },
-              ],
-            },
-            {
-              name: "services",
-              type: "folder",
-              expanded: true,
-              children: [
-                {
-                  name: "api_service.dart",
-                  type: "file",
-                  fileKey: "api_service",
-                  lang: "dart",
-                },
-              ],
-            },
-            {
-              name: "views",
-              type: "folder",
-              expanded: true,
-              children: [
-                {
-                  name: "cart_view.dart",
-                  type: "file",
-                  fileKey: "cart_view",
-                  lang: "dart",
-                },
-              ],
-            },
-            { name: "main.dart", type: "file", fileKey: "main", lang: "dart" },
-          ],
-        },
-        {
-          name: "pubspec.yaml",
-          type: "file",
-          fileKey: "pubspec",
-          lang: "yaml",
-        },
-      ],
-    },
-    "flutter-exp": {
-      name: "expense_tracker",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "lib",
-          type: "folder",
-          expanded: true,
-          children: [
-            {
-              name: "models",
-              type: "folder",
-              expanded: true,
-              children: [
-                {
-                  name: "expense_model.dart",
-                  type: "file",
-                  fileKey: "expense_model",
-                  lang: "dart",
-                },
-              ],
-            },
-            {
-              name: "views",
-              type: "folder",
-              expanded: true,
-              children: [
-                {
-                  name: "add_expense.dart",
-                  type: "file",
-                  fileKey: "add_expense",
-                  lang: "dart",
-                },
-              ],
-            },
-            { name: "main.dart", type: "file", fileKey: "main", lang: "dart" },
-          ],
-        },
-        {
-          name: "pubspec.yaml",
-          type: "file",
-          fileKey: "pubspec",
-          lang: "yaml",
-        },
-      ],
-    },
-    "flutter-unit": {
-      name: "unit_converter",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "lib",
-          type: "folder",
-          expanded: true,
-          children: [
-            {
-              name: "helpers",
-              type: "folder",
-              expanded: true,
-              children: [
-                {
-                  name: "geolocator_helper.dart",
-                  type: "file",
-                  fileKey: "geolocator_helper",
-                  lang: "dart",
-                },
-              ],
-            },
-            {
-              name: "services",
-              type: "folder",
-              expanded: true,
-              children: [
-                {
-                  name: "converter_service.dart",
-                  type: "file",
-                  fileKey: "converter_service",
-                  lang: "dart",
-                },
-              ],
-            },
-            { name: "main.dart", type: "file", fileKey: "main", lang: "dart" },
-          ],
-        },
-        {
-          name: "pubspec.yaml",
-          type: "file",
-          fileKey: "pubspec",
-          lang: "yaml",
-        },
-      ],
-    },
-    "web-honda": {
-      name: "honda_website",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "js",
-          type: "folder",
-          expanded: true,
-          children: [
-            {
-              name: "slider.js",
-              type: "file",
-              fileKey: "slider",
-              lang: "javascript",
-            },
-          ],
-        },
-        { name: "index.html", type: "file", fileKey: "index", lang: "html" },
-        { name: "style.css", type: "file", fileKey: "style", lang: "css" },
-      ],
-    },
-    "web-travel": {
-      name: "travel_website",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "js",
-          type: "folder",
-          expanded: true,
-          children: [
-            {
-              name: "parallax.js",
-              type: "file",
-              fileKey: "parallax",
-              lang: "javascript",
-            },
-          ],
-        },
-        { name: "index.html", type: "file", fileKey: "index", lang: "html" },
-      ],
-    },
-    "web-shop": {
-      name: "shop_product",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "js",
-          type: "folder",
-          expanded: true,
-          children: [
-            {
-              name: "store.js",
-              type: "file",
-              fileKey: "store",
-              lang: "javascript",
-            },
-          ],
-        },
-        { name: "index.html", type: "file", fileKey: "index", lang: "html" },
-      ],
-    },
-    "web-lib": {
-      name: "library_management",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "js",
-          type: "folder",
-          expanded: true,
-          children: [
-            {
-              name: "dashboard.js",
-              type: "file",
-              fileKey: "dashboard",
-              lang: "javascript",
-            },
-          ],
-        },
-        { name: "index.html", type: "file", fileKey: "index", lang: "html" },
-      ],
-    },
-    "php-gym": {
-      name: "gym_website",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "db_config.php",
-          type: "file",
-          fileKey: "db_config",
-          lang: "php",
-        },
-        { name: "index.php", type: "file", fileKey: "index_php", lang: "php" },
-      ],
-    },
-    "php-gymsocial": {
-      name: "gym_social",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "db_config.php",
-          type: "file",
-          fileKey: "db_config",
-          lang: "php",
-        },
-        {
-          name: "submit_feed.php",
-          type: "file",
-          fileKey: "submit_feed",
-          lang: "php",
-        },
-      ],
-    },
-    "php-gymcomplete": {
-      name: "gym_complete",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "db_connect.php",
-          type: "file",
-          fileKey: "db_connect",
-          lang: "php",
-        },
-      ],
-    },
-    "php-crud": {
-      name: "crud_operations",
-      type: "folder",
-      expanded: true,
-      children: [
-        {
-          name: "db_connect.php",
-          type: "file",
-          fileKey: "db_connect",
-          lang: "php",
-        },
-        { name: "edit.php", type: "file", fileKey: "edit", lang: "php" },
-      ],
-    },
-  };
-
-  const PROJECT_FILES_CODE = {
-    "flutter-task": {
-      task_controller: {
-        code: `import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
-class TaskController extends GetxController {
-  var tasks = <TaskModel>[].obs;
-  var isLoading = true.obs;
-
-  @override
-  void onInit() {
-    fetchTasks();
-    super.onInit();
-  }
-
-  Future<void> fetchTasks() async {
-    try {
-      isLoading(true);
-      final response = await http.get(Uri.parse('https://api.portfolio.demo/tasks'));
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        tasks.assignAll(data.map((json) => TaskModel.fromJson(json)).toList());
-      }
-    } finally {
-      isLoading(false);
-    }
-  }
-}`,
-      },
-      task_model: {
-        code: `class TaskModel {
-  final int id;
-  final String title;
-  final String status;
-
-  TaskModel({required this.id, required this.title, required this.status});
-
-  factory TaskModel.fromJson(Map<String, dynamic> json) {
-    return TaskModel(
-      id: json['id'],
-      title: json['title'],
-      status: json['status'],
-    );
-  }
-}`,
-      },
-      home_view: {
-        code: `import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
-class HomeView extends StatelessWidget {
-  final TaskController controller = Get.put(TaskController());
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Task Manager')),
-      body: Obx(() => controller.isLoading.value
-          ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: controller.tasks.length,
-              itemBuilder: (context, index) => ListTile(
-                title: Text(controller.tasks[index].title),
-              ),
-            )),
-    );
-  }
-}`,
-      },
-      main: {
-        code: `import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'views/home_view.dart';
-
-void main() => runApp(GetMaterialApp(home: HomeView()));`,
-      },
-      pubspec: {
-        code: `name: task_manager
-dependencies:
-  flutter:
-    sdk: flutter
-  get: ^4.6.6
-  http: ^1.1.0`,
-      },
-    },
-    "flutter-ecom": {
-      cart_controller: {
-        code: `import 'package:get/get.dart';
-
-class CartController extends GetxController {
-  var cartItems = <Product, int>{}.obs;
-
-  void addProduct(Product product) {
-    cartItems[product] = (cartItems[product] ?? 0) + 1;
-    Get.snackbar("Added", "\${product.name} added to cart");
-  }
-
-  double get totalAmount => cartItems.entries
-      .map((e) => e.key.price * e.value)
-      .fold(0.0, (sum, el) => sum + el);
-}`,
-      },
-      api_service: {
-        code: `import 'package:http/http.dart' as http;
-
-class ApiService {
-  static Future<http.Response> fetchProducts() async {
-    return await http.get(Uri.parse('https://api.portfolio.demo/products'));
-  }
-}`,
-      },
-      cart_view: {
-        code: `import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
-class CartView extends StatelessWidget {
-  final CartController controller = Get.find();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Your Cart")),
-      body: Obx(() => ListView(
-        children: controller.cartItems.entries.map((e) => ListTile(
-          title: Text(e.key.name),
-          trailing: Text("Qty: \${e.value}"),
-        )).toList(),
-      )),
-    );
-  }
-}`,
-      },
-      main: {
-        code: `import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'controllers/cart_controller.dart';
-
-void main() {
-  Get.put(CartController());
-  runApp(GetMaterialApp(home: CatalogView()));
-}`,
-      },
-      pubspec: {
-        code: `name: ecommerce_app
-dependencies:
-  flutter:
-    sdk: flutter
-  get: ^4.6.6
-  http: ^1.1.0`,
-      },
-    },
-    "flutter-exp": {
-      expense_model: {
-        code: `import 'package:hive/hive.dart';
-part 'expense_model.g.dart';
-
-@HiveType(typeId: 0)
-class ExpenseModel extends HiveObject {
-  @HiveField(0) late String title;
-  @HiveField(1) late double amount;
-  @HiveField(2) late DateTime date;
-}`,
-      },
-      add_expense: {
-        code: `import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-
-class AddExpense extends StatelessWidget {
-  void saveExpense(String title, double amount) {
-    final box = Hive.box<ExpenseModel>('expenses');
-    box.add(ExpenseModel()..title = title..amount = amount..date = DateTime.now());
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(body: Center(child: Text("Add Expense UI")));
-}`,
-      },
-      main: {
-        code: `import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'models/expense_model.dart';
-
-void main() async {
-  await Hive.initFlutter();
-  Hive.registerAdapter(ExpenseModelAdapter());
-  await Hive.openBox<ExpenseModel>('expenses');
-  runApp(MaterialApp(home: HomeScreen()));
-}`,
-      },
-      pubspec: {
-        code: `name: expense_tracker
-dependencies:
-  flutter:
-    sdk: flutter
-  hive_flutter: ^1.1.0`,
-      },
-    },
-    "flutter-unit": {
-      geolocator_helper: {
-        code: `import 'package:geolocator/geolocator.dart';
-
-class LocatorHelper {
-  static Future<Position> getPosition() async {
-    return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high
-    );
-  }
-}`,
-      },
-      converter_service: {
-        code: `class ConverterService {
-  static double convertCelsiusToFahrenheit(double c) => (c * 9/5) + 32;
-  static double convertFahrenheitToCelsius(double f) => (f - 32) * 5/9;
-}`,
-      },
-      main: {
-        code: `import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-void main() => runApp(MaterialApp(home: ConverterScreen()));`,
-      },
-      pubspec: {
-        code: `name: unit_converter
-dependencies:
-  flutter:
-    sdk: flutter
-  geolocator: ^10.1.0
-  shared_preferences: ^2.2.2`,
-      },
-    },
-    "web-honda": {
-      slider: {
-        code: `const slides = document.querySelectorAll('.honda-slide');
-let index = 0;
-
-function showSlide() {
-  slides.forEach((s, i) => s.classList.toggle('active', i === index));
-  index = (index + 1) % slides.length;
-}
-setInterval(showSlide, 3000);`,
-      },
-      index: {
-        code: `<!html>
-<div class="honda-slider">
-  <div class="honda-slide active">Slide 1</div>
-  <div class="honda-slide">Slide 2</div>
-</div>`,
-      },
-      style: {
-        code: `.honda-slider { position: relative; }
-.honda-slide { display: none; }
-.honda-slide.active { display: block; }`,
-      },
-    },
-    "web-travel": {
-      parallax: {
-        code: `window.addEventListener('scroll', () => {
-  const scrolled = window.scrollY;
-  document.querySelector('.hero').style.transform = \`translateY(\${scrolled * 0.4}px)\`;
-});`,
-      },
-      index: {
-        code: `<!html>
-<section class="hero">
-  <h1>Explore The World</h1>
-</section>`,
-      },
-    },
-    "web-shop": {
-      store: {
-        code: `function addToCart(productId) {
-  let cart = JSON.parse(localStorage.getItem('cart')) || [];
-  cart.push(productId);
-  localStorage.setItem('cart', JSON.stringify(cart));
-}`,
-      },
-      index: {
-        code: `<!html>
-<button onclick="addToCart(101)">Add Product</button>`,
-      },
-    },
-    "web-lib": {
-      dashboard: {
-        code: `const filterInput = document.getElementById('search');
-filterInput.addEventListener('input', (e) => {
-  const query = e.target.value.toLowerCase();
-  document.querySelectorAll('tr').forEach(r => {
-    r.style.display = r.innerText.includes(query) ? '' : 'none';
-  });
-});`,
-      },
-      index: {
-        code: `<!html>
-<input id="search" placeholder="Search Books..."/>`,
-      },
-    },
-    "php-gym": {
-      db_config: {
-        code: `<?php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'gym_db');`,
-      },
-      index_php: {
-        code: `<?php
-require_once 'db_config.php';
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-$res = $conn->query("SELECT * FROM slots");
-while($row = $res->fetch_assoc()) {
-  echo "Class: " . $row['title'] . "<br/>";
-}`,
-      },
-    },
-    "php-gymsocial": {
-      db_config: {
-        code: `<?php
-$conn = new PDO("mysql:host=localhost;dbname=gym_social", "root", "");`,
-      },
-      submit_feed: {
-        code: `<?php
-require_once 'db_config.php';
-if($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $text = htmlspecialchars($_POST['text']);
-  $stmt = $conn->prepare("INSERT INTO posts (content) VALUES (?)");
-  $stmt->execute([$text]);
-  header("Location: feed.php");
-}`,
-      },
-    },
-    "php-gymcomplete": {
-      db_connect: {
-        code: `<?php
-try {
-  $db = new PDO("mysql:host=localhost;dbname=gym_main", "user", "pass");
-} catch(PDOException $e) {
-  die("Connection failure: " . $e->getMessage());
-}`,
-      },
-    },
-    "php-crud": {
-      db_connect: {
-        code: `<?php
-$pdo = new PDO("mysql:host=localhost;dbname=crud_db", "root", "");`,
-      },
-      edit: {
-        code: `<?php
-require_once 'db_connect.php';
-if(isset($_POST['update'])) {
-  $stmt = $pdo->prepare("UPDATE items SET val = ? WHERE id = ?");
-  $stmt->execute([$_POST['val'], $_POST['id']]);
-}`,
-      },
-    },
-  };
-
-  // Render file tree recursively
-  function renderFileTree(node, $container, projectKey) {
-    const $ul = $("<ul></ul>");
-
-    const nodes = node.children || [];
-    nodes.sort((a, b) => {
-      if (a.type === "folder" && b.type === "file") return -1;
-      if (a.type === "file" && b.type === "folder") return 1;
-      return a.name.localeCompare(b.name);
-    });
-
-    nodes.forEach((child) => {
-      const $li = $("<li></li>");
-
-      if (child.type === "folder") {
-        const isExpanded = child.expanded !== false;
-        const iconClass = isExpanded ? "fa-folder-open" : "fa-folder";
-
-        const $folderNode = $(`
-          <div class="tree-node folder-node">
-            <i class="fas ${iconClass}"></i>
-            <span>${child.name}</span>
-          </div>
-        `);
-
-        $li.append($folderNode);
-
-        const $childContainer = $("<div class='tree-children'></div>");
-        if (!isExpanded) {
-          $childContainer.hide();
-        }
-
-        renderFileTree(child, $childContainer, projectKey);
-        $li.append($childContainer);
-
-        $folderNode.on("click", function (e) {
-          e.stopPropagation();
-          const $icon = $(this).find("i");
-          $childContainer.slideToggle(120);
-
-          if ($icon.hasClass("fa-folder")) {
-            $icon.removeClass("fa-folder").addClass("fa-folder-open");
-          } else {
-            $icon.removeClass("fa-folder-open").addClass("fa-folder");
-          }
-        });
-      } else {
-        const $fileNode = $(`
-          <div class="tree-node file-node" data-filekey="${child.fileKey}" data-lang="${child.lang || "dart"}">
-            <i class="fas fa-file-code"></i>
-            <span>${child.name}</span>
-          </div>
-        `);
-
-        $li.append($fileNode);
-
-        $fileNode.on("click", function (e) {
-          e.stopPropagation();
-          $(".tree-node.file-node").removeClass("active-file");
-          $(this).addClass("active-file");
-
-          const fKey = $(this).attr("data-filekey");
-          const lang = $(this).attr("data-lang");
-          const codeData =
-            PROJECT_FILES_CODE[projectKey] &&
-            PROJECT_FILES_CODE[projectKey][fKey];
-
-          if (codeData) {
-            renderModalCode(codeData.code, lang);
-          } else {
-            renderModalCode(
-              `// File omitted for brevity.\n// Focus on models, controllers, and database services in this explorer directory.`,
-              lang,
-            );
-          }
-
-          if (window.innerWidth <= 768) {
-            $("body").removeClass("code-sidebar-open");
-          }
-        });
-      }
-      $ul.append($li);
-    });
-
-    $container.append($ul);
-  }
-
-  function renderModalCode(codeText, lang) {
-    const $codeBlock = $("#codeModalBlock");
-    $codeBlock.text(codeText);
-    $codeBlock.attr("class", `language-${lang || "dart"}`);
-    if (window.Prism) {
-      Prism.highlightElement($codeBlock[0]);
-    }
-  }
-
-  // Intercept "Code" button clicks on project cards
-  $(".project-card .code-btn").on("click", function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const $card = $(this).closest(".project-card");
-    const projId = $card.attr("data-id") || "";
-    const title = $card.attr("data-title") || "Source Code";
-
-    if (!PROJECT_TREES[projId]) {
-      alert(
-        "No code files or tree structure mapped for this demo project card.",
-      );
-      return;
-    }
-
-    $("#codeModalTitle").text(title + " Structure");
-
-    const $treeContainer = $("#fileTreeContainer");
-    $treeContainer.empty();
-
-    const rootTree = PROJECT_TREES[projId];
-    renderFileTree(rootTree, $treeContainer, projId);
-
-    setTimeout(() => {
-      const $firstFile = $treeContainer.find(".file-node").first();
-      if ($firstFile.length) {
-        $firstFile.click();
-      } else {
-        renderModalCode("// Empty project directory", "dart");
-      }
-    }, 50);
-
-    $("#codeViewModal").attr("aria-hidden", "false").fadeIn(180);
-    $("body").addClass("modal-open").removeClass("code-sidebar-open");
-  });
-
-  // Mobile Explorer Sidebar Drawer Toggle
-  $("#sidebarToggleBtn").on("click", function (e) {
-    e.stopPropagation();
-    $("body").toggleClass("code-sidebar-open");
-  });
-
-  // Close modals
-  $(".code-modal__close, .code-modal__overlay").on("click", function () {
-    $("#codeViewModal").attr("aria-hidden", "true").fadeOut(150);
-    $("body").removeClass("modal-open").removeClass("code-sidebar-open");
-  });
-
-  // Security restrictions for Code Modal (Right click blocker + Copy blocker)
-  $("#codeViewModal").on("contextmenu", function (e) {
-    e.preventDefault();
-    return false;
-  });
-
-  $(document).on("keydown", function (e) {
-    const $modal = $("#codeViewModal");
-    if ($modal.is(":visible")) {
-      const isCmdOrCtrl = e.metaKey || e.ctrlKey;
-      const key = e.key.toLowerCase();
-
-      if (
-        (isCmdOrCtrl &&
-          (key === "c" || key === "a" || key === "u" || key === "s")) ||
-        e.keyCode === 123
-      ) {
-        e.preventDefault();
-        return false;
-      }
-    }
-  });
 });
