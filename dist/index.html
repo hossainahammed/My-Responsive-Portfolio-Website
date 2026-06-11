@@ -69,8 +69,8 @@
         document.documentElement.setAttribute("data-theme", theme);
       })();
     </script>
-    <script type="module" crossorigin src="/assets/index-CMAZfXC4.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BTjg2Dn8.css">
+    <script type="module" crossorigin src="/assets/index-C6eKce99.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index--y-Bw3Q6.css">
   </head>
 
   <body>
@@ -169,8 +169,8 @@
               🔹<b
                 >Passionate about pushing boundaries, solving problems, and
                 creating technology that makes a difference. Let’s build
-                something remarkable together! 🚀</b
-              >
+                something remarkable together!
+              </b>
             </p>
             <div class="about-actions">
               <a
@@ -661,21 +661,32 @@
         <div class="code-modal__header">
           <h3 id="codeModalTitle">Source Code</h3>
           <div class="code-modal__actions">
-            <div class="code-file-selector">
-              <label for="codeFileSelect">File:</label>
-              <select id="codeFileSelect" class="code-select"></select>
-            </div>
+            <button
+              id="sidebarToggleBtn"
+              class="sidebar-toggle-btn"
+              aria-label="Toggle Project Explorer"
+            >
+              <i class="fas fa-folder-open"></i> Explorer
+            </button>
             <span class="protection-badge"
               ><i class="fas fa-lock"></i> Read-Only View</span
             >
           </div>
         </div>
         <div class="code-modal__body">
-          <div class="code-container-wrapper">
-            <div class="watermark-overlay">READ-ONLY SOURCE CODE</div>
-            <pre
-              class="line-numbers"
-            ><code id="codeModalBlock" class="language-dart"></code></pre>
+          <div class="code-modal__layout">
+            <div id="codeSidebar" class="code-modal__sidebar">
+              <div class="sidebar-title">Project Explorer</div>
+              <div id="fileTreeContainer" class="file-tree"></div>
+            </div>
+            <div class="code-modal__editor">
+              <div class="code-container-wrapper">
+                <div class="watermark-overlay">READ-ONLY SOURCE CODE</div>
+                <pre
+                  class="line-numbers"
+                ><code id="codeModalBlock" class="language-dart"></code></pre>
+              </div>
+            </div>
           </div>
         </div>
       </div>

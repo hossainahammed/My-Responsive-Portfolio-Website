@@ -474,12 +474,372 @@ $(document).ready(function () {
     },
   );
 
-  // Preloaded snippets for the Code Shield modal
-  const PROJECT_CODE = {
-    "flutter-task": [
-      {
-        name: "task_controller.dart",
-        lang: "dart",
+  // Preloaded structural configurations for all projects
+  const PROJECT_TREES = {
+    "flutter-task": {
+      name: "task_manager",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "lib",
+          type: "folder",
+          expanded: true,
+          children: [
+            {
+              name: "controllers",
+              type: "folder",
+              expanded: true,
+              children: [
+                {
+                  name: "task_controller.dart",
+                  type: "file",
+                  fileKey: "task_controller",
+                  lang: "dart",
+                },
+              ],
+            },
+            {
+              name: "models",
+              type: "folder",
+              expanded: true,
+              children: [
+                {
+                  name: "task_model.dart",
+                  type: "file",
+                  fileKey: "task_model",
+                  lang: "dart",
+                },
+              ],
+            },
+            {
+              name: "views",
+              type: "folder",
+              expanded: true,
+              children: [
+                {
+                  name: "home_view.dart",
+                  type: "file",
+                  fileKey: "home_view",
+                  lang: "dart",
+                },
+              ],
+            },
+            { name: "main.dart", type: "file", fileKey: "main", lang: "dart" },
+          ],
+        },
+        {
+          name: "pubspec.yaml",
+          type: "file",
+          fileKey: "pubspec",
+          lang: "yaml",
+        },
+      ],
+    },
+    "flutter-ecom": {
+      name: "ecommerce_app",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "lib",
+          type: "folder",
+          expanded: true,
+          children: [
+            {
+              name: "controllers",
+              type: "folder",
+              expanded: true,
+              children: [
+                {
+                  name: "cart_controller.dart",
+                  type: "file",
+                  fileKey: "cart_controller",
+                  lang: "dart",
+                },
+              ],
+            },
+            {
+              name: "services",
+              type: "folder",
+              expanded: true,
+              children: [
+                {
+                  name: "api_service.dart",
+                  type: "file",
+                  fileKey: "api_service",
+                  lang: "dart",
+                },
+              ],
+            },
+            {
+              name: "views",
+              type: "folder",
+              expanded: true,
+              children: [
+                {
+                  name: "cart_view.dart",
+                  type: "file",
+                  fileKey: "cart_view",
+                  lang: "dart",
+                },
+              ],
+            },
+            { name: "main.dart", type: "file", fileKey: "main", lang: "dart" },
+          ],
+        },
+        {
+          name: "pubspec.yaml",
+          type: "file",
+          fileKey: "pubspec",
+          lang: "yaml",
+        },
+      ],
+    },
+    "flutter-exp": {
+      name: "expense_tracker",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "lib",
+          type: "folder",
+          expanded: true,
+          children: [
+            {
+              name: "models",
+              type: "folder",
+              expanded: true,
+              children: [
+                {
+                  name: "expense_model.dart",
+                  type: "file",
+                  fileKey: "expense_model",
+                  lang: "dart",
+                },
+              ],
+            },
+            {
+              name: "views",
+              type: "folder",
+              expanded: true,
+              children: [
+                {
+                  name: "add_expense.dart",
+                  type: "file",
+                  fileKey: "add_expense",
+                  lang: "dart",
+                },
+              ],
+            },
+            { name: "main.dart", type: "file", fileKey: "main", lang: "dart" },
+          ],
+        },
+        {
+          name: "pubspec.yaml",
+          type: "file",
+          fileKey: "pubspec",
+          lang: "yaml",
+        },
+      ],
+    },
+    "flutter-unit": {
+      name: "unit_converter",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "lib",
+          type: "folder",
+          expanded: true,
+          children: [
+            {
+              name: "helpers",
+              type: "folder",
+              expanded: true,
+              children: [
+                {
+                  name: "geolocator_helper.dart",
+                  type: "file",
+                  fileKey: "geolocator_helper",
+                  lang: "dart",
+                },
+              ],
+            },
+            {
+              name: "services",
+              type: "folder",
+              expanded: true,
+              children: [
+                {
+                  name: "converter_service.dart",
+                  type: "file",
+                  fileKey: "converter_service",
+                  lang: "dart",
+                },
+              ],
+            },
+            { name: "main.dart", type: "file", fileKey: "main", lang: "dart" },
+          ],
+        },
+        {
+          name: "pubspec.yaml",
+          type: "file",
+          fileKey: "pubspec",
+          lang: "yaml",
+        },
+      ],
+    },
+    "web-honda": {
+      name: "honda_website",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "js",
+          type: "folder",
+          expanded: true,
+          children: [
+            {
+              name: "slider.js",
+              type: "file",
+              fileKey: "slider",
+              lang: "javascript",
+            },
+          ],
+        },
+        { name: "index.html", type: "file", fileKey: "index", lang: "html" },
+        { name: "style.css", type: "file", fileKey: "style", lang: "css" },
+      ],
+    },
+    "web-travel": {
+      name: "travel_website",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "js",
+          type: "folder",
+          expanded: true,
+          children: [
+            {
+              name: "parallax.js",
+              type: "file",
+              fileKey: "parallax",
+              lang: "javascript",
+            },
+          ],
+        },
+        { name: "index.html", type: "file", fileKey: "index", lang: "html" },
+      ],
+    },
+    "web-shop": {
+      name: "shop_product",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "js",
+          type: "folder",
+          expanded: true,
+          children: [
+            {
+              name: "store.js",
+              type: "file",
+              fileKey: "store",
+              lang: "javascript",
+            },
+          ],
+        },
+        { name: "index.html", type: "file", fileKey: "index", lang: "html" },
+      ],
+    },
+    "web-lib": {
+      name: "library_management",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "js",
+          type: "folder",
+          expanded: true,
+          children: [
+            {
+              name: "dashboard.js",
+              type: "file",
+              fileKey: "dashboard",
+              lang: "javascript",
+            },
+          ],
+        },
+        { name: "index.html", type: "file", fileKey: "index", lang: "html" },
+      ],
+    },
+    "php-gym": {
+      name: "gym_website",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "db_config.php",
+          type: "file",
+          fileKey: "db_config",
+          lang: "php",
+        },
+        { name: "index.php", type: "file", fileKey: "index_php", lang: "php" },
+      ],
+    },
+    "php-gymsocial": {
+      name: "gym_social",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "db_config.php",
+          type: "file",
+          fileKey: "db_config",
+          lang: "php",
+        },
+        {
+          name: "submit_feed.php",
+          type: "file",
+          fileKey: "submit_feed",
+          lang: "php",
+        },
+      ],
+    },
+    "php-gymcomplete": {
+      name: "gym_complete",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "db_connect.php",
+          type: "file",
+          fileKey: "db_connect",
+          lang: "php",
+        },
+      ],
+    },
+    "php-crud": {
+      name: "crud_operations",
+      type: "folder",
+      expanded: true,
+      children: [
+        {
+          name: "db_connect.php",
+          type: "file",
+          fileKey: "db_connect",
+          lang: "php",
+        },
+        { name: "edit.php", type: "file", fileKey: "edit", lang: "php" },
+      ],
+    },
+  };
+
+  const PROJECT_FILES_CODE = {
+    "flutter-task": {
+      task_controller: {
         code: `import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -487,7 +847,6 @@ import 'dart:convert';
 class TaskController extends GetxController {
   var tasks = <TaskModel>[].obs;
   var isLoading = true.obs;
-  final String apiUrl = 'https://api.portfolio.demo/tasks';
 
   @override
   void onInit() {
@@ -498,28 +857,18 @@ class TaskController extends GetxController {
   Future<void> fetchTasks() async {
     try {
       isLoading(true);
-      final response = await http.get(
-        Uri.parse(apiUrl),
-        headers: {'Accept': 'application/json'},
-      );
-
+      final response = await http.get(Uri.parse('https://api.portfolio.demo/tasks'));
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
         tasks.assignAll(data.map((json) => TaskModel.fromJson(json)).toList());
-      } else {
-        Get.snackbar('Error', 'Failed to retrieve tasks');
       }
-    } catch (e) {
-      Get.snackbar('Exception', e.toString());
     } finally {
       isLoading(false);
     }
   }
 }`,
       },
-      {
-        name: "task_model.dart",
-        lang: "dart",
+      task_model: {
         code: `class TaskModel {
   final int id;
   final String title;
@@ -529,281 +878,420 @@ class TaskController extends GetxController {
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
-      id: json['id'] as int,
-      title: json['title'] as String,
-      status: json['status'] as String,
+      id: json['id'],
+      title: json['title'],
+      status: json['status'],
     );
   }
 }`,
       },
-    ],
-    "flutter-ecom": [
-      {
-        name: "cart_controller.dart",
-        lang: "dart",
+      home_view: {
+        code: `import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class HomeView extends StatelessWidget {
+  final TaskController controller = Get.put(TaskController());
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Task Manager')),
+      body: Obx(() => controller.isLoading.value
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: controller.tasks.length,
+              itemBuilder: (context, index) => ListTile(
+                title: Text(controller.tasks[index].title),
+              ),
+            )),
+    );
+  }
+}`,
+      },
+      main: {
+        code: `import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'views/home_view.dart';
+
+void main() => runApp(GetMaterialApp(home: HomeView()));`,
+      },
+      pubspec: {
+        code: `name: task_manager
+dependencies:
+  flutter:
+    sdk: flutter
+  get: ^4.6.6
+  http: ^1.1.0`,
+      },
+    },
+    "flutter-ecom": {
+      cart_controller: {
         code: `import 'package:get/get.dart';
 
 class CartController extends GetxController {
   var cartItems = <Product, int>{}.obs;
 
   void addProduct(Product product) {
-    if (cartItems.containsKey(product)) {
-      cartItems[product] = cartItems[product]! + 1;
-    } else {
-      cartItems[product] = 1;
-    }
+    cartItems[product] = (cartItems[product] ?? 0) + 1;
     Get.snackbar("Added", "\${product.name} added to cart");
-  }
-
-  void removeProduct(Product product) {
-    if (cartItems.containsKey(product) && cartItems[product] == 1) {
-      cartItems.remove(product);
-    } else if (cartItems.containsKey(product)) {
-      cartItems[product] = cartItems[product]! - 1;
-    }
   }
 
   double get totalAmount => cartItems.entries
       .map((e) => e.key.price * e.value)
-      .fold(0.0, (sum, element) => sum + element);
+      .fold(0.0, (sum, el) => sum + el);
 }`,
       },
-    ],
-    "flutter-exp": [
-      {
-        name: "expense_model.dart",
-        lang: "dart",
-        code: `import 'package:hive/hive.dart';
+      api_service: {
+        code: `import 'package:http/http.dart' as http;
 
+class ApiService {
+  static Future<http.Response> fetchProducts() async {
+    return await http.get(Uri.parse('https://api.portfolio.demo/products'));
+  }
+}`,
+      },
+      cart_view: {
+        code: `import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class CartView extends StatelessWidget {
+  final CartController controller = Get.find();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Your Cart")),
+      body: Obx(() => ListView(
+        children: controller.cartItems.entries.map((e) => ListTile(
+          title: Text(e.key.name),
+          trailing: Text("Qty: \${e.value}"),
+        )).toList(),
+      )),
+    );
+  }
+}`,
+      },
+      main: {
+        code: `import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'controllers/cart_controller.dart';
+
+void main() {
+  Get.put(CartController());
+  runApp(GetMaterialApp(home: CatalogView()));
+}`,
+      },
+      pubspec: {
+        code: `name: ecommerce_app
+dependencies:
+  flutter:
+    sdk: flutter
+  get: ^4.6.6
+  http: ^1.1.0`,
+      },
+    },
+    "flutter-exp": {
+      expense_model: {
+        code: `import 'package:hive/hive.dart';
 part 'expense_model.g.dart';
 
 @HiveType(typeId: 0)
 class ExpenseModel extends HiveObject {
-  @HiveField(0)
-  late String title;
-
-  @HiveField(1)
-  late double amount;
-
-  @HiveField(2)
-  late DateTime date;
-
-  @HiveField(3)
-  late String category;
+  @HiveField(0) late String title;
+  @HiveField(1) late double amount;
+  @HiveField(2) late DateTime date;
 }`,
       },
-    ],
-    "flutter-unit": [
-      {
-        name: "geolocator_helper.dart",
-        lang: "dart",
+      add_expense: {
+        code: `import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+
+class AddExpense extends StatelessWidget {
+  void saveExpense(String title, double amount) {
+    final box = Hive.box<ExpenseModel>('expenses');
+    box.add(ExpenseModel()..title = title..amount = amount..date = DateTime.now());
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(body: Center(child: Text("Add Expense UI")));
+}`,
+      },
+      main: {
+        code: `import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'models/expense_model.dart';
+
+void main() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter(ExpenseModelAdapter());
+  await Hive.openBox<ExpenseModel>('expenses');
+  runApp(MaterialApp(home: HomeScreen()));
+}`,
+      },
+      pubspec: {
+        code: `name: expense_tracker
+dependencies:
+  flutter:
+    sdk: flutter
+  hive_flutter: ^1.1.0`,
+      },
+    },
+    "flutter-unit": {
+      geolocator_helper: {
         code: `import 'package:geolocator/geolocator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LocatorHelper {
-  static Future<Position> determinePosition() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
-      }
-    }
-    
-    return await Geolocator.getCurrentPosition();
+  static Future<Position> getPosition() async {
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high
+    );
   }
 }`,
       },
-    ],
-    "web-honda": [
-      {
-        name: "slider.js",
-        lang: "javascript",
-        code: `// Custom image slider configuration for Honda showcase
-const slides = document.querySelectorAll('.honda-slide');
-const nextBtn = document.querySelector('.slider-next');
-let activeIndex = 0;
-
-function showSlide(index) {
-  slides.forEach((slide, i) => {
-    slide.classList.toggle('active', i === index);
-  });
-}
-
-nextBtn.addEventListener('click', () => {
-  activeIndex = (activeIndex + 1) % slides.length;
-  showSlide(activeIndex);
-});`,
-      },
-    ],
-    "web-travel": [
-      {
-        name: "parallax.js",
-        lang: "javascript",
-        code: `// Traveler landing page parallax scroll interaction
-window.addEventListener('scroll', () => {
-  const scrollValue = window.scrollY;
-  const heroText = document.querySelector('.hero-title');
-  const bgImage = document.querySelector('.parallax-bg');
-
-  if (heroText && bgImage) {
-    heroText.style.transform = \`translateY(\${scrollValue * 0.4}px)\`;
-    bgImage.style.transform = \`translateY(\${scrollValue * 0.15}px)\`;
-  }
-});`,
-      },
-    ],
-    "web-shop": [
-      {
-        name: "store.js",
-        lang: "javascript",
-        code: `// Shop and Product cart helper
-function initLocalStorageCart() {
-  let cart = JSON.parse(localStorage.getItem('user_cart')) || [];
-  
-  window.addToCart = function(product) {
-    cart.push(product);
-    localStorage.setItem('user_cart', JSON.stringify(cart));
-    updateCartIconCount();
-  };
-}
-
-function updateCartIconCount() {
-  const badge = document.querySelector('.cart-badge');
-  const cart = JSON.parse(localStorage.getItem('user_cart')) || [];
-  if (badge) badge.innerText = cart.length;
+      converter_service: {
+        code: `class ConverterService {
+  static double convertCelsiusToFahrenheit(double c) => (c * 9/5) + 32;
+  static double convertFahrenheitToCelsius(double f) => (f - 32) * 5/9;
 }`,
       },
-    ],
-    "web-lib": [
-      {
-        name: "dashboard.js",
-        lang: "javascript",
-        code: `// Library management dashboard search filtering
-const searchInput = document.getElementById('libSearch');
-const tableRows = document.querySelectorAll('.book-table tbody tr');
+      main: {
+        code: `import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-searchInput.addEventListener('input', (e) => {
-  const query = e.target.value.toLowerCase();
-  
-  tableRows.forEach(row => {
-    const title = row.querySelector('.book-title').innerText.toLowerCase();
-    const author = row.querySelector('.book-author').innerText.toLowerCase();
-    
-    if (title.includes(query) || author.includes(query)) {
-      row.style.display = '';
-    } else {
-      row.style.display = 'none';
-    }
-  });
-});`,
+void main() => runApp(MaterialApp(home: ConverterScreen()));`,
       },
-    ],
-    "php-gym": [
-      {
-        name: "index.php",
-        lang: "php",
-        code: `<?php
-require_once 'db_config.php';
+      pubspec: {
+        code: `name: unit_converter
+dependencies:
+  flutter:
+    sdk: flutter
+  geolocator: ^10.1.0
+  shared_preferences: ^2.2.2`,
+      },
+    },
+    "web-honda": {
+      slider: {
+        code: `const slides = document.querySelectorAll('.honda-slide');
+let index = 0;
 
-// Fetch current active training slots
-$stmt = $pdo->prepare("SELECT * FROM classes WHERE active = 1 ORDER BY start_time ASC");
-$stmt->execute();
-$classes = $stmt->fetchAll();
-?>
-<div class="class-grid">
-  <?php foreach ($classes as $class): ?>
-    <div class="class-card">
-      <h4><?= htmlspecialchars($class['name']) ?></h4>
-      <p>Trainer: <?= htmlspecialchars($class['instructor']) ?></p>
-      <span><?= htmlspecialchars($class['start_time']) ?></span>
-    </div>
-  <?php endforeach; ?>
+function showSlide() {
+  slides.forEach((s, i) => s.classList.toggle('active', i === index));
+  index = (index + 1) % slides.length;
+}
+setInterval(showSlide, 3000);`,
+      },
+      index: {
+        code: `<!html>
+<div class="honda-slider">
+  <div class="honda-slide active">Slide 1</div>
+  <div class="honda-slide">Slide 2</div>
 </div>`,
       },
-    ],
-    "php-gymsocial": [
-      {
-        name: "submit_feed.php",
-        lang: "php",
+      style: {
+        code: `.honda-slider { position: relative; }
+.honda-slide { display: none; }
+.honda-slide.active { display: block; }`,
+      },
+    },
+    "web-travel": {
+      parallax: {
+        code: `window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  document.querySelector('.hero').style.transform = \`translateY(\${scrolled * 0.4}px)\`;
+});`,
+      },
+      index: {
+        code: `<!html>
+<section class="hero">
+  <h1>Explore The World</h1>
+</section>`,
+      },
+    },
+    "web-shop": {
+      store: {
+        code: `function addToCart(productId) {
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  cart.push(productId);
+  localStorage.setItem('cart', JSON.stringify(cart));
+}`,
+      },
+      index: {
+        code: `<!html>
+<button onclick="addToCart(101)">Add Product</button>`,
+      },
+    },
+    "web-lib": {
+      dashboard: {
+        code: `const filterInput = document.getElementById('search');
+filterInput.addEventListener('input', (e) => {
+  const query = e.target.value.toLowerCase();
+  document.querySelectorAll('tr').forEach(r => {
+    r.style.display = r.innerText.includes(query) ? '' : 'none';
+  });
+});`,
+      },
+      index: {
+        code: `<!html>
+<input id="search" placeholder="Search Books..."/>`,
+      },
+    },
+    "php-gym": {
+      db_config: {
         code: `<?php
-session_start();
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'gym_db');`,
+      },
+      index_php: {
+        code: `<?php
 require_once 'db_config.php';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
-    $userId = $_SESSION['user_id'];
-    $postText = trim($_POST['post_text']);
-    
-    if (!empty($postText)) {
-        $stmt = $pdo->prepare("INSERT INTO posts (user_id, body, created_at) VALUES (?, ?, NOW())");
-        $stmt->execute([$userId, $postText]);
-        header("Location: dashboard.php");
-        exit();
-    }
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+$res = $conn->query("SELECT * FROM slots");
+while($row = $res->fetch_assoc()) {
+  echo "Class: " . $row['title'] . "<br/>";
 }`,
       },
-    ],
-    "php-gymcomplete": [
-      {
-        name: "db_connect.php",
-        lang: "php",
+    },
+    "php-gymsocial": {
+      db_config: {
         code: `<?php
-// Secure database connector utilizing PDO settings
-$host = '127.0.0.1';
-$db   = 'gymnasium_db';
-$user = 'db_gym_user';
-$pass = 'SECURE_PASSWORD_ENV';
-$charset = 'utf8mb4';
-
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
-
-try {
-     $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (PDOException $e) {
-     throw new PDOException($e->getMessage(), (int)$e->getCode());
+$conn = new PDO("mysql:host=localhost;dbname=gym_social", "root", "");`,
+      },
+      submit_feed: {
+        code: `<?php
+require_once 'db_config.php';
+if($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $text = htmlspecialchars($_POST['text']);
+  $stmt = $conn->prepare("INSERT INTO posts (content) VALUES (?)");
+  $stmt->execute([$text]);
+  header("Location: feed.php");
 }`,
       },
-    ],
-    "php-crud": [
-      {
-        name: "edit.php",
-        lang: "php",
+    },
+    "php-gymcomplete": {
+      db_connect: {
+        code: `<?php
+try {
+  $db = new PDO("mysql:host=localhost;dbname=gym_main", "user", "pass");
+} catch(PDOException $e) {
+  die("Connection failure: " . $e->getMessage());
+}`,
+      },
+    },
+    "php-crud": {
+      db_connect: {
+        code: `<?php
+$pdo = new PDO("mysql:host=localhost;dbname=crud_db", "root", "");`,
+      },
+      edit: {
         code: `<?php
 require_once 'db_connect.php';
-
-if (isset($_GET['id'])) {
-    $id = (int)$_GET['id'];
-    
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $name = trim($_POST['name']);
-        $email = trim($_POST['email']);
-        
-        $stmt = $pdo->prepare("UPDATE members SET name = ?, email = ? WHERE id = ?");
-        $stmt->execute([$name, $email, $id]);
-        
-        header("Location: index.php?msg=updated");
-        exit();
-    }
-    
-    $stmt = $pdo->prepare("SELECT * FROM members WHERE id = ?");
-    $stmt->execute([$id]);
-    $member = $stmt->fetch();
+if(isset($_POST['update'])) {
+  $stmt = $pdo->prepare("UPDATE items SET val = ? WHERE id = ?");
+  $stmt->execute([$_POST['val'], $_POST['id']]);
 }`,
       },
-    ],
+    },
   };
 
-  // Handle click on Code button to open Code Shield Modal
+  // Render file tree recursively
+  function renderFileTree(node, $container, projectKey) {
+    const $ul = $("<ul></ul>");
+
+    const nodes = node.children || [];
+    nodes.sort((a, b) => {
+      if (a.type === "folder" && b.type === "file") return -1;
+      if (a.type === "file" && b.type === "folder") return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    nodes.forEach((child) => {
+      const $li = $("<li></li>");
+
+      if (child.type === "folder") {
+        const isExpanded = child.expanded !== false;
+        const iconClass = isExpanded ? "fa-folder-open" : "fa-folder";
+
+        const $folderNode = $(`
+          <div class="tree-node folder-node">
+            <i class="fas ${iconClass}"></i>
+            <span>${child.name}</span>
+          </div>
+        `);
+
+        $li.append($folderNode);
+
+        const $childContainer = $("<div class='tree-children'></div>");
+        if (!isExpanded) {
+          $childContainer.hide();
+        }
+
+        renderFileTree(child, $childContainer, projectKey);
+        $li.append($childContainer);
+
+        $folderNode.on("click", function (e) {
+          e.stopPropagation();
+          const $icon = $(this).find("i");
+          $childContainer.slideToggle(120);
+
+          if ($icon.hasClass("fa-folder")) {
+            $icon.removeClass("fa-folder").addClass("fa-folder-open");
+          } else {
+            $icon.removeClass("fa-folder-open").addClass("fa-folder");
+          }
+        });
+      } else {
+        const $fileNode = $(`
+          <div class="tree-node file-node" data-filekey="${child.fileKey}" data-lang="${child.lang || "dart"}">
+            <i class="fas fa-file-code"></i>
+            <span>${child.name}</span>
+          </div>
+        `);
+
+        $li.append($fileNode);
+
+        $fileNode.on("click", function (e) {
+          e.stopPropagation();
+          $(".tree-node.file-node").removeClass("active-file");
+          $(this).addClass("active-file");
+
+          const fKey = $(this).attr("data-filekey");
+          const lang = $(this).attr("data-lang");
+          const codeData =
+            PROJECT_FILES_CODE[projectKey] &&
+            PROJECT_FILES_CODE[projectKey][fKey];
+
+          if (codeData) {
+            renderModalCode(codeData.code, lang);
+          } else {
+            renderModalCode(
+              `// File omitted for brevity.\n// Focus on models, controllers, and database services in this explorer directory.`,
+              lang,
+            );
+          }
+
+          if (window.innerWidth <= 768) {
+            $("body").removeClass("code-sidebar-open");
+          }
+        });
+      }
+      $ul.append($li);
+    });
+
+    $container.append($ul);
+  }
+
+  function renderModalCode(codeText, lang) {
+    const $codeBlock = $("#codeModalBlock");
+    $codeBlock.text(codeText);
+    $codeBlock.attr("class", `language-${lang || "dart"}`);
+    if (window.Prism) {
+      Prism.highlightElement($codeBlock[0]);
+    }
+  }
+
+  // Intercept "Code" button clicks on project cards
   $(".project-card .code-btn").on("click", function (e) {
     e.preventDefault();
     e.stopPropagation();
@@ -812,54 +1300,44 @@ if (isset($_GET['id'])) {
     const projId = $card.attr("data-id") || "";
     const title = $card.attr("data-title") || "Source Code";
 
-    if (!PROJECT_CODE[projId]) {
-      alert("No read-only code files available for this demo card yet.");
+    if (!PROJECT_TREES[projId]) {
+      alert(
+        "No code files or tree structure mapped for this demo project card.",
+      );
       return;
     }
 
-    const files = PROJECT_CODE[projId];
-    const $select = $("#codeFileSelect");
-    $select.empty();
+    $("#codeModalTitle").text(title + " Structure");
 
-    // Populate file dropdown
-    files.forEach((f, idx) => {
-      $select.append(`<option value="${idx}">${f.name}</option>`);
-    });
+    const $treeContainer = $("#fileTreeContainer");
+    $treeContainer.empty();
 
-    $("#codeModalTitle").text(title + " Code");
+    const rootTree = PROJECT_TREES[projId];
+    renderFileTree(rootTree, $treeContainer, projId);
 
-    // Display the first file
-    renderModalFile(files[0]);
+    setTimeout(() => {
+      const $firstFile = $treeContainer.find(".file-node").first();
+      if ($firstFile.length) {
+        $firstFile.click();
+      } else {
+        renderModalCode("// Empty project directory", "dart");
+      }
+    }, 50);
 
-    // Track selection changes
-    $select.off("change").on("change", function () {
-      const idx = parseInt($(this).val());
-      renderModalFile(files[idx]);
-    });
-
-    // Open Modal
     $("#codeViewModal").attr("aria-hidden", "false").fadeIn(180);
-    $("body").addClass("modal-open");
+    $("body").addClass("modal-open").removeClass("code-sidebar-open");
   });
 
-  // Render highlighted file in the code block
-  function renderModalFile(fileObj) {
-    const $codeBlock = $("#codeModalBlock");
-    $codeBlock.text(fileObj.code);
+  // Mobile Explorer Sidebar Drawer Toggle
+  $("#sidebarToggleBtn").on("click", function (e) {
+    e.stopPropagation();
+    $("body").toggleClass("code-sidebar-open");
+  });
 
-    // Set appropriate prism class
-    $codeBlock.attr("class", `language-${fileObj.lang || "dart"}`);
-
-    // Re-run prism highlighting
-    if (window.Prism) {
-      Prism.highlightElement($codeBlock[0]);
-    }
-  }
-
-  // Close Code Modal
+  // Close modals
   $(".code-modal__close, .code-modal__overlay").on("click", function () {
     $("#codeViewModal").attr("aria-hidden", "true").fadeOut(150);
-    $("body").removeClass("modal-open");
+    $("body").removeClass("modal-open").removeClass("code-sidebar-open");
   });
 
   // Security restrictions for Code Modal (Right click blocker + Copy blocker)
@@ -871,14 +1349,13 @@ if (isset($_GET['id'])) {
   $(document).on("keydown", function (e) {
     const $modal = $("#codeViewModal");
     if ($modal.is(":visible")) {
-      // Intercept key combinations: Ctrl+C, Cmd+C, Ctrl+A, Cmd+A, Ctrl+U, Cmd+U, F12
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
       const key = e.key.toLowerCase();
 
       if (
         (isCmdOrCtrl &&
           (key === "c" || key === "a" || key === "u" || key === "s")) ||
-        e.keyCode === 123 // F12
+        e.keyCode === 123
       ) {
         e.preventDefault();
         return false;
