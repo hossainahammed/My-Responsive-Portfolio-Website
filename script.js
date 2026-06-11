@@ -527,7 +527,7 @@ $(document).ready(function () {
           .css("color", "#22c55e")
           .fadeIn(120);
         $("#contactForm")[0].reset();
-        
+
         setTimeout(function () {
           $("#contact-status").fadeOut(800);
         }, 4000);
