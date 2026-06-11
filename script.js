@@ -122,7 +122,10 @@ $(document).ready(function () {
             href +
             '" or update the link.';
           if ($("#contact-status").length) {
-            $("#contact-status").text(msg).css("color", "crimson").fadeIn(120);
+            $("#contact-status")
+              .text(msg)
+              .css("color", "var(--primary-color)")
+              .fadeIn(120);
             setTimeout(function () {
               $("#contact-status").fadeOut(3000);
             }, 4000);
@@ -282,7 +285,7 @@ $(document).ready(function () {
     if (!name || !email || !message) {
       $("#contact-status")
         .text("Please fill your name, email and message.")
-        .css("color", "crimson")
+        .css("color", "var(--primary-color)")
         .fadeIn(120);
       setTimeout(function () {
         $("#contact-status").fadeOut(800);
@@ -293,7 +296,7 @@ $(document).ready(function () {
     if (!emailRegex.test(email)) {
       $("#contact-status")
         .text("Please enter a valid email address.")
-        .css("color", "crimson")
+        .css("color", "var(--primary-color)")
         .fadeIn(120);
       setTimeout(function () {
         $("#contact-status").fadeOut(800);
@@ -340,4 +343,62 @@ $(document).ready(function () {
       }, 4000);
     }, 600);
   });
+
+  // Active navbar link highlighter on scroll
+  const sections = $("section");
+  const navLinks = $(".navbar .menu li a");
+
+  function highlightNavbar() {
+    let currentSectionId = "";
+    const scrollPos = $(document).scrollTop() + 150; // offset for navbar height
+    const scrollBottom = $(window).scrollTop() + $(window).height();
+    const pageHeight = $(document).height();
+
+    // Check if scrolled near the bottom
+    if (scrollBottom >= pageHeight - 50) {
+      currentSectionId = "contact";
+    } else {
+      sections.each(function () {
+        const top = $(this).offset().top;
+        const bottom = top + $(this).outerHeight();
+
+        if (scrollPos >= top && scrollPos <= bottom) {
+          currentSectionId = $(this).attr("id");
+        }
+      });
+    }
+
+    if (currentSectionId) {
+      navLinks.removeClass("active");
+      $(`.navbar .menu li a[href="#${currentSectionId}"]`).addClass("active");
+    }
+  }
+
+  $(window).on("scroll", highlightNavbar);
+  highlightNavbar(); // Initialize on load
+
+  // Intersection Observer for Scroll Reveals
+  if ("IntersectionObserver" in window) {
+    const revealObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            $(entry.target).addClass("active");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.15,
+        rootMargin: "0px 0px -50px 0px",
+      },
+    );
+
+    $(".reveal, .reveal-grid").each(function () {
+      revealObserver.observe(this);
+    });
+  } else {
+    // Fallback for browsers that don't support IntersectionObserver
+    $(".reveal, .reveal-grid").addClass("active");
+  }
 });

@@ -30,6 +30,14 @@
       content="https://hossainahammed.github.io/My-Responsive-Portfolio-Website/"
     />
 
+    <!-- Google Fonts Preconnect and Links -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+
     <link rel="stylesheet" href="style.css" />
     <link
       rel="stylesheet"
@@ -57,6 +65,11 @@
     </script>
   </head>
   <body>
+    <!-- Ambient glowing aura blobs in the background -->
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
+    <div class="ambient-blob blob-3"></div>
+
     <div class="scroll-up-btn">
       <i class="fas fa-angle-up"></i>
     </div>
@@ -110,10 +123,10 @@
       <div class="max-width">
         <h2 class="title">About me</h2>
         <div class="about-content">
-          <div class="column left">
+          <div class="column left reveal">
             <img src="images/profile-1.jpeg" alt="" />
           </div>
-          <div class="column right">
+          <div class="column right reveal">
             <div class="text">
               I'm Hossain and I'm a <span class="typing-2"></span>
             </div>
@@ -152,7 +165,7 @@
       <div class="max-width">
         <h2 class="title">My Services</h2>
         <div class="serv-content">
-          <div class="card">
+          <div class="card reveal">
             <div class="box">
               <i class="fas fa-mobile-alt"></i>
               <div class="text">App Development</div>
@@ -163,7 +176,7 @@
             </div>
           </div>
 
-          <div class="card">
+          <div class="card reveal">
             <div class="box">
               <i class="fas fa-code"></i>
               <div class="text">Web Development</div>
@@ -174,7 +187,7 @@
             </div>
           </div>
 
-          <div class="card">
+          <div class="card reveal">
             <div class="box">
               <i class="fas fa-brain"></i>
               <div class="text">AI & Algorithms</div>
@@ -193,7 +206,7 @@
       <div class="max-width">
         <h2 class="title">My skills</h2>
         <div class="skills-content">
-          <div class="column left">
+          <div class="column left reveal">
             <div class="text">My creative skills & experiences.</div>
             <p>
               My technical journey is defined by a strong foundation in
@@ -211,7 +224,7 @@
             </p>
             <a href="#">Read more</a>
           </div>
-          <div class="column right">
+          <div class="column right reveal">
             <div class="bars">
               <div class="info">
                 <span>Flutter & Dart</span>
@@ -299,7 +312,7 @@
       <div class="max-width">
         <h2 class="title title-flutter">Flutter Projects</h2>
         <p class="subtitle">Click a project image to open a live preview.</p>
-        <div class="projects-grid">
+        <div class="projects-grid reveal-grid">
           <div
             class="project-card"
             data-id="proj-task"
@@ -350,7 +363,7 @@
       <div class="max-width">
         <h2 class="title title-web">Web Projects</h2>
         <p class="subtitle">Click a project image to open a live preview.</p>
-        <div class="projects-grid">
+        <div class="projects-grid reveal-grid">
           <div
             class="project-card"
             data-id="proj-task"
@@ -397,7 +410,7 @@
       <div class="max-width">
         <h2 class="title title-php">PHP Projects</h2>
         <p class="subtitle">Click a project image to open a live preview.</p>
-        <div class="projects-grid">
+        <div class="projects-grid reveal-grid">
           <div
             class="project-card"
             data-id="proj-task"
@@ -471,7 +484,7 @@
     <section class="teams" id="teams">
       <div class="max-width">
         <h2 class="title">Client Review</h2>
-        <div class="carousel owl-carousel">
+        <div class="carousel owl-carousel reveal">
           <div class="card" data-id="team-1">
             <div class="box">
               <img src="images/profile-12.jpeg" alt="" />
@@ -604,7 +617,7 @@
       <div class="max-width">
         <h2 class="title">Contact me</h2>
         <div class="contact-content">
-          <div class="column left">
+          <div class="column left reveal">
             <div class="text">Get in Touch</div>
             <p>
               I'm open to freelance projects, collaborations, and full-time
@@ -636,7 +649,7 @@
               </div>
             </div>
           </div>
-          <div class="column right">
+          <div class="column right reveal">
             <div class="text">Message me</div>
             <form id="contactForm" action="#">
               <div class="fields">
@@ -701,6 +714,6 @@
       </span>
     </footer>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
   </body>
 </html>
