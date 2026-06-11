@@ -52,28 +52,25 @@ $(document).ready(function () {
     }
   }
 
-  function updateGithubStatsUrls(theme) {
-    const username = "hossainahammed";
-    let statsUrl = "";
-    let streakUrl = "";
-
-    if (theme === "light") {
-      statsUrl = `https://github-readme-stats.vercel.app/api?username=${username}&show_icons=true&bg_color=f8fafc&title_color=ff007f&text_color=0f172a&icon_color=ff007f&border_color=e2e8f0&hide_border=false`;
-      streakUrl = `https://github-readme-streak-stats.herokuapp.com/?user=${username}&theme=default&background=f8fafc&ring=ff007f&fire=ff007f&currStreakNum=0f172a&sideNums=0f172a&sideLabels=475569&dates=475569&border=e2e8f0`;
-    } else {
-      statsUrl = `https://github-readme-stats.vercel.app/api?username=${username}&show_icons=true&bg_color=0d0d12&title_color=ff007f&text_color=ffffff&icon_color=ff007f&border_color=2d2d3d&hide_border=false`;
-      streakUrl = `https://github-readme-streak-stats.herokuapp.com/?user=${username}&theme=dark&background=0d0d12&ring=ff007f&fire=ff007f&currStreakNum=ffffff&sideNums=ffffff&sideLabels=aaaaaa&dates=aaaaaa&border=2d2d3d`;
-    }
-
-    $("#githubStatsImg").attr("src", statsUrl);
-    $("#githubStreakImg").attr("src", streakUrl);
-  }
-
   // Set initial icon state
   const currentTheme =
     document.documentElement.getAttribute("data-theme") || "dark";
   updateThemeIcon(currentTheme);
-  updateGithubStatsUrls(currentTheme);
+
+  // Initialize GitHub Calendar Widget
+  try {
+    GitHubCalendar("#github-calendar", "hossainahammed", {
+      responsive: true,
+      tooltips: true
+    });
+  } catch (error) {
+    console.error("Error loading GitHub Calendar:", error);
+    $("#github-calendar").html(
+      `<div class="calendar-loading" style="color: #ef4444;">
+        <i class="fas fa-exclamation-triangle"></i> Failed to load GitHub activity. Please try reloading.
+      </div>`
+    );
+  }
 
   // Toggle button click listener with premium fade-cross view transition
   $themeToggle.on("click", function (e) {
@@ -87,7 +84,6 @@ $(document).ready(function () {
       document.documentElement.setAttribute("data-theme", nextTheme);
       localStorage.setItem("theme", nextTheme);
       updateThemeIcon(nextTheme);
-      updateGithubStatsUrls(nextTheme);
       setTimeout(function () {
         $("html").removeClass("theme-in-transition");
       }, 500);
@@ -98,7 +94,6 @@ $(document).ready(function () {
       document.documentElement.setAttribute("data-theme", nextTheme);
       localStorage.setItem("theme", nextTheme);
       updateThemeIcon(nextTheme);
-      updateGithubStatsUrls(nextTheme);
     });
   });
 
@@ -114,13 +109,11 @@ $(document).ready(function () {
           document.startViewTransition(() => {
             document.documentElement.setAttribute("data-theme", systemTheme);
             updateThemeIcon(systemTheme);
-            updateGithubStatsUrls(systemTheme);
           });
         } else {
           $("html").addClass("theme-in-transition");
           document.documentElement.setAttribute("data-theme", systemTheme);
           updateThemeIcon(systemTheme);
-          updateGithubStatsUrls(systemTheme);
           setTimeout(function () {
             $("html").removeClass("theme-in-transition");
           }, 500);

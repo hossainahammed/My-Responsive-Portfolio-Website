@@ -58,6 +58,11 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css"
     />
+    <!-- GitHub Calendar Widget CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/github-calendar@latest/dist/github-calendar-responsive.css"
+    />
 
     <!-- Theme Initialization Script to prevent screen flash (FOUC) -->
     <script>
@@ -1170,19 +1175,12 @@
       <div class="max-width">
         <h2 class="title">GitHub Activity</h2>
         <div class="stats-container reveal">
-          <div class="stats-card">
-            <img
-              id="githubStatsImg"
-              src="https://github-readme-stats.vercel.app/api?username=hossainahammed&show_icons=true&bg_color=0d0d12&title_color=ff007f&text_color=ffffff&icon_color=ff007f&border_color=2d2d3d&hide_border=false"
-              alt="Hossain Ahammed's GitHub Stats"
-            />
-          </div>
-          <div class="stats-card">
-            <img
-              id="githubStreakImg"
-              src="https://github-readme-streak-stats.herokuapp.com/?user=hossainahammed&theme=dark&background=0d0d12&ring=ff007f&fire=ff007f&currStreakNum=ffffff&sideNums=ffffff&sideLabels=aaaaaa&dates=aaaaaa&border=2d2d3d"
-              alt="Hossain Ahammed's GitHub Streak"
-            />
+          <div class="calendar-wrapper">
+            <div class="calendar" id="github-calendar">
+              <div class="calendar-loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading GitHub contributions...
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1323,6 +1321,8 @@
     </footer>
 
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
+    <!-- GitHub Calendar Widget Script -->
+    <script src="https://unpkg.com/github-calendar@latest/dist/github-calendar.min.js"></script>
     <script type="module" src="script.js"></script>
   </body>
 </html>
