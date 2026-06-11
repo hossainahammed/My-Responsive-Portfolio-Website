@@ -57,19 +57,125 @@ $(document).ready(function () {
     document.documentElement.getAttribute("data-theme") || "dark";
   updateThemeIcon(currentTheme);
 
-  // Initialize GitHub Calendar Widget
-  try {
-    GitHubCalendar("#github-calendar", "hossainahammed", {
-      responsive: true,
-      tooltips: true
+  // Helper to recalculate contributions and streaks from rendered DOM cells
+  function recalculateGitHubStreaks() {
+    const cells = document.querySelectorAll(
+      "#github-calendar rect[data-date], #github-calendar td[data-date]"
+    );
+    if (cells.length === 0) return;
+
+    let total = 0;
+    let longestStreak = 0;
+    let currentStreak = 0;
+    let tempStreak = 0;
+
+    // Sort cells by date ascending
+    const sortedCells = Array.from(cells).sort((a, b) => {
+      return new Date(a.getAttribute("data-date")) - new Date(b.getAttribute("data-date"));
     });
-  } catch (error) {
+
+    sortedCells.forEach((cell) => {
+      let count = parseInt(cell.getAttribute("data-count") || "0", 10);
+      
+      // Fallback: use data-level if data-count is not set
+      if (!cell.hasAttribute("data-count") && cell.hasAttribute("data-level")) {
+        const level = parseInt(cell.getAttribute("data-level") || "0", 10);
+        count = level > 0 ? level : 0;
+      }
+
+      total += count;
+
+      if (count > 0) {
+        tempStreak++;
+        if (tempStreak > longestStreak) {
+          longestStreak = tempStreak;
+        }
+      } else {
+        tempStreak = 0;
+      }
+    });
+
+    // Calculate current streak (look backwards from latest date)
+    let currentStreakTemp = 0;
+    const localTodayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local format
+    const utcTodayStr = new Date().toISOString().split("T")[0];  // YYYY-MM-DD UTC format
+
+    let checkIndex = sortedCells.length - 1;
+    while (checkIndex >= 0) {
+      const cell = sortedCells[checkIndex];
+      const dateStr = cell.getAttribute("data-date");
+      let count = parseInt(cell.getAttribute("data-count") || "0", 10);
+
+      if (!cell.hasAttribute("data-count") && cell.hasAttribute("data-level")) {
+        const level = parseInt(cell.getAttribute("data-level") || "0", 10);
+        count = level > 0 ? level : 0;
+      }
+
+      if (count > 0) {
+        currentStreakTemp++;
+      } else {
+        // If it's today and count is 0, don't break the streak yet (user might commit later)
+        if (dateStr === localTodayStr || dateStr === utcTodayStr) {
+          checkIndex--;
+          continue;
+        }
+        break; // Streak broken
+      }
+      checkIndex--;
+    }
+    currentStreak = currentStreakTemp;
+
+    // Update DOM
+    const $numbers = $("#github-calendar .contrib-number");
+    if ($numbers.length >= 3) {
+      $numbers.eq(0).html(`${total.toLocaleString()} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">total</span>`);
+      $numbers.eq(1).html(`${longestStreak} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">days</span>`);
+      $numbers.eq(2).html(`${currentStreak} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">days</span>`);
+    }
+  }
+
+  function handleCalendarError(error) {
     console.error("Error loading GitHub Calendar:", error);
     $("#github-calendar").html(
       `<div class="calendar-loading" style="color: #ef4444;">
-        <i class="fas fa-exclamation-triangle"></i> Failed to load GitHub activity. Please try reloading.
+        <i class="fas fa-exclamation-triangle"></i> Failed to load GitHub activity stats. Please try reloading.
       </div>`
     );
+  }
+
+  // Poll to ensure stats are updated even if rendering delays
+  function pollCalendarLoaded() {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      const cells = document.querySelectorAll(
+        "#github-calendar rect[data-date], #github-calendar td[data-date]"
+      );
+      if (cells.length > 0) {
+        clearInterval(interval);
+        recalculateGitHubStreaks();
+      } else {
+        attempts++;
+        if (attempts > 50) { // Timeout after 10s
+          clearInterval(interval);
+        }
+      }
+    }, 200);
+  }
+
+  // Initialize GitHub Calendar Widget
+  try {
+    const calendarPromise = GitHubCalendar("#github-calendar", "hossainahammed", {
+      responsive: true,
+      tooltips: true
+    });
+
+    if (calendarPromise && typeof calendarPromise.then === "function") {
+      calendarPromise.then(recalculateGitHubStreaks).catch(handleCalendarError);
+    } else {
+      pollCalendarLoaded();
+    }
+  } catch (error) {
+    handleCalendarError(error);
   }
 
   // Toggle button click listener with premium fade-cross view transition
