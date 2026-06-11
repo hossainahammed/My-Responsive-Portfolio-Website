@@ -370,17 +370,35 @@ $(document).ready(function () {
     var $card = $(this);
     var url = ($card.attr("data-liveurl") || "").trim();
     var title = $card.attr("data-title") || "";
-    if (url) {
-      // ensure url has protocol
-      if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+    
+    var isFlutter = ($card.attr("data-id") || "").startsWith("flutter") || 
+                    $card.find(".tech-pill").filter(function() { 
+                      return $(this).text().trim().toLowerCase() === 'flutter'; 
+                    }).length > 0;
+
+    if (isFlutter) {
+      var imgSrc = $card.find(".project-img-wrapper img").attr("src");
       $("#liveModalTitle").text(title);
-      $("#liveModalIframe").attr("src", url);
+      $("#liveModalImage").attr("src", imgSrc);
+      $("#liveModalIframe").hide().attr("src", "");
+      $("#liveModalImageContainer").css("display", "flex");
       $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
       $("body").addClass("modal-open");
     } else {
-      alert(
-        "No live link set for this project yet. You can add a live link later by setting the project element's `data-liveurl` attribute.",
-      );
+      if (url) {
+        // ensure url has protocol
+        if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+        $("#liveModalTitle").text(title);
+        $("#liveModalIframe").attr("src", url).show();
+        $("#liveModalImageContainer").hide();
+        $("#liveModalImage").attr("src", "");
+        $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
+        $("body").addClass("modal-open");
+      } else {
+        alert(
+          "No live link set for this project yet. You can add a live link later by setting the project element's `data-liveurl` attribute.",
+        );
+      }
     }
   });
 
@@ -392,6 +410,7 @@ $(document).ready(function () {
   // Close modal: overlay click or close button
   $(".live-modal__close, .live-modal__overlay").on("click", function () {
     $("#liveModalIframe").attr("src", "");
+    $("#liveModalImage").attr("src", "");
     $("#liveViewModal").attr("aria-hidden", "true").fadeOut(150);
     $("body").removeClass("modal-open");
   });

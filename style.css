@@ -646,8 +646,104 @@ section .title::after {
 }
 
 .about .about-content .right p {
-    text-align: justify;
+    text-align: left;
     line-height: 1.6;
+}
+
+.about .about-content .right .about-description {
+    text-align: left;
+    margin-bottom: 25px;
+    font-size: 16px;
+    color: var(--text-sec);
+    line-height: 1.7;
+}
+
+.about .about-content .right .about-pillars {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.about-pillar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 15px;
+    transition: var(--theme-transition);
+}
+
+.about-pillar:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+    box-shadow: 0 10px 25px var(--primary-glow);
+    background: var(--card-spotlight);
+}
+
+.about-pillar .pillar-icon {
+    font-size: 24px;
+    color: var(--primary-color);
+    background: rgba(255, 0, 127, 0.08);
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: var(--theme-transition);
+}
+
+.about-pillar:hover .pillar-icon {
+    color: #fff;
+    background: var(--accent-gradient);
+}
+
+.about-pillar .pillar-content h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--card-text-highlight);
+    font-family: var(--font-title);
+}
+
+.about-pillar .pillar-content p {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-sec);
+    margin: 0;
+    text-align: left !important;
+}
+
+.about-footer-note {
+    background: linear-gradient(90deg, rgba(255, 0, 127, 0.05) 0%, rgba(121, 40, 202, 0.05) 100%);
+    border-left: 3px solid var(--primary-color);
+    padding: 15px 20px;
+    border-radius: 0 12px 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.about-footer-note i {
+    font-size: 20px;
+    color: var(--primary-color);
+    animation: pulse-rocket 2s infinite ease-in-out;
+}
+
+.about-footer-note span {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--card-text-highlight);
+    line-height: 1.5;
+}
+
+@keyframes pulse-rocket {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
 }
 
 .about .about-content .right a {
@@ -750,6 +846,8 @@ section .title::after {
 .services .serv-content .card p {
     color: var(--text-sec);
     transition: var(--theme-transition);
+    line-height: 1.6;
+    font-size: 15px;
 }
 
 /* skills section styling */
@@ -1908,6 +2006,28 @@ footer span a:hover {
     display: block;
 }
 
+.live-modal-image-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg-sec);
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: auto;
+}
+
+#liveModalImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    background: transparent;
+    transition: var(--theme-transition);
+}
+
 /* small screens */
 @media (max-width: 600px) {
     .project-card img {
@@ -2352,6 +2472,10 @@ footer span a:hover {
 
 /* Responsive Explorer sidebar styling */
 @media (max-width: 768px) {
+    .about .about-content .right .about-pillars {
+        grid-template-columns: 1fr;
+    }
+
     .code-sidebar-open .code-modal__sidebar {
         transform: translateX(0);
     }
