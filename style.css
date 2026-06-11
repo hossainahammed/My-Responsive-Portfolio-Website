@@ -194,7 +194,9 @@ html.theme-in-transition * {
 }
 
 html {
-  scroll-behavior: smooth;
+  /* Lenis handles smooth scrolling — do NOT set scroll-behavior: smooth here
+     as it conflicts with Lenis and causes double-easing jank. */
+  scroll-behavior: auto;
 }
 
 body {
@@ -206,7 +208,7 @@ body {
 
 /* custom scroll bar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {

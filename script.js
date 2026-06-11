@@ -1,21 +1,42 @@
 $(document).ready(function () {
   // Initialize Lenis smooth scroll
+  // NOTE: scroll-behavior:smooth is set to 'auto' in CSS to avoid double-easing conflict.
   const lenis = new Lenis({
-    duration: 1.2,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
+    duration: 0.9,           // snappier feel (was 1.2)
+    lerp: 0.1,               // linear interpolation factor — lower = silkier glide
+    easing: (t) => t < 0.5  // easeInOutQuart — feels natural and premium
+      ? 8 * t * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 4) / 2,
     smoothWheel: true,
-    smoothTouch: false,
+    smoothTouch: false,      // keep native touch on mobile (better UX)
+    wheelMultiplier: 1.0,    // 1:1 wheel ratio — no over-scroll
+    touchMultiplier: 1.5,
+    infinite: false,
   });
 
+  // Drive Lenis via rAF loop (must NOT use setTimeout)
   function raf(time) {
     lenis.raf(time);
     requestAnimationFrame(raf);
   }
   requestAnimationFrame(raf);
 
-  // Sync scroll reveals with Lenis scrolls
-  lenis.on("scroll", function () {
-    $(window).trigger("scroll");
+  // Relay Lenis scroll events so jQuery scroll handlers (sticky nav, reveal) keep working
+  lenis.on("scroll", ({ scroll }) => {
+    // Use the raw scroll position to drive scroll-based UI without re-triggering jQuery overhead
+    const y = scroll;
+    // sticky navbar
+    if (y > 20) {
+      document.querySelector(".navbar")?.classList.add("sticky");
+    } else {
+      document.querySelector(".navbar")?.classList.remove("sticky");
+    }
+    // scroll-up button
+    if (y > 500) {
+      document.querySelector(".scroll-up-btn")?.classList.add("show");
+    } else {
+      document.querySelector(".scroll-up-btn")?.classList.remove("show");
+    }
   });
 
   // Theme toggle functionality
@@ -84,21 +105,7 @@ $(document).ready(function () {
       }
     });
 
-  $(window).scroll(function () {
-    // sticky navbar on scroll script
-    if (this.scrollY > 20) {
-      $(".navbar").addClass("sticky");
-    } else {
-      $(".navbar").removeClass("sticky");
-    }
-
-    // scroll-up button show/hide script
-    if (this.scrollY > 500) {
-      $(".scroll-up-btn").addClass("show");
-    } else {
-      $(".scroll-up-btn").removeClass("show");
-    }
-  });
+  // (sticky navbar & scroll-up button are handled inside lenis.on("scroll") above)
 
   // slide-up script
   $(".scroll-up-btn").click(function () {
@@ -161,8 +168,8 @@ $(document).ready(function () {
         } else {
           alert(
             'CV file not found at "' +
-              href +
-              '".\nPlease place your CV at that path or update the link in index.html.',
+            href +
+            '".\nPlease place your CV at that path or update the link in index.html.',
           );
         }
       })
