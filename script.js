@@ -191,8 +191,8 @@ $(document).ready(function () {
         } else {
           alert(
             'CV file not found at "' +
-            href +
-            '".\nPlease place your CV at that path or update the link in index.html.',
+              href +
+              '".\nPlease place your CV at that path or update the link in index.html.',
           );
         }
       })
