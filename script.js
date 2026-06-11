@@ -76,7 +76,7 @@ $(document).ready(function () {
 
     sortedCells.forEach((cell) => {
       let count = parseInt(cell.getAttribute("data-count") || "0", 10);
-      
+
       // Fallback: use data-level if data-count is not set
       if (!cell.hasAttribute("data-count") && cell.hasAttribute("data-level")) {
         const level = parseInt(cell.getAttribute("data-level") || "0", 10);
@@ -290,8 +290,8 @@ $(document).ready(function () {
         } else {
           alert(
             'CV file not found at "' +
-              href +
-              '".\nPlease place your CV at that path or update the link in index.html.',
+            href +
+            '".\nPlease place your CV at that path or update the link in index.html.',
           );
         }
       })
