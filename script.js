@@ -469,7 +469,7 @@ $(document).ready(function () {
     return v ? parseInt(v) : null;
   };
 
-  /* Contact form: validate and open mail client (mailto:) as default action */
+  /* Contact form: AJAX submission using FormSubmit.co */
   $("#contactForm").on("submit", function (e) {
     e.preventDefault();
     var name = $("#contact-name").val().trim();
@@ -500,44 +500,49 @@ $(document).ready(function () {
       return;
     }
 
-    // build mailto
-    var to = "hossainahammed627@gmail.com";
-    var body =
-      "Name: " +
-      name +
-      "%0D%0AEmail: " +
-      email +
-      "%0D%0A%0D%0A" +
-      encodeURIComponent(message);
-    var mailto =
-      "mailto:" +
-      encodeURIComponent(to) +
-      "?subject=" +
-      encodeURIComponent(subject || "Contact from portfolio") +
-      "&body=" +
-      body;
+    // Disable submit button during request to prevent double submissions
+    const $submitBtn = $("#contact-submit");
+    $submitBtn.prop("disabled", true).text("Sending...");
 
-    // show status
     $("#contact-status")
-      .text("Opening your mail app...")
-      .css("color", "#0a0")
+      .text("Sending message...")
+      .css("color", "var(--primary-color)")
       .fadeIn(120);
 
-    // open mail client
-    window.location.href = mailto;
-
-    // clear form after a short delay
-    setTimeout(function () {
-      $("#contactForm")[0].reset();
-      $("#contact-status")
-        .text(
-          "If your mail app did not open, copy the message and send to hossainahammed627@gmail.com",
-        )
-        .css("color", "#333");
-      setTimeout(function () {
-        $("#contact-status").fadeOut(1600);
-      }, 4000);
-    }, 600);
+    // Send via FormSubmit AJAX API
+    $.ajax({
+      url: "https://formsubmit.co/ajax/hossainahammed627@gmail.com",
+      method: "POST",
+      data: JSON.stringify({
+        name: name,
+        email: email,
+        _subject: subject || "Contact from Portfolio",
+        message: message
+      }),
+      dataType: "json",
+      contentType: "application/json",
+      success: function (response) {
+        $("#contact-status")
+          .text("Message sent successfully! Thank you.")
+          .css("color", "#22c55e")
+          .fadeIn(120);
+        $("#contactForm")[0].reset();
+        
+        setTimeout(function () {
+          $("#contact-status").fadeOut(800);
+        }, 4000);
+      },
+      error: function (error) {
+        console.error("Contact Form submission error:", error);
+        $("#contact-status")
+          .text("Failed to send. Please email directly to hossainahammed627@gmail.com")
+          .css("color", "#ef4444")
+          .fadeIn(120);
+      },
+      complete: function () {
+        $submitBtn.prop("disabled", false).text("Send message");
+      }
+    });
   });
 
   // Active navbar link highlighter on scroll
