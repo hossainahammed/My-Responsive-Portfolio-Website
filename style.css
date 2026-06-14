@@ -768,7 +768,12 @@ section .title::after {
 }
 
 /* services section styling */
-.services,
+.services {
+    color: var(--text-main);
+    background: var(--bg-main);
+    transition: var(--theme-transition);
+}
+
 .teams {
     color: var(--text-main);
     background: var(--bg-sec);
@@ -780,7 +785,11 @@ section .title::after {
     background: var(--text-main);
 }
 
-.services .title::after,
+.services .title::after {
+    background: var(--bg-main);
+    content: "What I Provide";
+}
+
 .teams .title::after {
     background: var(--bg-sec);
     content: "What I Provide";
