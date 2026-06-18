@@ -1755,6 +1755,92 @@ footer span a:hover {
     }
 }
 
+/* Certifications section styling */
+.certifications {
+    background: var(--bg-sec);
+    color: var(--text-main);
+    transition: var(--theme-transition);
+}
+.certifications .title::after {
+    content: "My Achievements";
+}
+.certifications .cert-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.certifications .cert-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 16px;
+    padding: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    max-width: 900px;
+    align-items: center;
+    box-shadow: 0 15px 35px var(--shadow-main);
+    transition: var(--theme-transition);
+}
+.certifications .cert-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+    box-shadow: 0 20px 40px var(--primary-glow);
+}
+.certifications .cert-img-wrapper {
+    flex: 1;
+    min-width: 300px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 3px solid var(--border-card);
+}
+.certifications .cert-img-wrapper img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.certifications .cert-card:hover .cert-img-wrapper img {
+    transform: scale(1.03);
+}
+.certifications .cert-info-body {
+    flex: 1;
+    min-width: 300px;
+}
+.certifications .cert-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--card-text-highlight);
+    font-family: var(--font-title);
+}
+.certifications .cert-desc {
+    font-size: 16px;
+    color: var(--text-sec);
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+.certifications .cert-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-gradient);
+    color: #fff;
+    padding: 10px 25px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 16px;
+    transition: var(--theme-transition);
+    box-shadow: 0 4px 15px var(--primary-glow);
+}
+.certifications .cert-link-btn:hover {
+    color: #fff;
+    transform: translateY(-3px);
+    background: var(--accent-gradient-hover);
+    box-shadow: 0 8px 25px var(--primary-glow-strong);
+}
+
 /* Projects grid and live-view modal styles */
 .projects {
     padding: 70px 0;
