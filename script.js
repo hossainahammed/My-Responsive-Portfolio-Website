@@ -402,6 +402,47 @@ $(document).ready(function () {
     }
   });
 
+  /* Appetize live preview */
+  $(".project-card .appetize-btn").on("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $card = $(this).closest(".project-card");
+    var url = ($card.attr("data-appetizeurl") || "").trim();
+    var title = $card.attr("data-title") + " - Appetize Live";
+    if (url && url !== "#") {
+      $("#liveModalTitle").text(title);
+      $("#liveModalIframe").attr("src", url).show();
+      $("#liveModalImageContainer").hide();
+      $("#liveModalImage").attr("src", "");
+      $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
+      $("body").addClass("modal-open");
+    } else {
+      alert("Appetize link not provided yet.");
+    }
+  });
+
+  /* Live Video preview */
+  $(".project-card .live-btn").on("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $card = $(this).closest(".project-card");
+    var url = ($card.attr("data-videourl") || "").trim();
+    if (!url || url === "#") {
+      url = ($card.attr("data-liveurl") || "").trim();
+    }
+    var title = $card.attr("data-title") + " - Live Preview";
+    if (url && url !== "#") {
+      $("#liveModalTitle").text(title);
+      $("#liveModalIframe").attr("src", url).show();
+      $("#liveModalImageContainer").hide();
+      $("#liveModalImage").attr("src", "");
+      $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
+      $("body").addClass("modal-open");
+    } else {
+      alert("Live link not provided yet.");
+    }
+  });
+
   // Prevent modal opening when clicking the "Code" button inside project cards
   $(".project-card .code-btn").on("click", function (e) {
     e.stopPropagation();
@@ -634,4 +675,96 @@ $(document).ready(function () {
       this.style.setProperty("--mouse-y", y + "px");
     },
   );
+
+  /* ================= Admin Panel Logic ================= */
+  $("#admin-trigger").on("dblclick", function(e) {
+    e.preventDefault();
+    $("#adminModal").show().attr("aria-hidden", "false");
+    $("body").addClass("modal-open");
+  });
+
+  $(".admin-close").on("click", function() {
+    $("#adminModal").hide().attr("aria-hidden", "true");
+    $("body").removeClass("modal-open");
+  });
+
+  $("#admin-login-btn").on("click", function() {
+    var email = $("#admin-email").val();
+    var key = $("#admin-key").val();
+    if (email === "hossainahammed627@gmail.com" && key === "4694") {
+      $("#admin-login-step").hide();
+      $("#admin-form-step").fadeIn();
+      $("#admin-error").hide();
+    } else {
+      $("#admin-error").text("Invalid Credentials").show();
+    }
+  });
+
+  $("#admin-generate-btn").on("click", function() {
+    var title = $("#ap-title").val() || "New App";
+    var id = $("#ap-id").val() || "flutter-new";
+    var image = $("#ap-image").val() || "placeholder.png";
+    var desc = $("#ap-desc").val() || "Not specified.";
+    
+    var techRaw = $("#ap-tech").val() || "Flutter, Dart";
+    var techPills = techRaw.split(",").map(t => `<span class="tech-pill">${t.trim()}</span>`).join("\n                                ");
+    
+    var featRaw = $("#ap-features").val() || "Feature 1, Feature 2";
+    var featList = featRaw.split(",").map(f => `<li>${f.trim()}</li>`).join("\n                                ");
+    
+    var live = $("#ap-live").val() || "#";
+    var appetize = $("#ap-appetize").val() || "#";
+    var video = $("#ap-video").val() || "#";
+    var github = $("#ap-github").val() || "#";
+
+    var htmlTemplate = `                <div class="project-card" data-id="${id}"
+                    data-liveurl="${live}" data-appetizeurl="${appetize}" data-videourl="${video}" data-title="${title}">
+                    <div class="project-img-wrapper">
+                        <img src="images/${image}" alt="${title}" />
+                    </div>
+                    <div class="project-info-body">
+                        <div class="proj-title">${title}</div>
+                        <div class="proj-meta">
+                            <p class="proj-desc">
+                                <strong>Problem Solved:</strong> ${desc}
+                            </p>
+                            <div class="proj-tech">
+                                ${techPills}
+                            </div>
+                            <ul class="proj-features">
+                                ${featList}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="project-links">
+                        <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
+                        <a href="${github}" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
+                    </div>
+                </div>`;
+
+    $("#admin-output-code").val(htmlTemplate);
+    $("#admin-form-step").hide();
+    $("#admin-result-step").fadeIn();
+    
+    // Preview locally
+    $(".projects-grid").first().append(htmlTemplate);
+    $(".projects-grid").first().children().last().addClass("active");
+  });
+
+  $("#admin-copy-btn").on("click", function() {
+    var output = document.getElementById("admin-output-code");
+    output.select();
+    output.setSelectionRange(0, 99999); 
+    document.execCommand("copy");
+    $("#admin-copy-status").fadeIn();
+    setTimeout(() => $("#admin-copy-status").fadeOut(), 3000);
+  });
+
+  $("#admin-reset-btn").on("click", function() {
+    $("#admin-result-step").hide();
+    $("#admin-form-step").fadeIn();
+    $(".admin-form-scroll input, .admin-form-scroll textarea").val("");
+  });
 });

@@ -339,6 +339,39 @@
         </div>
     </section>
 
+    <!-- Experience section start -->
+    <section class="experience" id="experience">
+        <div class="max-width">
+            <h2 class="title title-experience">Professional Experience</h2>
+            <div class="experience-content reveal">
+                <div class="timeline-container">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">6 Months</div>
+                        <div class="timeline-content-box">
+                            <div class="timeline-header">
+                                <i class="fas fa-briefcase"></i>
+                                <h3>Full-Time Flutter Developer</h3>
+                            </div>
+                            <h4 class="company-name">SM Technology</h4>
+                            <p class="role-type">On-desk Professional Role</p>
+                            <p class="role-desc">
+                                Worked full-time on-site developing high-performance cross-platform mobile applications. 
+                                Focused on building robust features, integrating REST APIs, managing state with GetX, and ensuring clean, maintainable code architecture.
+                            </p>
+                            <div class="tech-stack">
+                                <span class="tech-pill">Flutter</span>
+                                <span class="tech-pill">Dart</span>
+                                <span class="tech-pill">GetX</span>
+                                <span class="tech-pill">REST API</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Development Practices section start -->
     <section class="practices" id="practices">
         <div class="max-width">
@@ -500,7 +533,7 @@
             <p class="subtitle">Click a project image to open a live preview.</p>
             <div class="projects-grid reveal-grid">
                 <div class="project-card" data-id="flutter-task"
-                    data-liveurl="https://hossainahammed.github.io/task_manager/" data-title="Task Management">
+                    data-liveurl="https://hossainahammed.github.io/task_manager/" data-appetizeurl="#" data-videourl="#" data-title="Task Management">
                     <div class="project-img-wrapper">
                         <img src="images/Artboard – 1.png" alt="Task Management" />
                     </div>
@@ -526,12 +559,13 @@
                     </div>
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
                         <a href="https://github.com/hossainahammed/task_manager" target="_blank" rel="noopener"
                             class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
                     </div>
                 </div>
                 <div class="project-card" data-id="flutter-ecom"
-                    data-liveurl="https://hossainahammed.github.io/e_commerce/" data-title="Ecommerce Project">
+                    data-liveurl="https://hossainahammed.github.io/e_commerce/" data-appetizeurl="#" data-videourl="#" data-title="Ecommerce Project">
                     <div class="project-img-wrapper">
                         <img src="images/Ecommerce.jpeg" alt="Ecommerce Project" />
                     </div>
@@ -557,12 +591,13 @@
                     </div>
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
                         <a href="https://github.com/hossainahammed/e_commerce" target="_blank" rel="noopener"
                             class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
                     </div>
                 </div>
                 <div class="project-card" data-id="flutter-exp"
-                    data-liveurl="https://hossainahammed.github.io/expense_tracker/" data-title="Expenses Tracker">
+                    data-liveurl="https://hossainahammed.github.io/expense_tracker/" data-appetizeurl="#" data-videourl="#" data-title="Expenses Tracker">
                     <div class="project-img-wrapper">
                         <img src="images/Expences Tracker.png" alt="Expenses Tracker" />
                     </div>
@@ -588,12 +623,13 @@
                     </div>
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
                         <a href="https://github.com/hossainahammed/expense_tracker" target="_blank" rel="noopener"
                             class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
                     </div>
                 </div>
                 <div class="project-card" data-id="flutter-unit"
-                    data-liveurl="https://hossainahammed.github.io/unit_converter_app/" data-title="Unit Converter">
+                    data-liveurl="https://hossainahammed.github.io/unit_converter_app/" data-appetizeurl="#" data-videourl="#" data-title="Unit Converter">
                     <div class="project-img-wrapper">
                         <img src="images/Unit Convert Visual.png" alt="Unit Convert" />
                     </div>
@@ -618,6 +654,7 @@
                     </div>
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
                         <a href="https://github.com/hossainahammed/unit_converter_app" target="_blank" rel="noopener"
                             class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
                     </div>
@@ -1153,10 +1190,67 @@
             </div>
             <span>
                 <span class="far fa-copyright"></span> 2025 | All rights reserved by
-                <b> Hossain Ahammed </b>
+                <b id="admin-trigger" style="cursor: pointer;" title="Double click for Admin"> Hossain Ahammed </b>
             </span>
         </div>
     </footer>
+
+    <!-- Admin Panel Modal -->
+    <div id="adminModal" class="live-modal" aria-hidden="true" style="z-index: 10000; display: none;">
+        <div class="live-modal__overlay admin-close"></div>
+        <div class="live-modal__content admin-content" style="max-width: 600px; padding: 30px;">
+            <button class="live-modal__close admin-close" aria-label="Close">&times;</button>
+            <div class="live-modal__header">
+                <h3 style="margin-bottom: 10px;">Admin Panel</h3>
+            </div>
+            
+            <!-- Login Step -->
+            <div id="admin-login-step">
+                <p style="margin-bottom: 15px; color: var(--text-sec);">Log in to add new projects to your portfolio.</p>
+                <div class="field" style="margin-bottom: 15px;">
+                    <input type="email" id="admin-email" placeholder="Email Address" required style="width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                </div>
+                <div class="field" style="margin-bottom: 20px;">
+                    <input type="password" id="admin-key" placeholder="Secret Key" required style="width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                </div>
+                <button id="admin-login-btn" style="background: var(--accent-gradient); color: #fff; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%;">Login</button>
+                <p id="admin-error" style="color: #ef4444; margin-top: 10px; display: none;"></p>
+            </div>
+
+            <!-- Add Project Step -->
+            <div id="admin-form-step" style="display: none;">
+                <p style="margin-bottom: 15px; color: var(--text-sec); font-size: 14px;">
+                    Fill out the details to generate the HTML for a new project.
+                </p>
+                <div style="max-height: 400px; overflow-y: auto; padding-right: 10px; margin-bottom: 15px;" class="admin-form-scroll">
+                    <input type="text" id="ap-title" placeholder="Project Title (e.g. Weather App)" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <input type="text" id="ap-id" placeholder="Project ID (e.g. flutter-weather)" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <input type="text" id="ap-image" placeholder="Image Name (e.g. weather.png) - put in images folder" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <textarea id="ap-desc" placeholder="Problem Solved Description" rows="2" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;"></textarea>
+                    <input type="text" id="ap-tech" placeholder="Tech Stack (comma separated: Flutter, Dart)" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <textarea id="ap-features" placeholder="Key Features (comma separated: UI, API)" rows="2" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;"></textarea>
+                    
+                    <h4 style="margin-bottom: 5px; color: var(--primary-color);">Links</h4>
+                    <input type="text" id="ap-live" placeholder="Live Demo URL (or #)" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <input type="text" id="ap-appetize" placeholder="Appetize Embed URL (or #)" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <input type="text" id="ap-video" placeholder="Video Embed URL (or #)" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <input type="text" id="ap-github" placeholder="GitHub Repo URL" style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                </div>
+                <button id="admin-generate-btn" style="background: var(--primary-color); color: #fff; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%;">Generate HTML & Preview</button>
+            </div>
+
+            <!-- Result Step -->
+            <div id="admin-result-step" style="display: none;">
+                <p style="margin-bottom: 10px; color: var(--text-sec);">Copy this HTML and paste it into index.html under the Flutter Projects grid:</p>
+                <textarea id="admin-output-code" rows="10" readonly style="width: 100%; padding: 10px; margin-bottom: 15px; background: #1e1e1e; color: #d4d4d4; font-family: monospace; border: 1px solid var(--border-card); border-radius: 6px; font-size: 12px;"></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <button id="admin-copy-btn" style="background: var(--accent-gradient); color: #fff; padding: 10px; flex: 1; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Copy HTML</button>
+                    <button id="admin-reset-btn" style="background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-card); padding: 10px; flex: 1; border-radius: 6px; cursor: pointer; font-weight: 600;">Add Another</button>
+                </div>
+                <p id="admin-copy-status" style="color: #22c55e; margin-top: 10px; display: none;">Copied to clipboard!</p>
+            </div>
+        </div>
+    </div>
 
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
     <!-- GitHub Calendar Widget Script -->

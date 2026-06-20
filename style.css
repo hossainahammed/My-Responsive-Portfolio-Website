@@ -865,6 +865,140 @@ section .title::after {
     content: "What I Know";
 }
 
+/* ================= Experience Section ================= */
+.experience .title::after {
+    content: "My Journey";
+}
+
+.experience .experience-content {
+    display: flex;
+    justify-content: center;
+    padding: 0 20px;
+}
+
+.timeline-container {
+    position: relative;
+    max-width: 800px;
+    width: 100%;
+}
+
+.timeline-container::after {
+    content: '';
+    position: absolute;
+    width: 2px;
+    background: var(--border-card);
+    top: 0;
+    bottom: 0;
+    left: 20px;
+    margin-left: -1px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 60px;
+    margin-bottom: 40px;
+}
+
+.timeline-dot {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: var(--accent-gradient);
+    border-radius: 50%;
+    left: 11px;
+    top: 5px;
+    z-index: 1;
+    box-shadow: 0 0 10px var(--primary-glow);
+    transition: var(--theme-transition);
+}
+
+.timeline-item:hover .timeline-dot {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px var(--primary-glow-strong);
+}
+
+.timeline-date {
+    display: inline-block;
+    padding: 5px 15px;
+    background: rgba(255, 0, 127, 0.1);
+    color: var(--primary-color);
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 0, 127, 0.2);
+}
+
+.timeline-content-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 25px;
+    transition: var(--theme-transition);
+}
+
+.timeline-item:hover .timeline-content-box {
+    border-color: var(--primary-color);
+    box-shadow: 0 10px 30px var(--shadow-hover);
+    transform: translateY(-5px);
+}
+
+.timeline-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.timeline-header i {
+    font-size: 24px;
+    color: var(--primary-color);
+}
+
+.timeline-header h3 {
+    font-size: 22px;
+    color: var(--card-text-highlight);
+    font-family: var(--font-title);
+}
+
+.company-name {
+    font-size: 18px;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.role-type {
+    font-size: 14px;
+    color: var(--text-sec);
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.role-desc {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-sec);
+    margin-bottom: 20px;
+}
+
+.experience .tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+@media (max-width: 690px) {
+    .timeline-container::after {
+        left: 15px;
+    }
+    .timeline-dot {
+        left: 6px;
+    }
+    .timeline-item {
+        padding-left: 40px;
+    }
+}
+
 .practices .title::after {
     content: "How I Work";
 }
@@ -1989,7 +2123,8 @@ footer span a:hover {
 .project-card .project-links {
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
     margin-top: 10px;
     flex-shrink: 0;
 }
@@ -1999,8 +2134,8 @@ footer span a:hover {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 8px 16px;
-    font-size: 13.5px;
+    padding: 8px 12px;
+    font-size: 13px;
     font-weight: 600;
     border-radius: 6px;
     border: 1px solid var(--border-card);
@@ -2009,7 +2144,8 @@ footer span a:hover {
     color: var(--text-main);
     text-decoration: none;
     font-family: var(--font-title);
-    flex: 1;
+    flex: 1 1 calc(33.333% - 8px);
+    white-space: nowrap;
 }
 
 .project-card .proj-link-btn.live-btn {
