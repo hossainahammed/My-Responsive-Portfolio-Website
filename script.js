@@ -682,7 +682,14 @@ $(document).ready(function () {
   function enableAdminMode() {
     if ($(".admin-edit-btn").length === 0) {
       $(".project-card").each(function() {
+        var isHidden = $(this).attr("data-hidden") === "true";
+        var eyeIcon = isHidden ? "fa-eye-slash" : "fa-eye";
         $(this).append('<button class="admin-edit-btn" title="Edit Project" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: var(--primary-color); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas fa-edit"></i></button>');
+        $(this).append('<button class="admin-hide-btn" title="Toggle Visibility" style="position: absolute; top: 10px; right: 50px; z-index: 10; background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas ' + eyeIcon + '"></i></button>');
+        
+        if (isHidden) {
+          $(this).css("opacity", "0.5");
+        }
       });
     }
   }
@@ -690,6 +697,9 @@ $(document).ready(function () {
   // Check login on load
   if (sessionStorage.getItem("isAdmin") === "true") {
     enableAdminMode();
+  } else {
+    // Hide all projects with data-hidden="true" for normal users
+    $(".project-card[data-hidden='true']").hide();
   }
 
   $("#admin-trigger").on("dblclick", function(e) {
@@ -762,6 +772,24 @@ $(document).ready(function () {
     $("#admin-form-step").show();
     $("#adminModal").show().attr("aria-hidden", "false");
     $("body").addClass("modal-open");
+  });
+
+  // Toggle hide project
+  $(document).on("click", ".admin-hide-btn", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $card = $(this).closest(".project-card");
+    var isHidden = $card.attr("data-hidden") === "true";
+    
+    if (isHidden) {
+      $card.attr("data-hidden", "false");
+      $card.css("opacity", "1");
+      $(this).find("i").removeClass("fa-eye-slash").addClass("fa-eye");
+    } else {
+      $card.attr("data-hidden", "true");
+      $card.css("opacity", "0.5");
+      $(this).find("i").removeClass("fa-eye").addClass("fa-eye-slash");
+    }
   });
 
   $("#admin-generate-btn").on("click", function() {
