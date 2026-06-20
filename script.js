@@ -677,10 +677,33 @@ $(document).ready(function () {
   );
 
   /* ================= Admin Panel Logic ================= */
+  window.currentlyEditingCard = null;
+
+  function enableAdminMode() {
+    if ($(".admin-edit-btn").length === 0) {
+      $(".project-card").each(function() {
+        $(this).append('<button class="admin-edit-btn" title="Edit Project" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: var(--primary-color); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas fa-edit"></i></button>');
+      });
+    }
+  }
+
+  // Check login on load
+  if (sessionStorage.getItem("isAdmin") === "true") {
+    enableAdminMode();
+  }
+
   $("#admin-trigger").on("dblclick", function(e) {
     e.preventDefault();
     $("#adminModal").show().attr("aria-hidden", "false");
     $("body").addClass("modal-open");
+    
+    // If already logged in, skip to form
+    if (sessionStorage.getItem("isAdmin") === "true") {
+      $("#admin-login-step").hide();
+      $("#admin-form-step").show();
+      window.currentlyEditingCard = null; // Adding new by default from double-click
+      $(".admin-form-scroll input, .admin-form-scroll textarea").val("");
+    }
   });
 
   $(".admin-close").on("click", function() {
@@ -692,12 +715,53 @@ $(document).ready(function () {
     var email = $("#admin-email").val();
     var key = $("#admin-key").val();
     if (email === "hossainahammed627@gmail.com" && key === "4694") {
+      sessionStorage.setItem("isAdmin", "true");
+      enableAdminMode();
       $("#admin-login-step").hide();
       $("#admin-form-step").fadeIn();
       $("#admin-error").hide();
+      window.currentlyEditingCard = null;
+      $(".admin-form-scroll input, .admin-form-scroll textarea").val("");
     } else {
       $("#admin-error").text("Invalid Credentials").show();
     }
+  });
+
+  // Edit existing project
+  $(document).on("click", ".admin-edit-btn", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $card = $(this).closest(".project-card");
+    window.currentlyEditingCard = $card;
+    
+    // Populate form
+    $("#ap-title").val($card.attr("data-title") || "");
+    $("#ap-id").val($card.attr("data-id") || "");
+    
+    var imgSrc = $card.find(".project-img-wrapper img").attr("src") || "";
+    $("#ap-image").val(imgSrc.replace("images/", ""));
+    
+    var descText = $card.find(".proj-desc").text().replace("Problem Solved:", "").trim();
+    $("#ap-desc").val(descText);
+    
+    var techList = [];
+    $card.find(".tech-pill").each(function() { techList.push($(this).text().trim()); });
+    $("#ap-tech").val(techList.join(", "));
+    
+    var featList = [];
+    $card.find(".proj-features li").each(function() { featList.push($(this).text().trim()); });
+    $("#ap-features").val(featList.join(", "));
+    
+    $("#ap-live").val($card.attr("data-liveurl") || "");
+    $("#ap-appetize").val($card.attr("data-appetizeurl") || "");
+    $("#ap-video").val($card.attr("data-videourl") || "");
+    $("#ap-github").val($card.find(".code-btn").attr("href") || "");
+    
+    $("#admin-login-step").hide();
+    $("#admin-result-step").hide();
+    $("#admin-form-step").show();
+    $("#adminModal").show().attr("aria-hidden", "false");
+    $("body").addClass("modal-open");
   });
 
   $("#admin-generate-btn").on("click", function() {
@@ -749,8 +813,17 @@ $(document).ready(function () {
     $("#admin-result-step").fadeIn();
     
     // Preview locally
-    $(".projects-grid").first().append(htmlTemplate);
-    $(".projects-grid").first().children().last().addClass("active");
+    var $newCard = $(htmlTemplate);
+    if (window.currentlyEditingCard) {
+      window.currentlyEditingCard.replaceWith($newCard);
+    } else {
+      $(".projects-grid").first().append($newCard);
+    }
+    
+    if ("IntersectionObserver" in window) {
+      $newCard.addClass("active");
+    }
+    enableAdminMode(); // re-attach edit button to the new card
   });
 
   $("#admin-copy-btn").on("click", function() {
@@ -765,6 +838,7 @@ $(document).ready(function () {
   $("#admin-reset-btn").on("click", function() {
     $("#admin-result-step").hide();
     $("#admin-form-step").fadeIn();
+    window.currentlyEditingCard = null;
     $(".admin-form-scroll input, .admin-form-scroll textarea").val("");
   });
 });
