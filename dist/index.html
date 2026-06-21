@@ -37,6 +37,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css" />
     <!-- GitHub Calendar Widget CSS -->
     <link rel="stylesheet" href="https://unpkg.com/github-calendar@latest/dist/github-calendar-responsive.css" />
 
@@ -51,8 +53,8 @@
             document.documentElement.setAttribute("data-theme", theme);
         })();
     </script>
-  <script type="module" crossorigin src="/assets/index-mexRPPCM.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-2R3aPysj.css">
+  <script type="module" crossorigin src="/assets/index-CyvntDhd.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BQikACK6.css">
 </head>
 
 <body>
@@ -340,6 +342,40 @@
         </div>
     </section>
 
+    <!-- Experience section start -->
+    <section class="experience" id="experience">
+        <div class="max-width">
+            <h2 class="title title-experience">Professional Experience</h2>
+            <div class="experience-content reveal">
+                <div class="timeline-container">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">Feb 2026 - Present</div>
+                        <div class="timeline-content-box">
+                            <div class="timeline-header">
+                                <i class="fas fa-briefcase"></i>
+                                <h3>Full-Time Flutter Developer</h3>
+                            </div>
+                            <h4 class="company-name">SM Technology</h4>
+                            <p class="role-type">On-desk Professional Role</p>
+                            <p class="role-desc">
+                                Worked full-time on-site developing high-performance cross-platform mobile applications.
+                                Focused on building robust features, integrating REST APIs, managing state with GetX,
+                                and ensuring clean, maintainable code architecture.
+                            </p>
+                            <div class="tech-stack">
+                                <span class="tech-pill">Flutter</span>
+                                <span class="tech-pill">Dart</span>
+                                <span class="tech-pill">GetX</span>
+                                <span class="tech-pill">REST API</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Development Practices section start -->
     <section class="practices" id="practices">
         <div class="max-width">
@@ -471,45 +507,48 @@
             </div>
         </div>
     </section> -->
+    <!-- Certifications section start -->
+    <section class="certifications" id="certifications">
+        <div class="max-width">
+            <h2 class="title">Certifications</h2>
+            <div class="cert-content reveal">
+                <div class="cert-card">
+                    <div class="cert-img-wrapper">
+                        <img src="/assets/flutter_certificate-Cj6Znhhv.png" alt="Flutter App Development Course Certificate">
+                    </div>
+                    <div class="cert-info-body">
+                        <div class="cert-title">Flutter App Development Course</div>
+                        <p class="cert-desc">
+                            Completed a comprehensive training program in Flutter app development, focusing on building
+                            high-performance, cross-platform mobile applications using Dart, Firebase, and modern state
+                            management architectures.
+                        </p>
+                        <a href="https://drive.google.com/file/d/1Z4-OlqQRLY5IKKpA_2HghlSDUAwN6Zzu/view?usp=drive_link"
+                            target="_blank" rel="noopener" class="cert-link-btn">
+                            <i class="fas fa-external-link-alt"></i> View Original
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- projects gallery start -->
     <section class="projects" id="projects">
         <div class="max-width">
             <h2 class="title title-flutter">Flutter Projects</h2>
-            <p class="subtitle">Click a project image to open a live preview.</p>
+            <p class="subtitle">✨ Browse app Features & Demo below — tap any project card to view in fullscreen.</p>
+
+            <!-- Flutter App Showcase: populated by JS -->
+            <div id="flutterShowcase" class="flutter-showcase">
+                <div class="showcase-loading"><i class="fas fa-spinner fa-spin"></i>&nbsp; Loading showcase…</div>
+            </div>
+
             <div class="projects-grid reveal-grid">
-                <div class="project-card" data-id="flutter-task"
-                    data-liveurl="https://hossainahammed.github.io/task_manager/" data-title="Task Management">
-                    <div class="project-img-wrapper">
-                        <img src="/assets/Artboard%20%E2%80%93%201-Cw3GQ-YX.png" alt="Task Management" />
-                    </div>
-                    <div class="project-info-body">
-                        <div class="proj-title">Task Management</div>
-                        <div class="proj-meta">
-                            <p class="proj-desc">
-                                <strong>Problem Solved:</strong> Inefficient personal daily
-                                scheduling and task tracking.
-                            </p>
-                            <div class="proj-tech">
-                                <span class="tech-pill">Flutter</span>
-                                <span class="tech-pill">Dart</span>
-                                <span class="tech-pill">GetX</span>
-                                <span class="tech-pill">Hive</span>
-                            </div>
-                            <ul class="proj-features">
-                                <li>Local tasks CRUD (Hive storage)</li>
-                                <li>Category filtering & search</li>
-                                <li>Custom reminder notifications</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="project-links">
-                        <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
-                        <a href="https://github.com/hossainahammed/task_manager" target="_blank" rel="noopener"
-                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
-                    </div>
-                </div>
+                <!-- flutter-ecom -->
                 <div class="project-card" data-id="flutter-ecom"
-                    data-liveurl="https://hossainahammed.github.io/e_commerce/" data-title="Ecommerce Project">
+                    data-liveurl="https://hossainahammed.github.io/e_commerce/" data-appetizeurl="#" data-videourl="#"
+                    data-title="Ecommerce Project" data-image-folder="images/Ecommerce/">
                     <div class="project-img-wrapper">
                         <img src="/assets/Ecommerce-KmXYybcn.jpeg" alt="Ecommerce Project" />
                     </div>
@@ -527,20 +566,24 @@
                                 <span class="tech-pill">GetX</span>
                             </div>
                             <ul class="proj-features">
-                                <li>Dynamic product catalog & search</li>
-                                <li>Cart & local checkout state manager</li>
-                                <li>Authentication & profile settings</li>
+                                <li>Dynamic product catalog &amp; search</li>
+                                <li>Cart &amp; local checkout state manager</li>
+                                <li>Authentication &amp; profile settings</li>
                             </ul>
                         </div>
                     </div>
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
-                        <a href="https://github.com/hossainahammed/e_commerce" target="_blank" rel="noopener"
-                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
+                        <!-- <a href="https://github.com/hossainahammed/e_commerce" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
                     </div>
                 </div>
+
+                <!-- flutter-exp -->
                 <div class="project-card" data-id="flutter-exp"
-                    data-liveurl="https://hossainahammed.github.io/expense_tracker/" data-title="Expenses Tracker">
+                    data-liveurl="https://hossainahammed.github.io/expense_tracker/" data-appetizeurl="#"
+                    data-videourl="#" data-title="Expenses Tracker" data-image-folder="images/ExpensesTracker/">
                     <div class="project-img-wrapper">
                         <img src="/assets/Expences%20Tracker-DSJr7dob.png" alt="Expenses Tracker" />
                     </div>
@@ -558,7 +601,7 @@
                                 <span class="tech-pill">SQLite</span>
                             </div>
                             <ul class="proj-features">
-                                <li>Real-time budget analytics & charts</li>
+                                <li>Real-time budget analytics &amp; charts</li>
                                 <li>Multi-currency transaction logging</li>
                                 <li>Local encryption database</li>
                             </ul>
@@ -566,12 +609,50 @@
                     </div>
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
-                        <a href="https://github.com/hossainahammed/expense_tracker" target="_blank" rel="noopener"
-                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
+                        <!-- <a href="https://github.com/hossainahammed/expense_tracker" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
                     </div>
                 </div>
+
+                <!-- flutter-smartplanai -->
+                <div class="project-card" data-id="flutter-smartplanai" data-liveurl="#" data-appetizeurl="#"
+                    data-videourl="#" data-title="SmartPlanAi" data-image-folder="images/SmartPlanAi/">
+                    <div class="project-img-wrapper">
+                        <img src="/assets/SmartPlanAi-DZBEvgXx.png" alt="SmartPlanAi" />
+                    </div>
+                    <div class="project-info-body">
+                        <div class="proj-title">SmartPlanAi</div>
+                        <div class="proj-meta">
+                            <p class="proj-desc">
+                                <strong>Problem Solved:</strong> Need for intelligent, automated daily task scheduling
+                                with voice input and Smart AI reminders.
+                            </p>
+                            <div class="proj-tech">
+                                <span class="tech-pill">Flutter</span>
+                                <span class="tech-pill">Dart</span>
+                                <span class="tech-pill">GetX</span>
+                                <span class="tech-pill">AI Integration</span>
+                            </div>
+                            <ul class="proj-features">
+                                <li>AI-driven task optimization</li>
+                                <li>Voice input ("Listening...")</li>
+                                <li>Custom reminders &amp; statistics</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="project-links">
+                        <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
+                        <!-- <a href="https://github.com/hossainahammed/SmartPlanAi.git" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
+                    </div>
+                </div>
+
+                <!-- flutter-unit -->
                 <div class="project-card" data-id="flutter-unit"
-                    data-liveurl="https://hossainahammed.github.io/unit_converter_app/" data-title="Unit Converter">
+                    data-liveurl="https://hossainahammed.github.io/unit_converter_app/" data-appetizeurl="#"
+                    data-videourl="#" data-title="Unit Converter" data-image-folder="images/UnitConverter/">
                     <div class="project-img-wrapper">
                         <img src="/assets/Unit%20Convert%20Visual-hPyJaJPG.png" alt="Unit Convert" />
                     </div>
@@ -596,8 +677,79 @@
                     </div>
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
-                        <a href="https://github.com/hossainahammed/unit_converter_app" target="_blank" rel="noopener"
-                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
+                        <!-- <a href="https://github.com/hossainahammed/unit_converter_app" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
+                    </div>
+                </div>
+
+                <!-- flutter-task -->
+                <div class="project-card" data-id="flutter-task"
+                    data-liveurl="https://hossainahammed.github.io/task_manager/" data-appetizeurl="#" data-videourl="#"
+                    data-title="Task Management" data-image-folder="images/TaskManagement/">
+                    <div class="project-img-wrapper">
+                        <img src="/assets/Artboard%20%E2%80%93%201-Cw3GQ-YX.png" alt="Task Management" />
+                    </div>
+                    <div class="project-info-body">
+                        <div class="proj-title">Task Management</div>
+                        <div class="proj-meta">
+                            <p class="proj-desc">
+                                <strong>Problem Solved:</strong> Inefficient personal daily
+                                scheduling and task tracking.
+                            </p>
+                            <div class="proj-tech">
+                                <span class="tech-pill">Flutter</span>
+                                <span class="tech-pill">Dart</span>
+                                <span class="tech-pill">GetX</span>
+                                <span class="tech-pill">Hive</span>
+                            </div>
+                            <ul class="proj-features">
+                                <li>Local tasks CRUD (Hive storage)</li>
+                                <li>Category filtering &amp; search</li>
+                                <li>Custom reminder notifications</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="project-links">
+                        <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
+                        <!-- <a href="https://github.com/hossainahammed/task_manager" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
+                    </div>
+                </div>
+
+                <!-- flutter-projectpulse (NEW) -->
+                <div class="project-card" data-id="flutter-projectpulse" data-liveurl="#" data-appetizeurl="https://projectpulseee.netlify.app/"
+                    data-videourl="#" data-title="ProjectPulse" data-image-folder="images/ProjectPulse/">
+                    <div class="project-img-wrapper">
+                        <img src="/assets/1-DXxi-Oul.png" alt="ProjectPulse"
+                            onerror="this.src='images/SmartPlanAi.png'" />
+                    </div>
+                    <div class="project-info-body">
+                        <div class="proj-title">ProjectPulse</div>
+                        <div class="proj-meta">
+                            <p class="proj-desc">
+                                <strong>Problem Solved:</strong> Difficulty tracking project progress,
+                                team tasks, and milestones in real time across mobile and web.
+                            </p>
+                            <div class="proj-tech">
+                                <span class="tech-pill">Flutter</span>
+                                <span class="tech-pill">Dart</span>
+                                <span class="tech-pill">GetX</span>
+                                <span class="tech-pill">Web</span>
+                            </div>
+                            <ul class="proj-features">
+                                <li>Real-time project &amp; task tracking</li>
+                                <li>Cross-platform — Mobile &amp; Web</li>
+                                <li>Dashboard analytics &amp; milestones</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="project-links">
+                        <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Web version Live</span>
+                        <!-- <a href="https://github.com/hossainahammed/ProjectPulse" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
                     </div>
                 </div>
             </div>
@@ -1131,10 +1283,91 @@
             </div>
             <span>
                 <span class="far fa-copyright"></span> 2025 | All rights reserved by
-                <b> Hossain Ahammed </b>
+                <b id="admin-trigger" style="cursor: pointer;" title="Double click for Admin"> Hossain Ahammed </b>
             </span>
         </div>
     </footer>
+
+    <!-- Admin Panel Modal -->
+    <div id="adminModal" class="live-modal" aria-hidden="true" style="z-index: 10000; display: none;">
+        <div class="live-modal__overlay admin-close"></div>
+        <div class="live-modal__content admin-content" style="max-width: 600px; padding: 30px;">
+            <button class="live-modal__close admin-close" aria-label="Close">&times;</button>
+            <div class="live-modal__header">
+                <h3 style="margin-bottom: 10px;">Admin Panel</h3>
+            </div>
+
+            <!-- Login Step -->
+            <div id="admin-login-step">
+                <p style="margin-bottom: 15px; color: var(--text-sec);">Log in to add new projects to your portfolio.
+                </p>
+                <div class="field" style="margin-bottom: 15px;">
+                    <input type="email" id="admin-email" placeholder="Email Address" required
+                        style="width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                </div>
+                <div class="field" style="margin-bottom: 20px;">
+                    <input type="password" id="admin-key" placeholder="Secret Key" required
+                        style="width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                </div>
+                <button id="admin-login-btn"
+                    style="background: var(--accent-gradient); color: #fff; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%;">Login</button>
+                <p id="admin-error" style="color: #ef4444; margin-top: 10px; display: none;"></p>
+            </div>
+
+            <!-- Add Project Step -->
+            <div id="admin-form-step" style="display: none;">
+                <p style="margin-bottom: 15px; color: var(--text-sec); font-size: 14px;">
+                    Fill out the details to generate the HTML for a new project.
+                </p>
+                <div style="max-height: 400px; overflow-y: auto; padding-right: 10px; margin-bottom: 15px;"
+                    class="admin-form-scroll">
+                    <input type="text" id="ap-title" placeholder="Project Title (e.g. Weather App)"
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <input type="text" id="ap-id" placeholder="Project ID (e.g. flutter-weather)"
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <input type="text" id="ap-image" placeholder="Image Name (e.g. weather.png) - put in images folder"
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <textarea id="ap-desc" placeholder="Problem Solved Description" rows="2"
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;"></textarea>
+                    <input type="text" id="ap-tech" placeholder="Tech Stack (comma separated: Flutter, Dart)"
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <textarea id="ap-features" placeholder="Key Features (comma separated: UI, API)" rows="2"
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;"></textarea>
+
+                    <h4 style="margin-bottom: 5px; color: var(--primary-color);">Links</h4>
+                    <input type="text" id="ap-live" placeholder="Live Demo URL (or #)"
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <input type="text" id="ap-appetize" placeholder="Appetize Embed URL (or #)"
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <input type="text" id="ap-video" placeholder="Video Embed URL (or #)"
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                    <input type="text" id="ap-github" placeholder="GitHub Repo URL"
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); border-radius: 6px;">
+                </div>
+                <button id="admin-generate-btn"
+                    style="background: var(--primary-color); color: #fff; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%;">Generate
+                    HTML & Preview</button>
+            </div>
+
+            <!-- Result Step -->
+            <div id="admin-result-step" style="display: none;">
+                <p style="margin-bottom: 10px; color: var(--text-sec);">Copy this HTML and paste it into index.html
+                    under the Flutter Projects grid:</p>
+                <textarea id="admin-output-code" rows="10" readonly
+                    style="width: 100%; padding: 10px; margin-bottom: 15px; background: #1e1e1e; color: #d4d4d4; font-family: monospace; border: 1px solid var(--border-card); border-radius: 6px; font-size: 12px;"></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <button id="admin-copy-btn"
+                        style="background: var(--accent-gradient); color: #fff; padding: 10px; flex: 1; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Copy
+                        HTML</button>
+                    <button id="admin-reset-btn"
+                        style="background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-card); padding: 10px; flex: 1; border-radius: 6px; cursor: pointer; font-weight: 600;">Add
+                        Another</button>
+                </div>
+                <p id="admin-copy-status" style="color: #22c55e; margin-top: 10px; display: none;">Copied to clipboard!
+                </p>
+            </div>
+        </div>
+    </div>
 
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
     <!-- GitHub Calendar Widget Script -->

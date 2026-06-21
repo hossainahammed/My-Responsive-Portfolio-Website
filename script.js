@@ -749,7 +749,8 @@ $(document).ready(function () {
     e.stopPropagation();
     var $card = $(this).closest(".project-card");
     var url = ($card.attr("data-appetizeurl") || "").trim();
-    var title = $card.attr("data-title") + " - Appetize Live";
+    var btnText = $(this).text().trim() || "Live Preview";
+    var title = $card.attr("data-title") + " - " + btnText;
     if (url && url !== "#") {
       $("#liveModalTitle").text(title);
       $("#liveModalIframe").attr("src", url).show();
@@ -757,7 +758,7 @@ $(document).ready(function () {
       $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
       $("body").addClass("modal-open");
     } else {
-      alert("Appetize link not provided yet.");
+      alert(btnText + " link not provided yet.");
     }
   });
 
