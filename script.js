@@ -365,39 +365,380 @@ $(document).ready(function () {
     },
   });
 
-  /* Projects: open live preview in modal when a project's image is clicked */
+  /* ── Flutter App Showcase (visible on-page phone carousel) ── */
+
+  (function initFlutterShowcase() {
+    var folder = "images/Upcoming_APP/";
+    var label = "Upcoming App";
+    var $showcase = $("#flutterShowcase");
+    var showcaseTimer = null;
+
+    // Probe images from a folder
+    function probeFolder(folder, max, cb) {
+      var imgs = [], idx = 1;
+      function next() {
+        if (idx > max) { cb(imgs); return; }
+        var img = new Image();
+        img.onload = function () { imgs.push(folder + idx + ".png"); idx++; next(); };
+        img.onerror = function () { cb(imgs); };
+        img.src = folder + idx + ".png";
+      }
+      next();
+    }
+
+    probeFolder(folder, 20, function (imgs) {
+      if (!imgs.length) {
+        $showcase.hide(); // no images in the folder
+        return;
+      }
+      buildShowcase($showcase, imgs, label, null);
+    });
+
+    function buildShowcase($el, imgs, label, cardId) {
+      var cur = 0;
+      var total = imgs.length;
+
+      // ── DOM ──────────────────────────────────────────────
+      $el.empty();
+
+      var $inner = $('<div class="showcase-inner"></div>');
+
+      // App label + counter
+      var $header = $(
+        '<div class="showcase-header">' +
+          '<span class="showcase-app-label"><i class="fab fa-flutter showcase-flutter-icon"></i> ' + label + '</span>' +
+          '<span class="showcase-counter"><span class="sc-cur">1</span> / <span class="sc-tot">' + total + '</span></span>' +
+        '</div>'
+      );
+
+      // Phone strip
+      var $strip = $('<div class="showcase-strip"></div>');
+
+      // Build N phone frames (all images)
+      imgs.forEach(function (src, i) {
+        var $phone = $(
+          '<div class="sc-phone' + (i === 0 ? " sc-active" : "") + '">' +
+            '<div class="sc-phone-notch"></div>' +
+            '<div class="sc-phone-screen"><img src="' + src + '" alt="Screenshot ' + (i+1) + '" loading="lazy"/></div>' +
+            '<div class="sc-phone-bar"></div>' +
+          '</div>'
+        );
+        $phone.on("click", function () { scGoTo(i); scRestart(); });
+        $strip.append($phone);
+      });
+
+      // Arrows
+      var $prev = $('<button class="sc-arrow sc-arrow-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>');
+      var $next = $('<button class="sc-arrow sc-arrow-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>');
+
+      $prev.on("click", function () { scGoTo(cur - 1); scRestart(); });
+      $next.on("click", function () { scGoTo(cur + 1); scRestart(); });
+
+      // Dots
+      var $dots = $('<div class="sc-dots"></div>');
+      imgs.forEach(function (_, i) {
+        var $dot = $('<button class="sc-dot' + (i === 0 ? " sc-dot-active" : "") + '"></button>');
+        $dot.on("click", function () { scGoTo(i); scRestart(); });
+        $dots.append($dot);
+      });
+
+      // "View all" hint
+      var $hint = $('<div class="showcase-hint"><i class="fas fa-expand-arrows-alt"></i> Click any project card for fullscreen view</div>');
+
+      $inner.append($header, $strip, $prev, $next, $dots, $hint);
+      $el.append($inner);
+
+      // ── Logic ─────────────────────────────────────────────
+      function scGoTo(idx) {
+        cur = ((idx % total) + total) % total;
+        $strip.find(".sc-phone").removeClass("sc-active sc-prev sc-next");
+        var $phones = $strip.find(".sc-phone");
+        $phones.eq(cur).addClass("sc-active");
+        $phones.eq(((cur - 1) + total) % total).addClass("sc-prev");
+        $phones.eq((cur + 1) % total).addClass("sc-next");
+        $dots.find(".sc-dot").removeClass("sc-dot-active").eq(cur).addClass("sc-dot-active");
+        $header.find(".sc-cur").text(cur + 1);
+      }
+
+      function scRestart() {
+        clearInterval(showcaseTimer);
+        showcaseTimer = setInterval(function () { scGoTo(cur + 1); }, 3500);
+      }
+
+      // Init positions
+      scGoTo(0);
+      scRestart();
+    }
+  })();
+
+  /* ── Flutter Feature Slider (custom — no OWL dependency) ── */
+
+  var _sliderTimer = null; // global auto-play timer reference
+
+  function stopSlider() {
+    if (_sliderTimer) {
+      clearInterval(_sliderTimer);
+      _sliderTimer = null;
+    }
+  }
+
+  function startSlider($slider, total) {
+    stopSlider();
+    _sliderTimer = setInterval(function () {
+      var cur = parseInt($slider.data("current") || 0);
+      sliderGoTo($slider, (cur + 1) % total);
+    }, 3500);
+  }
+
+  function sliderGoTo($slider, index) {
+    var $slides = $slider.find(".fslide");
+    var $dots   = $slider.find(".fdot");
+    var total   = $slides.length;
+
+    index = ((index % total) + total) % total; // wrap safely
+    $slides.removeClass("active");
+    $dots.removeClass("active");
+    $slides.eq(index).addClass("active");
+    $dots.eq(index).addClass("active");
+    $slider.data("current", index);
+  }
+
+  function buildSlider(images) {
+    var $slider = $('<div class="flutter-slider"></div>').data("current", 0);
+
+    // Slides
+    images.forEach(function (src, i) {
+      var $slide = $('<div class="fslide' + (i === 0 ? " active" : "") + '"></div>');
+      $slide.append(
+        $('<img class="fslide-img" alt="Screenshot ' + (i + 1) + '" loading="lazy"/>').attr("src", src)
+      );
+      $slider.append($slide);
+    });
+
+    // Prev / Next buttons
+    var $prev = $('<button class="fslider-btn fslider-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>');
+    var $next = $('<button class="fslider-btn fslider-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>');
+
+    $prev.on("click", function (e) {
+      e.stopPropagation();
+      var cur = parseInt($slider.data("current") || 0);
+      sliderGoTo($slider, cur - 1);
+      startSlider($slider, images.length);
+    });
+    $next.on("click", function (e) {
+      e.stopPropagation();
+      var cur = parseInt($slider.data("current") || 0);
+      sliderGoTo($slider, cur + 1);
+      startSlider($slider, images.length);
+    });
+
+    // Dot indicators
+    var $dots = $('<div class="fslider-dots"></div>');
+    images.forEach(function (_, i) {
+      var $dot = $('<button class="fdot' + (i === 0 ? " active" : "") + '" aria-label="Slide ' + (i + 1) + '"></button>');
+      $dot.on("click", function (e) {
+        e.stopPropagation();
+        sliderGoTo($slider, i);
+        startSlider($slider, images.length);
+      });
+      $dots.append($dot);
+    });
+
+    // Counter badge  e.g. "1 / 4"
+    var $counter = $('<div class="fslider-counter"><span class="fslider-cur">1</span> / <span class="fslider-total">' + images.length + '</span></div>');
+
+    // Keep counter in sync
+    var _origGoTo = sliderGoTo;
+    $slider.on("fslider:goto", function (e, idx) {
+      $counter.find(".fslider-cur").text(idx + 1);
+    });
+
+    $slider.append($prev, $next, $dots, $counter);
+
+    // Patch sliderGoTo to also fire the counter event
+    $slider.data("goTo", function (idx) {
+      sliderGoTo($slider, idx);
+      $slider.trigger("fslider:goto", [parseInt($slider.data("current"))]);
+    });
+
+    return $slider;
+  }
+
+  /* Probe images from a folder (1.png, 2.png …) then open the modal */
+  function probeAndOpenCarousel($card, folder, fallbackSrc) {
+    var images = [];
+    var index  = 1;
+    var maxProbe = 20;
+
+    function probe() {
+      if (index > maxProbe) {
+        showSliderModal($card, images.length ? images : (fallbackSrc ? [fallbackSrc] : []));
+        return;
+      }
+      var src = folder + index + ".png";
+      var img = new Image();
+      img.onload = function () { images.push(src); index++; probe(); };
+      img.onerror = function () {
+        if (index === 1) {
+          // try .jpg as first-image fallback
+          var srcJpg = folder + "1.jpg";
+          var j = new Image();
+          j.onload = function () { images.push(srcJpg); index++; probe(); };
+          j.onerror = function () {
+            showSliderModal($card, fallbackSrc ? [fallbackSrc] : []);
+          };
+          j.src = srcJpg;
+        } else {
+          showSliderModal($card, images.length ? images : (fallbackSrc ? [fallbackSrc] : []));
+        }
+      };
+      img.src = src;
+    }
+    probe();
+  }
+
+  function openFlutterCarouselModal($card) {
+    var folder   = ($card.attr("data-image-folder") || "").trim();
+    var fallback = $card.find(".project-img-wrapper img").attr("src") || "";
+    if (folder) {
+      probeAndOpenCarousel($card, folder, fallback);
+    } else {
+      showSliderModal($card, fallback ? [fallback] : []);
+    }
+  }
+
+  /* ── Phone Mockup Carousel (used in both on-page showcase AND modal) ── */
+  function buildPhoneCarousel(images) {
+    var cur = 0;
+    var total = images.length;
+    var autoTimer = null;
+
+    var $wrap  = $('<div class="mpc-wrap"></div>');
+    var $strip = $('<div class="mpc-strip"></div>');
+
+    // Build all phone frames
+    images.forEach(function (src, i) {
+      var $phone = $(
+        '<div class="sc-phone' + (i === 0 ? " sc-active" : "") + '">' +
+          '<div class="sc-phone-notch"></div>' +
+          '<div class="sc-phone-screen"><img src="' + src + '" alt="Screen ' + (i + 1) + '" loading="lazy"/></div>' +
+          '<div class="sc-phone-bar"></div>' +
+        '</div>'
+      );
+      $phone.on("click", function () { pcGoTo(i); pcRestart(); });
+      $strip.append($phone);
+    });
+
+    // Arrows
+    var $prev = $('<button class="sc-arrow sc-arrow-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>');
+    var $next = $('<button class="sc-arrow sc-arrow-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>');
+    $prev.on("click", function (e) { e.stopPropagation(); pcGoTo(cur - 1); pcRestart(); });
+    $next.on("click", function (e) { e.stopPropagation(); pcGoTo(cur + 1); pcRestart(); });
+
+    // Dots
+    var $dots = $('<div class="sc-dots mpc-dots"></div>');
+    images.forEach(function (_, i) {
+      var $dot = $('<button class="sc-dot' + (i === 0 ? " sc-dot-active" : "") + '" aria-label="Slide ' + (i + 1) + '"></button>');
+      $dot.on("click", function (e) { e.stopPropagation(); pcGoTo(i); pcRestart(); });
+      $dots.append($dot);
+    });
+
+    // Counter  "1 / 4"
+    var $counter = $('<div class="fslider-counter"><span class="pc-cur">1</span> / <span>' + total + '</span></div>');
+
+    $wrap.append($strip, $prev, $next, $dots, $counter);
+
+    function pcGoTo(idx) {
+      cur = ((idx % total) + total) % total;
+      var $phones = $strip.find(".sc-phone");
+      $phones.removeClass("sc-active sc-prev sc-next");
+      $phones.eq(cur).addClass("sc-active");
+      $phones.eq(((cur - 1) + total) % total).addClass("sc-prev");
+      $phones.eq((cur + 1) % total).addClass("sc-next");
+      $dots.find(".sc-dot").removeClass("sc-dot-active").eq(cur).addClass("sc-dot-active");
+      $counter.find(".pc-cur").text(cur + 1);
+    }
+
+    function pcRestart() {
+      clearInterval(autoTimer);
+      autoTimer = setInterval(function () { pcGoTo(cur + 1); }, 3500);
+    }
+
+    // Store destroy hook so close handler can clear the timer
+    $wrap.data("destroy", function () { clearInterval(autoTimer); });
+
+    pcGoTo(0);
+    pcRestart();
+
+    return $wrap;
+  }
+
+  function showSliderModal($card, images) {
+    var title = $card.attr("data-title") || "";
+    stopSlider();
+
+    // Destroy any previous phone carousel timer
+    var $prevWrap = $("#liveModalImageContainer .mpc-wrap");
+    if ($prevWrap.length && $prevWrap.data("destroy")) $prevWrap.data("destroy")();
+
+    $("#liveModalTitle").text(title + " — Feature Screens");
+    $("#liveModalIframe").hide().attr("src", "");
+
+    var $container = $("#liveModalImageContainer");
+    $container.empty().css("display", "block");
+
+    if (!images.length) {
+      $container.css("display", "flex").append(
+        '<p style="color:var(--text-sec);padding:40px;text-align:center;line-height:1.8;">' +
+        '<i class="fas fa-images" style="font-size:42px;display:block;margin-bottom:12px;opacity:.5;"></i>' +
+        'No screenshots yet.<br>' +
+        '<code style="font-size:12px;">' + ($card.attr("data-image-folder") || "images/ProjectName/") + '1.png</code>, <code style="font-size:12px;">2.png</code>…</p>'
+      );
+      $("#liveViewModal").attr("aria-hidden", "false").fadeIn(200);
+      $("body").addClass("modal-open");
+      return;
+    }
+
+    if (images.length === 1) {
+      // Single image: show centered with phone frame
+      $container.css("display", "flex").append(
+        $('<img id="liveModalImage" alt="Project Screenshot"/>').attr("src", images[0])
+      );
+      $("#liveViewModal").attr("aria-hidden", "false").fadeIn(200);
+      $("body").addClass("modal-open");
+      return;
+    }
+
+    // Multiple images → phone mockup carousel (same style as on-page showcase)
+    var $carousel = buildPhoneCarousel(images);
+    $container.append($carousel);
+
+    $("#liveViewModal").attr("aria-hidden", "false").fadeIn(200);
+    $("body").addClass("modal-open");
+  }
+
+  /* Projects: card click — Flutter shows phone carousel, web shows iframe */
   $(".project-card").on("click", function () {
     var $card = $(this);
     var url = ($card.attr("data-liveurl") || "").trim();
     var title = $card.attr("data-title") || "";
-    
-    var isFlutter = ($card.attr("data-id") || "").startsWith("flutter") || 
-                    $card.find(".tech-pill").filter(function() { 
-                      return $(this).text().trim().toLowerCase() === 'flutter'; 
+    var isFlutter = ($card.attr("data-id") || "").startsWith("flutter") ||
+                    $card.find(".tech-pill").filter(function () {
+                      return $(this).text().trim().toLowerCase() === "flutter";
                     }).length > 0;
 
     if (isFlutter) {
-      var imgSrc = $card.find(".project-img-wrapper img").attr("src");
-      $("#liveModalTitle").text(title);
-      $("#liveModalImage").attr("src", imgSrc);
-      $("#liveModalIframe").hide().attr("src", "");
-      $("#liveModalImageContainer").css("display", "flex");
-      $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
-      $("body").addClass("modal-open");
+      openFlutterCarouselModal($card);
     } else {
       if (url) {
-        // ensure url has protocol
         if (!/^https?:\/\//i.test(url)) url = "https://" + url;
         $("#liveModalTitle").text(title);
         $("#liveModalIframe").attr("src", url).show();
         $("#liveModalImageContainer").hide();
-        $("#liveModalImage").attr("src", "");
         $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
         $("body").addClass("modal-open");
       } else {
-        alert(
-          "No live link set for this project yet. You can add a live link later by setting the project element's `data-liveurl` attribute.",
-        );
+        alert("No live link set for this project yet. Add a `data-liveurl` attribute to enable it.");
       }
     }
   });
@@ -413,7 +754,6 @@ $(document).ready(function () {
       $("#liveModalTitle").text(title);
       $("#liveModalIframe").attr("src", url).show();
       $("#liveModalImageContainer").hide();
-      $("#liveModalImage").attr("src", "");
       $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
       $("body").addClass("modal-open");
     } else {
@@ -421,25 +761,32 @@ $(document).ready(function () {
     }
   });
 
-  /* Live Video preview */
+  /* Live button: Flutter → phone carousel; Web → iframe */
   $(".project-card .live-btn").on("click", function (e) {
     e.preventDefault();
     e.stopPropagation();
     var $card = $(this).closest(".project-card");
-    var url = ($card.attr("data-videourl") || "").trim();
-    if (!url || url === "#") {
-      url = ($card.attr("data-liveurl") || "").trim();
-    }
-    var title = $card.attr("data-title") + " - Live Preview";
-    if (url && url !== "#") {
-      $("#liveModalTitle").text(title);
-      $("#liveModalIframe").attr("src", url).show();
-      $("#liveModalImageContainer").hide();
-      $("#liveModalImage").attr("src", "");
-      $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
-      $("body").addClass("modal-open");
+    var isFlutter = ($card.attr("data-id") || "").startsWith("flutter") ||
+                    $card.find(".tech-pill").filter(function () {
+                      return $(this).text().trim().toLowerCase() === "flutter";
+                    }).length > 0;
+
+    if (isFlutter) {
+      openFlutterCarouselModal($card);
     } else {
-      alert("Live link not provided yet.");
+      var url = ($card.attr("data-videourl") || "").trim();
+      if (!url || url === "#") url = ($card.attr("data-liveurl") || "").trim();
+      var title = $card.attr("data-title") + " - Live Preview";
+      if (url && url !== "#") {
+        if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+        $("#liveModalTitle").text(title);
+        $("#liveModalIframe").attr("src", url).show();
+        $("#liveModalImageContainer").hide();
+        $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
+        $("body").addClass("modal-open");
+      } else {
+        alert("Live link not provided yet.");
+      }
     }
   });
 
@@ -448,10 +795,13 @@ $(document).ready(function () {
     e.stopPropagation();
   });
 
-  // Close modal: overlay click or close button
+  // Close modal — destroy carousel timer + clear content
   $(".live-modal__close, .live-modal__overlay").on("click", function () {
+    stopSlider();
+    var $mpc = $("#liveModalImageContainer .mpc-wrap");
+    if ($mpc.length && $mpc.data("destroy")) $mpc.data("destroy")();
     $("#liveModalIframe").attr("src", "");
-    $("#liveModalImage").attr("src", "");
+    $("#liveModalImageContainer").empty();
     $("#liveViewModal").attr("aria-hidden", "true").fadeOut(150);
     $("body").removeClass("modal-open");
   });
@@ -721,10 +1071,20 @@ $(document).ready(function () {
     $("body").removeClass("modal-open");
   });
 
-  $("#admin-login-btn").on("click", function() {
+  $("#admin-login-btn").on("click", async function() {
     var email = $("#admin-email").val();
     var key = $("#admin-key").val();
-    if (email === "hossainahammed627@gmail.com" && key === "4694") {
+    
+    // Hash key using SHA-256 to prevent plain text inspection
+    var hashHex = "";
+    if (key) {
+      var msgBuffer = new TextEncoder().encode(key);
+      var hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      var hashArray = Array.from(new Uint8Array(hashBuffer));
+      hashHex = hashArray.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    }
+
+    if (email === "hossainahammed627@gmail.com" && hashHex === "6900c3ccdcfc05cf0538b10a21765458f4d547a066d8a04b8809efcdf0dc04dd") {
       sessionStorage.setItem("isAdmin", "true");
       enableAdminMode();
       $("#admin-login-step").hide();

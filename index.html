@@ -38,6 +38,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css" />
     <!-- GitHub Calendar Widget CSS -->
     <link rel="stylesheet" href="https://unpkg.com/github-calendar@latest/dist/github-calendar-responsive.css" />
 
@@ -534,13 +536,18 @@
     <section class="projects" id="projects">
         <div class="max-width">
             <h2 class="title title-flutter">Flutter Projects</h2>
-            <p class="subtitle">Click a project image to open a live preview.</p>
+            <p class="subtitle">✨ Browse app Features & Demo below — tap any project card to view in fullscreen.</p>
+
+            <!-- Flutter App Showcase: populated by JS -->
+            <div id="flutterShowcase" class="flutter-showcase">
+                <div class="showcase-loading"><i class="fas fa-spinner fa-spin"></i>&nbsp; Loading showcase…</div>
+            </div>
+
             <div class="projects-grid reveal-grid">
-
-
+                <!-- flutter-ecom -->
                 <div class="project-card" data-id="flutter-ecom"
                     data-liveurl="https://hossainahammed.github.io/e_commerce/" data-appetizeurl="#" data-videourl="#"
-                    data-title="Ecommerce Project">
+                    data-title="Ecommerce Project" data-image-folder="images/Ecommerce/">
                     <div class="project-img-wrapper">
                         <img src="images/Ecommerce.jpeg" alt="Ecommerce Project" />
                     </div>
@@ -558,22 +565,24 @@
                                 <span class="tech-pill">GetX</span>
                             </div>
                             <ul class="proj-features">
-                                <li>Dynamic product catalog & search</li>
-                                <li>Cart & local checkout state manager</li>
-                                <li>Authentication & profile settings</li>
+                                <li>Dynamic product catalog &amp; search</li>
+                                <li>Cart &amp; local checkout state manager</li>
+                                <li>Authentication &amp; profile settings</li>
                             </ul>
                         </div>
                     </div>
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
                         <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
-                        <a href="https://github.com/hossainahammed/e_commerce" target="_blank" rel="noopener"
-                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
+                        <!-- <a href="https://github.com/hossainahammed/e_commerce" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
                     </div>
                 </div>
+
+                <!-- flutter-exp -->
                 <div class="project-card" data-id="flutter-exp"
                     data-liveurl="https://hossainahammed.github.io/expense_tracker/" data-appetizeurl="#"
-                    data-videourl="#" data-title="Expenses Tracker">
+                    data-videourl="#" data-title="Expenses Tracker" data-image-folder="images/ExpensesTracker/">
                     <div class="project-img-wrapper">
                         <img src="images/Expences Tracker.png" alt="Expenses Tracker" />
                     </div>
@@ -591,7 +600,7 @@
                                 <span class="tech-pill">SQLite</span>
                             </div>
                             <ul class="proj-features">
-                                <li>Real-time budget analytics & charts</li>
+                                <li>Real-time budget analytics &amp; charts</li>
                                 <li>Multi-currency transaction logging</li>
                                 <li>Local encryption database</li>
                             </ul>
@@ -600,15 +609,16 @@
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
                         <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
-                        <a href="https://github.com/hossainahammed/expense_tracker" target="_blank" rel="noopener"
-                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
+                        <!-- <a href="https://github.com/hossainahammed/expense_tracker" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
                     </div>
                 </div>
+
+                <!-- flutter-smartplanai -->
                 <div class="project-card" data-id="flutter-smartplanai" data-liveurl="#" data-appetizeurl="#"
-                    data-videourl="#" data-title="SmartPlanAi">
+                    data-videourl="#" data-title="SmartPlanAi" data-image-folder="images/SmartPlanAi/">
                     <div class="project-img-wrapper">
-                        <img src="images/SmartPlanAi.png" alt="SmartPlanAi"
-                            onerror="this.src='images/SmartPlanAi.png'" />
+                        <img src="images/SmartPlanAi.png" alt="SmartPlanAi" />
                     </div>
                     <div class="project-info-body">
                         <div class="proj-title">SmartPlanAi</div>
@@ -626,20 +636,22 @@
                             <ul class="proj-features">
                                 <li>AI-driven task optimization</li>
                                 <li>Voice input ("Listening...")</li>
-                                <li>Custom reminders & statistics</li>
+                                <li>Custom reminders &amp; statistics</li>
                             </ul>
                         </div>
                     </div>
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
                         <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
-                        <a href="https://github.com/hossainahammed/SmartPlanAi.git" target="_blank" rel="noopener"
-                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
+                        <!-- <a href="https://github.com/hossainahammed/SmartPlanAi.git" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
                     </div>
                 </div>
+
+                <!-- flutter-unit -->
                 <div class="project-card" data-id="flutter-unit"
                     data-liveurl="https://hossainahammed.github.io/unit_converter_app/" data-appetizeurl="#"
-                    data-videourl="#" data-title="Unit Converter">
+                    data-videourl="#" data-title="Unit Converter" data-image-folder="images/UnitConverter/">
                     <div class="project-img-wrapper">
                         <img src="images/Unit Convert Visual.png" alt="Unit Convert" />
                     </div>
@@ -665,13 +677,15 @@
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
                         <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
-                        <a href="https://github.com/hossainahammed/unit_converter_app" target="_blank" rel="noopener"
-                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
+                        <!-- <a href="https://github.com/hossainahammed/unit_converter_app" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
                     </div>
                 </div>
+
+                <!-- flutter-task -->
                 <div class="project-card" data-id="flutter-task"
                     data-liveurl="https://hossainahammed.github.io/task_manager/" data-appetizeurl="#" data-videourl="#"
-                    data-title="Task Management">
+                    data-title="Task Management" data-image-folder="images/TaskManagement/">
                     <div class="project-img-wrapper">
                         <img src="images/Artboard – 1.png" alt="Task Management" />
                     </div>
@@ -690,7 +704,7 @@
                             </div>
                             <ul class="proj-features">
                                 <li>Local tasks CRUD (Hive storage)</li>
-                                <li>Category filtering & search</li>
+                                <li>Category filtering &amp; search</li>
                                 <li>Custom reminder notifications</li>
                             </ul>
                         </div>
@@ -698,8 +712,44 @@
                     <div class="project-links">
                         <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
                         <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
-                        <a href="https://github.com/hossainahammed/task_manager" target="_blank" rel="noopener"
-                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
+                        <!-- <a href="https://github.com/hossainahammed/task_manager" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
+                    </div>
+                </div>
+
+                <!-- flutter-projectpulse (NEW) -->
+                <div class="project-card" data-id="flutter-projectpulse" data-liveurl="#" data-appetizeurl="#"
+                    data-videourl="#" data-title="ProjectPulse" data-image-folder="images/ProjectPulse/">
+                    <div class="project-img-wrapper">
+                        <img src="images/ProjectPulse/1.png" alt="ProjectPulse"
+                            onerror="this.src='images/SmartPlanAi.png'" />
+                    </div>
+                    <div class="project-info-body">
+                        <div class="proj-title">ProjectPulse</div>
+                        <div class="proj-meta">
+                            <p class="proj-desc">
+                                <strong>Problem Solved:</strong> Difficulty tracking project progress,
+                                team tasks, and milestones in real time across mobile and web.
+                            </p>
+                            <div class="proj-tech">
+                                <span class="tech-pill">Flutter</span>
+                                <span class="tech-pill">Dart</span>
+                                <span class="tech-pill">GetX</span>
+                                <span class="tech-pill">Web</span>
+                            </div>
+                            <ul class="proj-features">
+                                <li>Real-time project &amp; task tracking</li>
+                                <li>Cross-platform — Mobile &amp; Web</li>
+                                <li>Dashboard analytics &amp; milestones</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="project-links">
+                        <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
+                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"
+                                target="https://projectpulseee.netlify.app/"></i> Web version Live</span>
+                        <!-- <a href="https://github.com/hossainahammed/ProjectPulse" target="_blank" rel="noopener"
+                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a> -->
                     </div>
                 </div>
             </div>
