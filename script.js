@@ -60,7 +60,7 @@ $(document).ready(function () {
   // Helper to recalculate contributions and streaks from rendered DOM cells
   function recalculateGitHubStreaks() {
     const cells = document.querySelectorAll(
-      "#github-calendar rect[data-date], #github-calendar td[data-date]"
+      "#github-calendar rect[data-date], #github-calendar td[data-date]",
     );
     if (cells.length === 0) return;
 
@@ -71,7 +71,10 @@ $(document).ready(function () {
 
     // Sort cells by date ascending
     const sortedCells = Array.from(cells).sort((a, b) => {
-      return new Date(a.getAttribute("data-date")) - new Date(b.getAttribute("data-date"));
+      return (
+        new Date(a.getAttribute("data-date")) -
+        new Date(b.getAttribute("data-date"))
+      );
     });
 
     sortedCells.forEach((cell) => {
@@ -98,7 +101,7 @@ $(document).ready(function () {
     // Calculate current streak (look backwards from latest date)
     let currentStreakTemp = 0;
     const localTodayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local format
-    const utcTodayStr = new Date().toISOString().split("T")[0];  // YYYY-MM-DD UTC format
+    const utcTodayStr = new Date().toISOString().split("T")[0]; // YYYY-MM-DD UTC format
 
     let checkIndex = sortedCells.length - 1;
     while (checkIndex >= 0) {
@@ -128,9 +131,21 @@ $(document).ready(function () {
     // Update DOM
     const $numbers = $("#github-calendar .contrib-number");
     if ($numbers.length >= 3) {
-      $numbers.eq(0).html(`${total.toLocaleString()} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">total</span>`);
-      $numbers.eq(1).html(`${longestStreak} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">days</span>`);
-      $numbers.eq(2).html(`${currentStreak} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">days</span>`);
+      $numbers
+        .eq(0)
+        .html(
+          `${total.toLocaleString()} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">total</span>`,
+        );
+      $numbers
+        .eq(1)
+        .html(
+          `${longestStreak} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">days</span>`,
+        );
+      $numbers
+        .eq(2)
+        .html(
+          `${currentStreak} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">days</span>`,
+        );
     }
   }
 
@@ -139,7 +154,7 @@ $(document).ready(function () {
     $("#github-calendar").html(
       `<div class="calendar-loading" style="color: #ef4444;">
         <i class="fas fa-exclamation-triangle"></i> Failed to load GitHub activity stats. Please try reloading.
-      </div>`
+      </div>`,
     );
   }
 
@@ -148,14 +163,15 @@ $(document).ready(function () {
     let attempts = 0;
     const interval = setInterval(() => {
       const cells = document.querySelectorAll(
-        "#github-calendar rect[data-date], #github-calendar td[data-date]"
+        "#github-calendar rect[data-date], #github-calendar td[data-date]",
       );
       if (cells.length > 0) {
         clearInterval(interval);
         recalculateGitHubStreaks();
       } else {
         attempts++;
-        if (attempts > 50) { // Timeout after 10s
+        if (attempts > 50) {
+          // Timeout after 10s
           clearInterval(interval);
         }
       }
@@ -164,10 +180,14 @@ $(document).ready(function () {
 
   // Initialize GitHub Calendar Widget
   try {
-    const calendarPromise = GitHubCalendar("#github-calendar", "hossainahammed", {
-      responsive: true,
-      tooltips: true
-    });
+    const calendarPromise = GitHubCalendar(
+      "#github-calendar",
+      "hossainahammed",
+      {
+        responsive: true,
+        tooltips: true,
+      },
+    );
 
     if (calendarPromise && typeof calendarPromise.then === "function") {
       calendarPromise.then(recalculateGitHubStreaks).catch(handleCalendarError);
@@ -290,8 +310,8 @@ $(document).ready(function () {
         } else {
           alert(
             'CV file not found at "' +
-            href +
-            '".\nPlease place your CV at that path or update the link in index.html.',
+              href +
+              '".\nPlease place your CV at that path or update the link in index.html.',
           );
         }
       })
@@ -368,31 +388,66 @@ $(document).ready(function () {
   /* ── Flutter App Showcase (visible on-page phone carousel) ── */
 
   (function initFlutterShowcase() {
-    var folder = "images/Upcoming_APP/";
-    var label = "Upcoming App";
     var $showcase = $("#flutterShowcase");
+    var folder = (
+      $showcase.attr("data-image-folder") || "images/Upcoming_APP/"
+    ).trim();
+    var imagesAttr = ($showcase.attr("data-images") || "").trim();
+    var label = "Upcoming App";
     var showcaseTimer = null;
 
-    // Probe images from a folder
-    function probeFolder(folder, max, cb) {
-      var imgs = [], idx = 1;
-      function next() {
-        if (idx > max) { cb(imgs); return; }
-        var img = new Image();
-        img.onload = function () { imgs.push(folder + idx + ".png"); idx++; next(); };
-        img.onerror = function () { cb(imgs); };
-        img.src = folder + idx + ".png";
+    // Parallel probe of images to avoid sequential blocking
+    function probeFolderParallel(folder, max, cb) {
+      var imgs = [];
+      var completed = 0;
+      var results = [];
+
+      for (var i = 1; i <= max; i++) {
+        (function (idx) {
+          var src = folder + idx + ".png";
+          var img = new Image();
+          img.onload = function () {
+            results[idx] = { success: true, src: src };
+            checkDone();
+          };
+          img.onerror = function () {
+            results[idx] = { success: false };
+            checkDone();
+          };
+          img.src = src;
+        })(i);
       }
-      next();
+
+      function checkDone() {
+        completed++;
+        if (completed === max) {
+          // Collect continuous sequence starting from 1
+          for (var idx = 1; idx <= max; idx++) {
+            if (results[idx] && results[idx].success) {
+              imgs.push(results[idx].src);
+            } else {
+              break; // Stop at first missing image
+            }
+          }
+          cb(imgs);
+        }
+      }
     }
 
-    probeFolder(folder, 20, function (imgs) {
-      if (!imgs.length) {
-        $showcase.hide(); // no images in the folder
-        return;
-      }
+    if (imagesAttr) {
+      var imgs = imagesAttr.split(",").map(function (src) {
+        return folder + src.trim();
+      });
       buildShowcase($showcase, imgs, label, null);
-    });
+    } else {
+      probeFolderParallel(folder, 20, function (imgs) {
+        if (!imgs.length) {
+          $showcase.hide(); // no images in the folder
+          return;
+        }
+        buildShowcase($showcase, imgs, label, null);
+      });
+    }
 
     function buildShowcase($el, imgs, label, cardId) {
       var cur = 0;
@@ -406,9 +461,13 @@ $(document).ready(function () {
       // App label + counter
       var $header = $(
         '<div class="showcase-header">' +
-          '<span class="showcase-app-label"><i class="fab fa-flutter showcase-flutter-icon"></i> ' + label + '</span>' +
-          '<span class="showcase-counter"><span class="sc-cur">1</span> / <span class="sc-tot">' + total + '</span></span>' +
-        '</div>'
+          '<span class="showcase-app-label"><i class="fab fa-flutter showcase-flutter-icon"></i> ' +
+          label +
+          "</span>" +
+          '<span class="showcase-counter"><span class="sc-cur">1</span> / <span class="sc-tot">' +
+          total +
+          "</span></span>" +
+          "</div>",
       );
 
       // Phone strip
@@ -417,33 +476,61 @@ $(document).ready(function () {
       // Build N phone frames (all images)
       imgs.forEach(function (src, i) {
         var $phone = $(
-          '<div class="sc-phone' + (i === 0 ? " sc-active" : "") + '">' +
+          '<div class="sc-phone' +
+            (i === 0 ? " sc-active" : "") +
+            '">' +
             '<div class="sc-phone-notch"></div>' +
-            '<div class="sc-phone-screen"><img src="' + src + '" alt="Screenshot ' + (i+1) + '" loading="lazy"/></div>' +
+            '<div class="sc-phone-screen"><img src="' +
+            src +
+            '" alt="Screenshot ' +
+            (i + 1) +
+            '" loading="lazy"/></div>' +
             '<div class="sc-phone-bar"></div>' +
-          '</div>'
+            "</div>",
         );
-        $phone.on("click", function () { scGoTo(i); scRestart(); });
+        $phone.on("click", function () {
+          scGoTo(i);
+          scRestart();
+        });
         $strip.append($phone);
       });
 
       // Arrows
-      var $prev = $('<button class="sc-arrow sc-arrow-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>');
-      var $next = $('<button class="sc-arrow sc-arrow-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>');
+      var $prev = $(
+        '<button class="sc-arrow sc-arrow-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>',
+      );
+      var $next = $(
+        '<button class="sc-arrow sc-arrow-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>',
+      );
 
-      $prev.on("click", function () { scGoTo(cur - 1); scRestart(); });
-      $next.on("click", function () { scGoTo(cur + 1); scRestart(); });
+      $prev.on("click", function () {
+        scGoTo(cur - 1);
+        scRestart();
+      });
+      $next.on("click", function () {
+        scGoTo(cur + 1);
+        scRestart();
+      });
 
       // Dots
       var $dots = $('<div class="sc-dots"></div>');
       imgs.forEach(function (_, i) {
-        var $dot = $('<button class="sc-dot' + (i === 0 ? " sc-dot-active" : "") + '"></button>');
-        $dot.on("click", function () { scGoTo(i); scRestart(); });
+        var $dot = $(
+          '<button class="sc-dot' +
+            (i === 0 ? " sc-dot-active" : "") +
+            '"></button>',
+        );
+        $dot.on("click", function () {
+          scGoTo(i);
+          scRestart();
+        });
         $dots.append($dot);
       });
 
       // "View all" hint
-      var $hint = $('<div class="showcase-hint"><i class="fas fa-expand-arrows-alt"></i> Click any project card for fullscreen view</div>');
+      var $hint = $(
+        '<div class="showcase-hint"><i class="fas fa-expand-arrows-alt"></i> Click any project card for fullscreen view</div>',
+      );
 
       $inner.append($header, $strip, $prev, $next, $dots, $hint);
       $el.append($inner);
@@ -454,15 +541,21 @@ $(document).ready(function () {
         $strip.find(".sc-phone").removeClass("sc-active sc-prev sc-next");
         var $phones = $strip.find(".sc-phone");
         $phones.eq(cur).addClass("sc-active");
-        $phones.eq(((cur - 1) + total) % total).addClass("sc-prev");
+        $phones.eq((cur - 1 + total) % total).addClass("sc-prev");
         $phones.eq((cur + 1) % total).addClass("sc-next");
-        $dots.find(".sc-dot").removeClass("sc-dot-active").eq(cur).addClass("sc-dot-active");
+        $dots
+          .find(".sc-dot")
+          .removeClass("sc-dot-active")
+          .eq(cur)
+          .addClass("sc-dot-active");
         $header.find(".sc-cur").text(cur + 1);
       }
 
       function scRestart() {
         clearInterval(showcaseTimer);
-        showcaseTimer = setInterval(function () { scGoTo(cur + 1); }, 3500);
+        showcaseTimer = setInterval(function () {
+          scGoTo(cur + 1);
+        }, 3500);
       }
 
       // Init positions
@@ -492,8 +585,8 @@ $(document).ready(function () {
 
   function sliderGoTo($slider, index) {
     var $slides = $slider.find(".fslide");
-    var $dots   = $slider.find(".fdot");
-    var total   = $slides.length;
+    var $dots = $slider.find(".fdot");
+    var total = $slides.length;
 
     index = ((index % total) + total) % total; // wrap safely
     $slides.removeClass("active");
@@ -508,16 +601,26 @@ $(document).ready(function () {
 
     // Slides
     images.forEach(function (src, i) {
-      var $slide = $('<div class="fslide' + (i === 0 ? " active" : "") + '"></div>');
+      var $slide = $(
+        '<div class="fslide' + (i === 0 ? " active" : "") + '"></div>',
+      );
       $slide.append(
-        $('<img class="fslide-img" alt="Screenshot ' + (i + 1) + '" loading="lazy"/>').attr("src", src)
+        $(
+          '<img class="fslide-img" alt="Screenshot ' +
+            (i + 1) +
+            '" loading="lazy"/>',
+        ).attr("src", src),
       );
       $slider.append($slide);
     });
 
     // Prev / Next buttons
-    var $prev = $('<button class="fslider-btn fslider-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>');
-    var $next = $('<button class="fslider-btn fslider-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>');
+    var $prev = $(
+      '<button class="fslider-btn fslider-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>',
+    );
+    var $next = $(
+      '<button class="fslider-btn fslider-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>',
+    );
 
     $prev.on("click", function (e) {
       e.stopPropagation();
@@ -535,7 +638,13 @@ $(document).ready(function () {
     // Dot indicators
     var $dots = $('<div class="fslider-dots"></div>');
     images.forEach(function (_, i) {
-      var $dot = $('<button class="fdot' + (i === 0 ? " active" : "") + '" aria-label="Slide ' + (i + 1) + '"></button>');
+      var $dot = $(
+        '<button class="fdot' +
+          (i === 0 ? " active" : "") +
+          '" aria-label="Slide ' +
+          (i + 1) +
+          '"></button>',
+      );
       $dot.on("click", function (e) {
         e.stopPropagation();
         sliderGoTo($slider, i);
@@ -545,7 +654,11 @@ $(document).ready(function () {
     });
 
     // Counter badge  e.g. "1 / 4"
-    var $counter = $('<div class="fslider-counter"><span class="fslider-cur">1</span> / <span class="fslider-total">' + images.length + '</span></div>');
+    var $counter = $(
+      '<div class="fslider-counter"><span class="fslider-cur">1</span> / <span class="fslider-total">' +
+        images.length +
+        "</span></div>",
+    );
 
     // Keep counter in sync
     var _origGoTo = sliderGoTo;
@@ -564,43 +677,77 @@ $(document).ready(function () {
     return $slider;
   }
 
-  /* Probe images from a folder (1.png, 2.png …) then open the modal */
+  /* Probe images from a folder (1.png, 2.png …) in parallel then open the modal */
   function probeAndOpenCarousel($card, folder, fallbackSrc) {
-    var images = [];
-    var index  = 1;
-    var maxProbe = 20;
+    var max = 20;
+    var results = [];
+    var completed = 0;
 
-    function probe() {
-      if (index > maxProbe) {
-        showSliderModal($card, images.length ? images : (fallbackSrc ? [fallbackSrc] : []));
-        return;
-      }
-      var src = folder + index + ".png";
-      var img = new Image();
-      img.onload = function () { images.push(src); index++; probe(); };
-      img.onerror = function () {
-        if (index === 1) {
-          // try .jpg as first-image fallback
-          var srcJpg = folder + "1.jpg";
-          var j = new Image();
-          j.onload = function () { images.push(srcJpg); index++; probe(); };
-          j.onerror = function () {
-            showSliderModal($card, fallbackSrc ? [fallbackSrc] : []);
-          };
-          j.src = srcJpg;
-        } else {
-          showSliderModal($card, images.length ? images : (fallbackSrc ? [fallbackSrc] : []));
-        }
-      };
-      img.src = src;
+    for (var i = 1; i <= max; i++) {
+      (function (idx) {
+        var src = folder + idx + ".png";
+        var img = new Image();
+        img.onload = function () {
+          results[idx] = { success: true, src: src };
+          onFinish();
+        };
+        img.onerror = function () {
+          if (idx === 1) {
+            // Try .jpg as first-image fallback
+            var srcJpg = folder + "1.jpg";
+            var j = new Image();
+            j.onload = function () {
+              results[idx] = { success: true, src: srcJpg };
+              onFinish();
+            };
+            j.onerror = function () {
+              results[idx] = { success: false };
+              onFinish();
+            };
+            j.src = srcJpg;
+          } else {
+            results[idx] = { success: false };
+            onFinish();
+          }
+        };
+        img.src = src;
+      })(i);
     }
-    probe();
+
+    function onFinish() {
+      completed++;
+      if (completed === max) {
+        var images = [];
+        for (var idx = 1; idx <= max; idx++) {
+          if (results[idx] && results[idx].success) {
+            images.push(results[idx].src);
+          } else {
+            break; // Stop at first missing image
+          }
+        }
+        showSliderModal(
+          $card,
+          images.length ? images : fallbackSrc ? [fallbackSrc] : [],
+        );
+      }
+    }
   }
 
   function openFlutterCarouselModal($card) {
-    var folder   = ($card.attr("data-image-folder") || "").trim();
+    var folder = ($card.attr("data-image-folder") || "").trim();
     var fallback = $card.find(".project-img-wrapper img").attr("src") || "";
-    if (folder) {
+    var imagesAttr = ($card.attr("data-images") || "").trim();
+
+    if (imagesAttr) {
+      var images = imagesAttr.split(",").map(function (src) {
+        src = src.trim();
+        if (/^https?:\/\//i.test(src) || src.startsWith("/")) {
+          return src;
+        }
+        return folder + src;
+      });
+      showSliderModal($card, images);
+    } else if (folder) {
       probeAndOpenCarousel($card, folder, fallback);
     } else {
       showSliderModal($card, fallback ? [fallback] : []);
@@ -613,38 +760,73 @@ $(document).ready(function () {
     var total = images.length;
     var autoTimer = null;
 
-    var $wrap  = $('<div class="mpc-wrap"></div>');
+    var $wrap = $('<div class="mpc-wrap"></div>');
     var $strip = $('<div class="mpc-strip"></div>');
 
     // Build all phone frames
     images.forEach(function (src, i) {
       var $phone = $(
-        '<div class="sc-phone' + (i === 0 ? " sc-active" : "") + '">' +
+        '<div class="sc-phone' +
+          (i === 0 ? " sc-active" : "") +
+          '">' +
           '<div class="sc-phone-notch"></div>' +
-          '<div class="sc-phone-screen"><img src="' + src + '" alt="Screen ' + (i + 1) + '" loading="lazy"/></div>' +
+          '<div class="sc-phone-screen"><img src="' +
+          src +
+          '" alt="Screen ' +
+          (i + 1) +
+          '" loading="lazy"/></div>' +
           '<div class="sc-phone-bar"></div>' +
-        '</div>'
+          "</div>",
       );
-      $phone.on("click", function () { pcGoTo(i); pcRestart(); });
+      $phone.on("click", function () {
+        pcGoTo(i);
+        pcRestart();
+      });
       $strip.append($phone);
     });
 
     // Arrows
-    var $prev = $('<button class="sc-arrow sc-arrow-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>');
-    var $next = $('<button class="sc-arrow sc-arrow-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>');
-    $prev.on("click", function (e) { e.stopPropagation(); pcGoTo(cur - 1); pcRestart(); });
-    $next.on("click", function (e) { e.stopPropagation(); pcGoTo(cur + 1); pcRestart(); });
+    var $prev = $(
+      '<button class="sc-arrow sc-arrow-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>',
+    );
+    var $next = $(
+      '<button class="sc-arrow sc-arrow-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>',
+    );
+    $prev.on("click", function (e) {
+      e.stopPropagation();
+      pcGoTo(cur - 1);
+      pcRestart();
+    });
+    $next.on("click", function (e) {
+      e.stopPropagation();
+      pcGoTo(cur + 1);
+      pcRestart();
+    });
 
     // Dots
     var $dots = $('<div class="sc-dots mpc-dots"></div>');
     images.forEach(function (_, i) {
-      var $dot = $('<button class="sc-dot' + (i === 0 ? " sc-dot-active" : "") + '" aria-label="Slide ' + (i + 1) + '"></button>');
-      $dot.on("click", function (e) { e.stopPropagation(); pcGoTo(i); pcRestart(); });
+      var $dot = $(
+        '<button class="sc-dot' +
+          (i === 0 ? " sc-dot-active" : "") +
+          '" aria-label="Slide ' +
+          (i + 1) +
+          '"></button>',
+      );
+      $dot.on("click", function (e) {
+        e.stopPropagation();
+        pcGoTo(i);
+        pcRestart();
+      });
       $dots.append($dot);
     });
 
     // Counter  "1 / 4"
-    var $counter = $('<div class="fslider-counter"><span class="pc-cur">1</span> / <span>' + total + '</span></div>');
+    var $counter = $(
+      '<div class="fslider-counter"><span class="pc-cur">1</span> / <span>' +
+        total +
+        "</span></div>",
+    );
 
     $wrap.append($strip, $prev, $next, $dots, $counter);
 
@@ -653,19 +835,27 @@ $(document).ready(function () {
       var $phones = $strip.find(".sc-phone");
       $phones.removeClass("sc-active sc-prev sc-next");
       $phones.eq(cur).addClass("sc-active");
-      $phones.eq(((cur - 1) + total) % total).addClass("sc-prev");
+      $phones.eq((cur - 1 + total) % total).addClass("sc-prev");
       $phones.eq((cur + 1) % total).addClass("sc-next");
-      $dots.find(".sc-dot").removeClass("sc-dot-active").eq(cur).addClass("sc-dot-active");
+      $dots
+        .find(".sc-dot")
+        .removeClass("sc-dot-active")
+        .eq(cur)
+        .addClass("sc-dot-active");
       $counter.find(".pc-cur").text(cur + 1);
     }
 
     function pcRestart() {
       clearInterval(autoTimer);
-      autoTimer = setInterval(function () { pcGoTo(cur + 1); }, 3500);
+      autoTimer = setInterval(function () {
+        pcGoTo(cur + 1);
+      }, 3500);
     }
 
     // Store destroy hook so close handler can clear the timer
-    $wrap.data("destroy", function () { clearInterval(autoTimer); });
+    $wrap.data("destroy", function () {
+      clearInterval(autoTimer);
+    });
 
     pcGoTo(0);
     pcRestart();
@@ -679,7 +869,8 @@ $(document).ready(function () {
 
     // Destroy any previous phone carousel timer
     var $prevWrap = $("#liveModalImageContainer .mpc-wrap");
-    if ($prevWrap.length && $prevWrap.data("destroy")) $prevWrap.data("destroy")();
+    if ($prevWrap.length && $prevWrap.data("destroy"))
+      $prevWrap.data("destroy")();
 
     $("#liveModalTitle").text(title + " — Feature Screens");
     $("#liveModalIframe").hide().attr("src", "");
@@ -688,12 +879,16 @@ $(document).ready(function () {
     $container.empty().css("display", "block");
 
     if (!images.length) {
-      $container.css("display", "flex").append(
-        '<p style="color:var(--text-sec);padding:40px;text-align:center;line-height:1.8;">' +
-        '<i class="fas fa-images" style="font-size:42px;display:block;margin-bottom:12px;opacity:.5;"></i>' +
-        'No screenshots yet.<br>' +
-        '<code style="font-size:12px;">' + ($card.attr("data-image-folder") || "images/ProjectName/") + '1.png</code>, <code style="font-size:12px;">2.png</code>…</p>'
-      );
+      $container
+        .css("display", "flex")
+        .append(
+          '<p style="color:var(--text-sec);padding:40px;text-align:center;line-height:1.8;">' +
+            '<i class="fas fa-images" style="font-size:42px;display:block;margin-bottom:12px;opacity:.5;"></i>' +
+            "No screenshots yet.<br>" +
+            '<code style="font-size:12px;">' +
+            ($card.attr("data-image-folder") || "images/ProjectName/") +
+            '1.png</code>, <code style="font-size:12px;">2.png</code>…</p>',
+        );
       $("#liveViewModal").attr("aria-hidden", "false").fadeIn(200);
       $("body").addClass("modal-open");
       return;
@@ -701,9 +896,14 @@ $(document).ready(function () {
 
     if (images.length === 1) {
       // Single image: show centered with phone frame
-      $container.css("display", "flex").append(
-        $('<img id="liveModalImage" alt="Project Screenshot"/>').attr("src", images[0])
-      );
+      $container
+        .css("display", "flex")
+        .append(
+          $('<img id="liveModalImage" alt="Project Screenshot"/>').attr(
+            "src",
+            images[0],
+          ),
+        );
       $("#liveViewModal").attr("aria-hidden", "false").fadeIn(200);
       $("body").addClass("modal-open");
       return;
@@ -722,10 +922,11 @@ $(document).ready(function () {
     var $card = $(this);
     var url = ($card.attr("data-liveurl") || "").trim();
     var title = $card.attr("data-title") || "";
-    var isFlutter = ($card.attr("data-id") || "").startsWith("flutter") ||
-                    $card.find(".tech-pill").filter(function () {
-                      return $(this).text().trim().toLowerCase() === "flutter";
-                    }).length > 0;
+    var isFlutter =
+      ($card.attr("data-id") || "").startsWith("flutter") ||
+      $card.find(".tech-pill").filter(function () {
+        return $(this).text().trim().toLowerCase() === "flutter";
+      }).length > 0;
 
     if (isFlutter) {
       openFlutterCarouselModal($card);
@@ -738,7 +939,9 @@ $(document).ready(function () {
         $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
         $("body").addClass("modal-open");
       } else {
-        alert("No live link set for this project yet. Add a `data-liveurl` attribute to enable it.");
+        alert(
+          "No live link set for this project yet. Add a `data-liveurl` attribute to enable it.",
+        );
       }
     }
   });
@@ -767,10 +970,11 @@ $(document).ready(function () {
     e.preventDefault();
     e.stopPropagation();
     var $card = $(this).closest(".project-card");
-    var isFlutter = ($card.attr("data-id") || "").startsWith("flutter") ||
-                    $card.find(".tech-pill").filter(function () {
-                      return $(this).text().trim().toLowerCase() === "flutter";
-                    }).length > 0;
+    var isFlutter =
+      ($card.attr("data-id") || "").startsWith("flutter") ||
+      $card.find(".tech-pill").filter(function () {
+        return $(this).text().trim().toLowerCase() === "flutter";
+      }).length > 0;
 
     if (isFlutter) {
       openFlutterCarouselModal($card);
@@ -928,7 +1132,7 @@ $(document).ready(function () {
         name: name,
         email: email,
         _subject: subject || "Contact from Portfolio",
-        message: message
+        message: message,
       }),
       dataType: "json",
       contentType: "application/json",
@@ -946,13 +1150,15 @@ $(document).ready(function () {
       error: function (error) {
         console.error("Contact Form submission error:", error);
         $("#contact-status")
-          .text("Failed to send. Please email directly to hossainahammed627@gmail.com")
+          .text(
+            "Failed to send. Please email directly to hossainahammed627@gmail.com",
+          )
           .css("color", "#ef4444")
           .fadeIn(120);
       },
       complete: function () {
         $submitBtn.prop("disabled", false).text("Send message");
-      }
+      },
     });
   });
 
@@ -1032,12 +1238,18 @@ $(document).ready(function () {
 
   function enableAdminMode() {
     if ($(".admin-edit-btn").length === 0) {
-      $(".project-card").each(function() {
+      $(".project-card").each(function () {
         var isHidden = $(this).attr("data-hidden") === "true";
         var eyeIcon = isHidden ? "fa-eye-slash" : "fa-eye";
-        $(this).append('<button class="admin-edit-btn" title="Edit Project" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: var(--primary-color); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas fa-edit"></i></button>');
-        $(this).append('<button class="admin-hide-btn" title="Toggle Visibility" style="position: absolute; top: 10px; right: 50px; z-index: 10; background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas ' + eyeIcon + '"></i></button>');
-        
+        $(this).append(
+          '<button class="admin-edit-btn" title="Edit Project" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: var(--primary-color); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas fa-edit"></i></button>',
+        );
+        $(this).append(
+          '<button class="admin-hide-btn" title="Toggle Visibility" style="position: absolute; top: 10px; right: 50px; z-index: 10; background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas ' +
+            eyeIcon +
+            '"></i></button>',
+        );
+
         if (isHidden) {
           $(this).css("opacity", "0.5");
         }
@@ -1053,11 +1265,11 @@ $(document).ready(function () {
     $(".project-card[data-hidden='true']").hide();
   }
 
-  $("#admin-trigger").on("dblclick", function(e) {
+  $("#admin-trigger").on("dblclick", function (e) {
     e.preventDefault();
     $("#adminModal").show().attr("aria-hidden", "false");
     $("body").addClass("modal-open");
-    
+
     // If already logged in, skip to form
     if (sessionStorage.getItem("isAdmin") === "true") {
       $("#admin-login-step").hide();
@@ -1067,25 +1279,33 @@ $(document).ready(function () {
     }
   });
 
-  $(".admin-close").on("click", function() {
+  $(".admin-close").on("click", function () {
     $("#adminModal").hide().attr("aria-hidden", "true");
     $("body").removeClass("modal-open");
   });
 
-  $("#admin-login-btn").on("click", async function() {
+  $("#admin-login-btn").on("click", async function () {
     var email = $("#admin-email").val();
     var key = $("#admin-key").val();
-    
+
     // Hash key using SHA-256 to prevent plain text inspection
     var hashHex = "";
     if (key) {
       var msgBuffer = new TextEncoder().encode(key);
-      var hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      var hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
       var hashArray = Array.from(new Uint8Array(hashBuffer));
-      hashHex = hashArray.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+      hashHex = hashArray
+        .map(function (b) {
+          return b.toString(16).padStart(2, "0");
+        })
+        .join("");
     }
 
-    if (email === "hossainahammed627@gmail.com" && hashHex === "6900c3ccdcfc05cf0538b10a21765458f4d547a066d8a04b8809efcdf0dc04dd") {
+    if (
+      email === "hossainahammed627@gmail.com" &&
+      hashHex ===
+        "6900c3ccdcfc05cf0538b10a21765458f4d547a066d8a04b8809efcdf0dc04dd"
+    ) {
       sessionStorage.setItem("isAdmin", "true");
       enableAdminMode();
       $("#admin-login-step").hide();
@@ -1099,35 +1319,44 @@ $(document).ready(function () {
   });
 
   // Edit existing project
-  $(document).on("click", ".admin-edit-btn", function(e) {
+  $(document).on("click", ".admin-edit-btn", function (e) {
     e.preventDefault();
     e.stopPropagation();
     var $card = $(this).closest(".project-card");
     window.currentlyEditingCard = $card;
-    
+
     // Populate form
     $("#ap-title").val($card.attr("data-title") || "");
     $("#ap-id").val($card.attr("data-id") || "");
-    
+
     var imgSrc = $card.find(".project-img-wrapper img").attr("src") || "";
     $("#ap-image").val(imgSrc.replace("images/", ""));
-    
-    var descText = $card.find(".proj-desc").text().replace("Problem Solved:", "").trim();
+    $("#ap-images").val($card.attr("data-images") || "");
+
+    var descText = $card
+      .find(".proj-desc")
+      .text()
+      .replace("Problem Solved:", "")
+      .trim();
     $("#ap-desc").val(descText);
-    
+
     var techList = [];
-    $card.find(".tech-pill").each(function() { techList.push($(this).text().trim()); });
+    $card.find(".tech-pill").each(function () {
+      techList.push($(this).text().trim());
+    });
     $("#ap-tech").val(techList.join(", "));
-    
+
     var featList = [];
-    $card.find(".proj-features li").each(function() { featList.push($(this).text().trim()); });
+    $card.find(".proj-features li").each(function () {
+      featList.push($(this).text().trim());
+    });
     $("#ap-features").val(featList.join(", "));
-    
+
     $("#ap-live").val($card.attr("data-liveurl") || "");
     $("#ap-appetize").val($card.attr("data-appetizeurl") || "");
     $("#ap-video").val($card.attr("data-videourl") || "");
     $("#ap-github").val($card.find(".code-btn").attr("href") || "");
-    
+
     $("#admin-login-step").hide();
     $("#admin-result-step").hide();
     $("#admin-form-step").show();
@@ -1136,12 +1365,12 @@ $(document).ready(function () {
   });
 
   // Toggle hide project
-  $(document).on("click", ".admin-hide-btn", function(e) {
+  $(document).on("click", ".admin-hide-btn", function (e) {
     e.preventDefault();
     e.stopPropagation();
     var $card = $(this).closest(".project-card");
     var isHidden = $card.attr("data-hidden") === "true";
-    
+
     if (isHidden) {
       $card.attr("data-hidden", "false");
       $card.css("opacity", "1");
@@ -1153,25 +1382,37 @@ $(document).ready(function () {
     }
   });
 
-  $("#admin-generate-btn").on("click", function() {
+  $("#admin-generate-btn").on("click", function () {
     var title = $("#ap-title").val() || "New App";
     var id = $("#ap-id").val() || "flutter-new";
     var image = $("#ap-image").val() || "placeholder.png";
+    var images = $("#ap-images").val() || "";
     var desc = $("#ap-desc").val() || "Not specified.";
-    
+
     var techRaw = $("#ap-tech").val() || "Flutter, Dart";
-    var techPills = techRaw.split(",").map(t => `<span class="tech-pill">${t.trim()}</span>`).join("\n                                ");
-    
+    var techPills = techRaw
+      .split(",")
+      .map((t) => `<span class="tech-pill">${t.trim()}</span>`)
+      .join("\n                                ");
+
     var featRaw = $("#ap-features").val() || "Feature 1, Feature 2";
-    var featList = featRaw.split(",").map(f => `<li>${f.trim()}</li>`).join("\n                                ");
-    
+    var featList = featRaw
+      .split(",")
+      .map((f) => `<li>${f.trim()}</li>`)
+      .join("\n                                ");
+
     var live = $("#ap-live").val() || "#";
     var appetize = $("#ap-appetize").val() || "#";
     var video = $("#ap-video").val() || "#";
     var github = $("#ap-github").val() || "#";
 
+    var folder = window.currentlyEditingCard
+      ? window.currentlyEditingCard.attr("data-image-folder")
+      : `images/${id.replace("flutter-", "")}/`;
+
     var htmlTemplate = `                <div class="project-card" data-id="${id}"
-                    data-liveurl="${live}" data-appetizeurl="${appetize}" data-videourl="${video}" data-title="${title}">
+                    data-liveurl="${live}" data-appetizeurl="${appetize}" data-videourl="${video}" data-title="${title}"
+                    data-images="${images}" data-image-folder="${folder}">
                     <div class="project-img-wrapper">
                         <img src="images/${image}" alt="${title}" />
                     </div>
@@ -1200,7 +1441,7 @@ $(document).ready(function () {
     $("#admin-output-code").val(htmlTemplate);
     $("#admin-form-step").hide();
     $("#admin-result-step").fadeIn();
-    
+
     // Preview locally
     var $newCard = $(htmlTemplate);
     if (window.currentlyEditingCard) {
@@ -1208,23 +1449,23 @@ $(document).ready(function () {
     } else {
       $(".projects-grid").first().append($newCard);
     }
-    
+
     if ("IntersectionObserver" in window) {
       $newCard.addClass("active");
     }
     enableAdminMode(); // re-attach edit button to the new card
   });
 
-  $("#admin-copy-btn").on("click", function() {
+  $("#admin-copy-btn").on("click", function () {
     var output = document.getElementById("admin-output-code");
     output.select();
-    output.setSelectionRange(0, 99999); 
+    output.setSelectionRange(0, 99999);
     document.execCommand("copy");
     $("#admin-copy-status").fadeIn();
     setTimeout(() => $("#admin-copy-status").fadeOut(), 3000);
   });
 
-  $("#admin-reset-btn").on("click", function() {
+  $("#admin-reset-btn").on("click", function () {
     $("#admin-result-step").hide();
     $("#admin-form-step").fadeIn();
     window.currentlyEditingCard = null;
