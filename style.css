@@ -2186,6 +2186,20 @@ footer span a:hover {
   background: var(--bg-card);
 }
 
+.project-card .proj-link-btn.playstore-btn {
+  background: var(--bg-card);
+  color: #3ddc84;
+  border-color: rgba(61, 220, 132, 0.3);
+}
+
+.project-card .proj-link-btn.playstore-btn:hover {
+  background: linear-gradient(135deg, #00c853, #00e676);
+  border-color: transparent;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(0, 200, 83, 0.4);
+  transform: translateY(-2px);
+}
+
 .project-card .proj-link-btn:hover {
   background: var(--accent-gradient);
   border-color: transparent;
