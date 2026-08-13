@@ -122,6 +122,52 @@ html.theme-in-transition * {
   }
 }
 
+/* Interactive Background Canvas & Spotlight Followers */
+#heroCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.85;
+}
+
+.spot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(236, 72, 153, 0.05) 40%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease;
+  mix-blend-mode: screen;
+}
+
+.dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  background: #38bdf8;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px #38bdf8, 0 0 20px rgba(56, 189, 248, 0.8);
+  transition: opacity 0.3s ease, transform 0.1s ease;
+}
+
+[data-theme="light"] .spot {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, rgba(236, 72, 153, 0.03) 40%, transparent 70%);
+}
+
 /* Ambient decorative background blobs */
 .ambient-blob {
   position: fixed;
@@ -502,7 +548,7 @@ section .title::after {
 
   color: #fff;
   background-size: cover;
-  background-attachment: fixed;
+  background-attachment: scroll;
   font-family: var(--font-title);
 }
 
@@ -607,6 +653,85 @@ section .title::after {
   color: #fff;
 }
 
+/* ============================================================
+   Continuous Tech Stack Marquee Ticker Section
+   ============================================================ */
+.tech-marquee-section {
+  padding: 30px 0;
+  background: transparent;
+  position: relative;
+  z-index: 5;
+}
+
+.tech-marquee-container {
+  position: relative;
+  width: 100%;
+  padding: 14px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 50px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 8px 32px var(--shadow-main);
+  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+  transition: var(--theme-transition);
+}
+
+.tech-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeTrack 30s linear infinite;
+}
+
+.tech-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.tech-marquee-content {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  padding-right: 36px;
+}
+
+.tech-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-title);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.tech-item:hover {
+  color: var(--primary);
+  transform: scale(1.05);
+}
+
+.tech-item .dot {
+  width: 7px;
+  height: 7px;
+  background: #38bdf8;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 8px #38bdf8, 0 0 12px rgba(56, 189, 248, 0.6);
+}
+
+@keyframes marqueeTrack {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 /* about section styling */
 .about .title::after {
   content: "Who I Am";
@@ -617,6 +742,9 @@ section .title::after {
 }
 
 .about .about-content .left img {
+  position: relative;
+  z-index: 10000 !important;
+  isolation: isolate;
   height: 400px;
   width: 400px;
   object-fit: cover;
@@ -2040,22 +2168,30 @@ footer span a:hover {
 .project-card {
   background:
     radial-gradient(
-      300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      350px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
       var(--card-spotlight),
       transparent 80%
     ),
     var(--bg-card);
   border: 1px solid var(--border-card);
-  box-shadow: 0 4px 20px var(--shadow-main);
+  box-shadow: 0 8px 30px var(--shadow-main);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 14px;
+  padding: 22px;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+
+.project-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 16px 40px var(--primary-glow-strong);
 }
 
 .project-img-wrapper {

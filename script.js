@@ -22,6 +22,198 @@ $(document).ready(function () {
   }
   requestAnimationFrame(raf);
 
+  /* ============================================================
+     Interactive Particle Canvas & Cursor Glow Spotlight
+     ============================================================ */
+  // 1. Mouse Spotlight & Dot Lerp Follower
+  const spotEl = document.getElementById("spot");
+  const dotEl = document.getElementById("dot");
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+  let spotX = mouseX;
+  let spotY = mouseY;
+  let dotX = mouseX;
+  let dotY = mouseY;
+
+  $(window).on("mousemove", function (e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  // Hide dot and spotlight when mouse hovers over profile photos
+  $(document).on("mouseenter", ".about .left img, .photo-wrap, .photo-mask, .column.left img", function () {
+    if (spotEl) spotEl.style.opacity = "0";
+    if (dotEl) dotEl.style.opacity = "0";
+  });
+  $(document).on("mouseleave", ".about .left img, .photo-wrap, .photo-mask, .column.left img", function () {
+    if (spotEl) spotEl.style.opacity = "1";
+    if (dotEl) dotEl.style.opacity = "1";
+  });
+
+  function animateCursorFollower() {
+    spotX += (mouseX - spotX) * 0.12;
+    spotY += (mouseY - spotY) * 0.12;
+    dotX += (mouseX - dotX) * 0.3;
+    dotY += (mouseY - dotY) * 0.3;
+
+    if (spotEl) {
+      spotEl.style.left = spotX + "px";
+      spotEl.style.top = spotY + "px";
+    }
+    if (dotEl) {
+      dotEl.style.left = dotX + "px";
+      dotEl.style.top = dotY + "px";
+    }
+    requestAnimationFrame(animateCursorFollower);
+  }
+  requestAnimationFrame(animateCursorFollower);
+
+  // 2. Interactive Background Particle Canvas Engine
+  const canvas = document.getElementById("heroCanvas");
+  if (canvas) {
+    const ctx = canvas.getContext("2d");
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    window.addEventListener("resize", () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    const numParticles = Math.min(Math.floor(window.innerWidth / 20), 75);
+    const particles = [];
+    const colors = [
+      "rgba(56, 189, 248, 0.7)",  // Cyan
+      "rgba(236, 72, 153, 0.6)",  // Pink
+      "rgba(168, 85, 247, 0.6)",  // Purple
+      "rgba(255, 0, 127, 0.5)",   // Magenta
+    ];
+
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        radius: Math.random() * 2 + 1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
+
+    // Cache photo element bounding boxes to prevent particles from rendering over profile pictures
+    let photoRects = [];
+    function updatePhotoRects() {
+      photoRects = [];
+      document.querySelectorAll(".about .left img, .photo-wrap, .photo-mask, .column.left img").forEach(img => {
+        const r = img.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) {
+          photoRects.push({
+            left: r.left - 50,
+            right: r.right + 50,
+            top: r.top - 50,
+            bottom: r.bottom + 50
+          });
+        }
+      });
+    }
+    updatePhotoRects();
+    window.addEventListener("scroll", updatePhotoRects, { passive: true });
+    window.addEventListener("resize", updatePhotoRects, { passive: true });
+
+    function isPointOverPhoto(x, y) {
+      for (let k = 0; k < photoRects.length; k++) {
+        let r = photoRects[k];
+        if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < particles.length; i++) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0) p.x = width;
+        if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        if (p.y > height) p.y = 0;
+
+        // Skip particle rendering if inside profile photo bounding box
+        if (isPointOverPhoto(p.x, p.y)) continue;
+
+        // Draw particle node
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+
+        // Draw constellation lines to nearby particles
+        for (let j = i + 1; j < particles.length; j++) {
+          let p2 = particles[j];
+          if (isPointOverPhoto(p2.x, p2.y)) continue;
+
+          let dx = p.x - p2.x;
+          let dy = p.y - p2.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(56, 189, 248, ${0.15 * (1 - dist / 120)})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        }
+
+        // Mouse interaction connection line
+        let mdx = p.x - mouseX;
+        let mdy = p.y - mouseY;
+        let mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+        if (mdist < 140 && !isPointOverPhoto(mouseX, mouseY)) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(mouseX, mouseY);
+          ctx.strokeStyle = `rgba(236, 72, 153, ${0.25 * (1 - mdist / 140)})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
+      requestAnimationFrame(drawParticles);
+    }
+    requestAnimationFrame(drawParticles);
+  }
+
+  /* ============================================================
+     3D Card Tilt & Dynamic Spotlight Tracker Engine
+     ============================================================ */
+  $(document).on("mousemove", ".project-card, .skills-category-card, .about-pillar, .serv-content .card", function (e) {
+    const card = this;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    // Smooth 3D tilt max ±7.5 deg
+    const rotateX = -((y - centerY) / centerY) * 7.5;
+    const rotateY = ((x - centerX) / centerX) * 7.5;
+
+    card.style.setProperty("--mouse-x", `${x}px`);
+    card.style.setProperty("--mouse-y", `${y}px`);
+    card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateZ(8px)`;
+  });
+
+  $(document).on("mouseleave", ".project-card, .skills-category-card, .about-pillar, .serv-content .card", function () {
+    this.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)";
+  });
+
   // Relay Lenis scroll events so jQuery scroll handlers (sticky nav, reveal) keep working
   lenis.on("scroll", ({ scroll }) => {
     // Use the raw scroll position to drive scroll-based UI without re-triggering jQuery overhead
