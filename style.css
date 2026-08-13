@@ -2059,6 +2059,7 @@ footer span a:hover {
 }
 
 .project-img-wrapper {
+  position: relative;
   width: 100%;
   height: 180px;
   overflow: hidden;
@@ -2067,6 +2068,48 @@ footer span a:hover {
   border: 1px solid var(--border-card);
   transition: border-color 0.4s ease;
   flex-shrink: 0;
+}
+
+.project-card .team-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.92), rgba(124, 58, 237, 0.92));
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.project-card .client-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.92), rgba(220, 38, 38, 0.92));
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .project-card img {
@@ -2197,6 +2240,40 @@ footer span a:hover {
   border-color: transparent;
   color: #fff !important;
   box-shadow: 0 4px 14px rgba(0, 200, 83, 0.4);
+  transform: translateY(-2px);
+}
+
+.project-card .proj-link-btn.full-width {
+  flex: 1 1 100%;
+}
+
+.project-card .proj-link-btn.client-code-btn {
+  flex: 1 1 100%;
+  background: var(--bg-card);
+  color: var(--text-sec);
+  border-color: rgba(234, 88, 12, 0.3);
+  cursor: default;
+}
+
+.project-card .proj-link-btn.client-code-btn:hover {
+  background: rgba(234, 88, 12, 0.12);
+  border-color: rgba(234, 88, 12, 0.5);
+  color: #f97316 !important;
+  transform: none;
+  box-shadow: none;
+}
+
+.project-card .proj-link-btn.apk-btn {
+  background: var(--bg-card);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.project-card .proj-link-btn.apk-btn:hover {
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  border-color: transparent;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.4);
   transform: translateY(-2px);
 }
 
