@@ -1,24 +1,27 @@
-import { 
-  auth, 
-  db, 
-  isFirebaseConfigured, 
-  signInWithEmailAndPassword, 
-  signOut, 
+import {
+  auth,
+  db,
+  isFirebaseConfigured,
+  signInWithEmailAndPassword,
+  signOut,
   onAuthStateChanged,
-  collection, 
-  getDocs, 
-  doc, 
-  setDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
   onSnapshot,
   query,
   orderBy,
-  serverTimestamp 
+  serverTimestamp
 } from "./firebase-config.js";
 
 $(document).ready(function () {
+  // Global timers for carousels
+  var autoShowcaseTimer = null;
+
   // Initialize Lenis smooth scroll safely if library is present
   let lenis = null;
   if (typeof Lenis !== "undefined") {
@@ -271,7 +274,7 @@ $(document).ready(function () {
     const y = e.clientY - rect.top;
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    
+
     const rotateX = -((y - centerY) / centerY) * 7.5;
     const rotateY = ((x - centerX) / centerX) * 7.5;
 
@@ -304,7 +307,7 @@ $(document).ready(function () {
   // Helper to recalculate contributions and streaks from rendered DOM cells
   function recalculateGitHubStreaks() {
     const cells = document.querySelectorAll(
-      "#github-calendar rect[data-date], #github-calendar td[data-date]",
+      "#github-calendar rect[data-date], #github-calendar td[data-date]"
     );
     if (cells.length === 0) return;
 
@@ -312,6 +315,10 @@ $(document).ready(function () {
     let longestStreak = 0;
     let currentStreak = 0;
     let tempStreak = 0;
+
+    let tempStreakStart = null;
+    let longestStreakStart = null;
+    let longestStreakEnd = null;
 
     // Sort cells by date ascending
     const sortedCells = Array.from(cells).sort((a, b) => {
@@ -323,8 +330,6 @@ $(document).ready(function () {
 
     sortedCells.forEach((cell) => {
       let count = parseInt(cell.getAttribute("data-count") || "0", 10);
-
-      // Fallback: use data-level if data-count is not set
       if (!cell.hasAttribute("data-count") && cell.hasAttribute("data-level")) {
         const level = parseInt(cell.getAttribute("data-level") || "0", 10);
         count = level > 0 ? level : 0;
@@ -333,17 +338,26 @@ $(document).ready(function () {
       total += count;
 
       if (count > 0) {
+        if (tempStreak === 0) {
+          tempStreakStart = cell.getAttribute("data-date");
+        }
         tempStreak++;
         if (tempStreak > longestStreak) {
           longestStreak = tempStreak;
+          longestStreakStart = tempStreakStart;
+          longestStreakEnd = cell.getAttribute("data-date");
         }
       } else {
         tempStreak = 0;
+        tempStreakStart = null;
       }
     });
 
     // Calculate current streak (look backwards from latest date)
     let currentStreakTemp = 0;
+    let currentStreakStart = null;
+    let currentStreakEnd = null;
+
     const localTodayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local format
     const utcTodayStr = new Date().toISOString().split("T")[0]; // YYYY-MM-DD UTC format
 
@@ -359,9 +373,10 @@ $(document).ready(function () {
       }
 
       if (count > 0) {
+        if (!currentStreakEnd) currentStreakEnd = dateStr;
+        currentStreakStart = dateStr;
         currentStreakTemp++;
       } else {
-        // If it's today and count is 0, don't break the streak yet (user might commit later)
         if (dateStr === localTodayStr || dateStr === utcTodayStr) {
           checkIndex--;
           continue;
@@ -372,24 +387,81 @@ $(document).ready(function () {
     }
     currentStreak = currentStreakTemp;
 
-    // Update DOM
-    const $numbers = $("#github-calendar .contrib-number");
-    if ($numbers.length >= 3) {
-      $numbers
-        .eq(0)
-        .html(
-          `${total.toLocaleString()} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">total</span>`,
-        );
-      $numbers
-        .eq(1)
-        .html(
-          `${longestStreak} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">days</span>`,
-        );
-      $numbers
-        .eq(2)
-        .html(
-          `${currentStreak} <span style="font-size: 14px; font-weight: 500; color: var(--text-sec);">days</span>`,
-        );
+    // Helper for formatting date strings like "Aug 17, 2025"
+    const formatDate = (dateStr) => {
+      if (!dateStr) return "";
+      const parts = dateStr.split("-");
+      if (parts.length === 3) {
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      }
+      return dateStr;
+    };
+
+    // Calculate 1 year date range from sorted cells
+    const startDateStr = sortedCells[0] ? sortedCells[0].getAttribute("data-date") : "";
+    const endDateStr = sortedCells[sortedCells.length - 1] ? sortedCells[sortedCells.length - 1].getAttribute("data-date") : "";
+
+    const yearRangeText = (startDateStr && endDateStr)
+      ? `${formatDate(startDateStr)} – ${formatDate(endDateStr)}`
+      : "Past 12 Months";
+
+    const longestStreakSubtext = (longestStreakStart && longestStreakEnd && longestStreak > 1)
+      ? `${formatDate(longestStreakStart)} – ${formatDate(longestStreakEnd)}`
+      : "Rock - Hard Place";
+
+    const currentStreakSubtext = (currentStreakStart && currentStreak > 0)
+      ? (currentStreakEnd && currentStreakStart !== currentStreakEnd
+          ? `${formatDate(currentStreakStart)} – ${formatDate(currentStreakEnd)}`
+          : `${formatDate(currentStreakStart)}`)
+      : "Rock - Hard Place";
+
+    // Hide any legacy default footer elements
+    $("#github-calendar > .contrib-column, #github-calendar > .contrib-footer, #github-calendar .table-column").hide();
+
+    // Render or update clean 3-column footer container
+    let $footerContainer = $("#github-calendar .contrib-footer-columns");
+    if (!$footerContainer.length) {
+      $footerContainer = $(`
+        <div class="contrib-footer-columns">
+          <div class="contrib-column contrib-column-first">
+            <span class="contrib-title">Contributions in the last year</span>
+            <div class="contrib-number">
+              <span class="num">${total.toLocaleString()}</span>
+              <span class="unit">total</span>
+            </div>
+            <span class="contrib-subtext">${yearRangeText}</span>
+          </div>
+
+          <div class="contrib-column">
+            <span class="contrib-title">Longest streak</span>
+            <div class="contrib-number">
+              <span class="num">${longestStreak}</span>
+              <span class="unit">days</span>
+            </div>
+            <span class="contrib-subtext">${longestStreakSubtext}</span>
+          </div>
+
+          <div class="contrib-column">
+            <span class="contrib-title">Current streak</span>
+            <div class="contrib-number">
+              <span class="num">${currentStreak}</span>
+              <span class="unit">days</span>
+            </div>
+            <span class="contrib-subtext">${currentStreakSubtext}</span>
+          </div>
+        </div>
+      `);
+      $("#github-calendar").append($footerContainer);
+    } else {
+      $footerContainer.find(".contrib-column").eq(0).find(".num").text(total.toLocaleString());
+      $footerContainer.find(".contrib-column").eq(0).find(".contrib-subtext").text(yearRangeText);
+
+      $footerContainer.find(".contrib-column").eq(1).find(".num").text(longestStreak);
+      $footerContainer.find(".contrib-column").eq(1).find(".contrib-subtext").text(longestStreakSubtext);
+
+      $footerContainer.find(".contrib-column").eq(2).find(".num").text(currentStreak);
+      $footerContainer.find(".contrib-column").eq(2).find(".contrib-subtext").text(currentStreakSubtext);
     }
   }
 
@@ -566,8 +638,8 @@ $(document).ready(function () {
         } else {
           alert(
             'CV file not found at "' +
-              href +
-              '".\nPlease place your CV at that path or update the link in index.html.',
+            href +
+            '".\nPlease place your CV at that path or update the link in index.html.',
           );
         }
       })
@@ -641,184 +713,8 @@ $(document).ready(function () {
     },
   });
 
-  /* ── Flutter App Showcase (visible on-page phone carousel) ── */
+  /* ── Flutter App Showcase on-page renderer managed by syncShowcaseFromBackend ── */
 
-  (function initFlutterShowcase() {
-    var $showcase = $("#flutterShowcase");
-    var folder = (
-      $showcase.attr("data-image-folder") || "images/Upcoming_APP/"
-    ).trim();
-    var imagesAttr = ($showcase.attr("data-images") || "").trim();
-    var label = "Upcoming App";
-    var showcaseTimer = null;
-
-    // Parallel probe of images to avoid sequential blocking
-    function probeFolderParallel(folder, max, cb) {
-      var imgs = [];
-      var completed = 0;
-      var results = [];
-
-      for (var i = 1; i <= max; i++) {
-        (function (idx) {
-          var src = folder + idx + ".png";
-          var img = new Image();
-          img.onload = function () {
-            results[idx] = { success: true, src: src };
-            checkDone();
-          };
-          img.onerror = function () {
-            results[idx] = { success: false };
-            checkDone();
-          };
-          img.src = src;
-        })(i);
-      }
-
-      function checkDone() {
-        completed++;
-        if (completed === max) {
-          // Collect continuous sequence starting from 1
-          for (var idx = 1; idx <= max; idx++) {
-            if (results[idx] && results[idx].success) {
-              imgs.push(results[idx].src);
-            } else {
-              break; // Stop at first missing image
-            }
-          }
-          cb(imgs);
-        }
-      }
-    }
-
-    if (imagesAttr) {
-      var imgs = imagesAttr.split(",").map(function (src) {
-        return folder + src.trim();
-      });
-      buildShowcase($showcase, imgs, label, null);
-    } else {
-      probeFolderParallel(folder, 20, function (imgs) {
-        if (!imgs.length) {
-          $showcase.hide(); // no images in the folder
-          return;
-        }
-        buildShowcase($showcase, imgs, label, null);
-      });
-    }
-
-    function buildShowcase($el, imgs, label, cardId) {
-      var cur = 0;
-      var total = imgs.length;
-
-      // ── DOM ──────────────────────────────────────────────
-      $el.empty();
-
-      var $inner = $('<div class="showcase-inner"></div>');
-
-      // App label + counter
-      var $header = $(
-        '<div class="showcase-header">' +
-          '<span class="showcase-app-label"><i class="fab fa-flutter showcase-flutter-icon"></i> ' +
-          label +
-          "</span>" +
-          '<span class="showcase-counter"><span class="sc-cur">1</span> / <span class="sc-tot">' +
-          total +
-          "</span></span>" +
-          "</div>",
-      );
-
-      // Phone strip
-      var $strip = $('<div class="showcase-strip"></div>');
-
-      // Build N phone frames (all images)
-      imgs.forEach(function (src, i) {
-        var $phone = $(
-          '<div class="sc-phone' +
-            (i === 0 ? " sc-active" : "") +
-            '">' +
-            '<div class="sc-phone-notch"></div>' +
-            '<div class="sc-phone-screen"><img src="' +
-            src +
-            '" alt="Screenshot ' +
-            (i + 1) +
-            '" loading="lazy"/></div>' +
-            '<div class="sc-phone-bar"></div>' +
-            "</div>",
-        );
-        $phone.on("click", function () {
-          scGoTo(i);
-          scRestart();
-        });
-        $strip.append($phone);
-      });
-
-      // Arrows
-      var $prev = $(
-        '<button class="sc-arrow sc-arrow-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>',
-      );
-      var $next = $(
-        '<button class="sc-arrow sc-arrow-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>',
-      );
-
-      $prev.on("click", function () {
-        scGoTo(cur - 1);
-        scRestart();
-      });
-      $next.on("click", function () {
-        scGoTo(cur + 1);
-        scRestart();
-      });
-
-      // Dots
-      var $dots = $('<div class="sc-dots"></div>');
-      imgs.forEach(function (_, i) {
-        var $dot = $(
-          '<button class="sc-dot' +
-            (i === 0 ? " sc-dot-active" : "") +
-            '"></button>',
-        );
-        $dot.on("click", function () {
-          scGoTo(i);
-          scRestart();
-        });
-        $dots.append($dot);
-      });
-
-      // "View all" hint
-      var $hint = $(
-        '<div class="showcase-hint"><i class="fas fa-expand-arrows-alt"></i> Click any project card for fullscreen view</div>',
-      );
-
-      $inner.append($header, $strip, $prev, $next, $dots, $hint);
-      $el.append($inner);
-
-      // ── Logic ─────────────────────────────────────────────
-      function scGoTo(idx) {
-        cur = ((idx % total) + total) % total;
-        $strip.find(".sc-phone").removeClass("sc-active sc-prev sc-next");
-        var $phones = $strip.find(".sc-phone");
-        $phones.eq(cur).addClass("sc-active");
-        $phones.eq((cur - 1 + total) % total).addClass("sc-prev");
-        $phones.eq((cur + 1) % total).addClass("sc-next");
-        $dots
-          .find(".sc-dot")
-          .removeClass("sc-dot-active")
-          .eq(cur)
-          .addClass("sc-dot-active");
-        $header.find(".sc-cur").text(cur + 1);
-      }
-
-      function scRestart() {
-        clearInterval(showcaseTimer);
-        showcaseTimer = setInterval(function () {
-          scGoTo(cur + 1);
-        }, 3500);
-      }
-
-      // Init positions
-      scGoTo(0);
-      scRestart();
-    }
-  })();
 
   /* ── Flutter Feature Slider (custom — no OWL dependency) ── */
 
@@ -863,8 +759,8 @@ $(document).ready(function () {
       $slide.append(
         $(
           '<img class="fslide-img" alt="Screenshot ' +
-            (i + 1) +
-            '" loading="lazy"/>',
+          (i + 1) +
+          '" loading="lazy"/>',
         ).attr("src", src),
       );
       $slider.append($slide);
@@ -896,10 +792,10 @@ $(document).ready(function () {
     images.forEach(function (_, i) {
       var $dot = $(
         '<button class="fdot' +
-          (i === 0 ? " active" : "") +
-          '" aria-label="Slide ' +
-          (i + 1) +
-          '"></button>',
+        (i === 0 ? " active" : "") +
+        '" aria-label="Slide ' +
+        (i + 1) +
+        '"></button>',
       );
       $dot.on("click", function (e) {
         e.stopPropagation();
@@ -912,8 +808,8 @@ $(document).ready(function () {
     // Counter badge  e.g. "1 / 4"
     var $counter = $(
       '<div class="fslider-counter"><span class="fslider-cur">1</span> / <span class="fslider-total">' +
-        images.length +
-        "</span></div>",
+      images.length +
+      "</span></div>",
     );
 
     // Keep counter in sync
@@ -1023,16 +919,16 @@ $(document).ready(function () {
     images.forEach(function (src, i) {
       var $phone = $(
         '<div class="sc-phone' +
-          (i === 0 ? " sc-active" : "") +
-          '">' +
-          '<div class="sc-phone-notch"></div>' +
-          '<div class="sc-phone-screen"><img src="' +
-          src +
-          '" alt="Screen ' +
-          (i + 1) +
-          '" loading="lazy"/></div>' +
-          '<div class="sc-phone-bar"></div>' +
-          "</div>",
+        (i === 0 ? " sc-active" : "") +
+        '">' +
+        '<div class="sc-phone-notch"></div>' +
+        '<div class="sc-phone-screen"><img src="' +
+        src +
+        '" alt="Screen ' +
+        (i + 1) +
+        '" loading="lazy"/></div>' +
+        '<div class="sc-phone-bar"></div>' +
+        "</div>",
       );
       $phone.on("click", function () {
         pcGoTo(i);
@@ -1064,10 +960,10 @@ $(document).ready(function () {
     images.forEach(function (_, i) {
       var $dot = $(
         '<button class="sc-dot' +
-          (i === 0 ? " sc-dot-active" : "") +
-          '" aria-label="Slide ' +
-          (i + 1) +
-          '"></button>',
+        (i === 0 ? " sc-dot-active" : "") +
+        '" aria-label="Slide ' +
+        (i + 1) +
+        '"></button>',
       );
       $dot.on("click", function (e) {
         e.stopPropagation();
@@ -1080,8 +976,8 @@ $(document).ready(function () {
     // Counter  "1 / 4"
     var $counter = $(
       '<div class="fslider-counter"><span class="pc-cur">1</span> / <span>' +
-        total +
-        "</span></div>",
+      total +
+      "</span></div>",
     );
 
     $wrap.append($strip, $prev, $next, $dots, $counter);
@@ -1103,10 +999,29 @@ $(document).ready(function () {
 
     function pcRestart() {
       clearInterval(autoTimer);
-      autoTimer = setInterval(function () {
-        pcGoTo(cur + 1);
-      }, 3500);
+      if (total > 1) {
+        autoTimer = setInterval(function () {
+          pcGoTo(cur + 1);
+        }, 3000);
+      }
     }
+
+    let touchStartX = 0;
+    $strip.on("touchstart", function (e) {
+      if (e.originalEvent && e.originalEvent.touches) {
+        touchStartX = e.originalEvent.touches[0].clientX;
+      }
+    }).on("touchend", function (e) {
+      if (e.originalEvent && e.originalEvent.changedTouches) {
+        const touchEndX = e.originalEvent.changedTouches[0].clientX;
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 40) {
+          if (diff > 0) pcGoTo(cur + 1);
+          else pcGoTo(cur - 1);
+          pcRestart();
+        }
+      }
+    });
 
     // Store destroy hook so close handler can clear the timer
     $wrap.data("destroy", function () {
@@ -1139,11 +1054,11 @@ $(document).ready(function () {
         .css("display", "flex")
         .append(
           '<p style="color:var(--text-sec);padding:40px;text-align:center;line-height:1.8;">' +
-            '<i class="fas fa-images" style="font-size:42px;display:block;margin-bottom:12px;opacity:.5;"></i>' +
-            "No screenshots yet.<br>" +
-            '<code style="font-size:12px;">' +
-            ($card.attr("data-image-folder") || "images/ProjectName/") +
-            '1.png</code>, <code style="font-size:12px;">2.png</code>…</p>',
+          '<i class="fas fa-images" style="font-size:42px;display:block;margin-bottom:12px;opacity:.5;"></i>' +
+          "No screenshots yet.<br>" +
+          '<code style="font-size:12px;">' +
+          ($card.attr("data-image-folder") || "images/ProjectName/") +
+          '1.png</code>, <code style="font-size:12px;">2.png</code>…</p>',
         );
       $("#liveViewModal").attr("aria-hidden", "false").fadeIn(200);
       $("body").addClass("modal-open");
@@ -1645,7 +1560,7 @@ $(document).ready(function () {
     if (isFirebaseConfigured() && auth) {
       try {
         await signOut(auth);
-      } catch (err) {}
+      } catch (err) { }
     }
     localStorage.removeItem("portfolio_admin_logged_in");
     showAdminLoginScreen();
@@ -1661,10 +1576,15 @@ $(document).ready(function () {
       image: "images/Sova/1 21.png",
       desc: "Disconnected nightlife experiences, lack of real-time DJ song requests, and fragmented event ticket purchasing for clubgoers.",
       tech: "Flutter, Dart, GetX, HTTP, REST API",
-      live: "https://play.google.com/store/apps/details?id=com.zdenko_dikic.sova",
+      live: "#",
       playstore: "https://play.google.com/store/apps/details?id=com.zdenko_dikic.sova",
       imageFolder: "images/Sova/",
-      images: "1 21.png,2 8.png,3 21.png,4 1.png,5 1.png,6 1.png,7 1.png,8 1.png"
+      images: "1 21.png,2 8.png,3 21.png,4 1.png,5 1.png,6 1.png,7 1.png,8 1.png",
+      features: [
+        "Live club & event discovery with ticket booking",
+        "Real-time DJ song requests & fee status",
+        "Club communities, group creation & reward coins"
+      ]
     },
     {
       id: "flutter-digital-khanqah",
@@ -1674,10 +1594,15 @@ $(document).ready(function () {
       image: "images/maroofkhan/1.png",
       desc: "Fragmented access to authentic Islamic learning, daily prayer tracking, Quran recitations, and AI spiritual guidance in a single mobile experience.",
       tech: "Flutter, Dart, GetX, REST API, AI Integration, Audio Players, Geolocator",
-      live: "https://play.google.com/store/apps/details?id=com.digital.khanqah&hl=en",
+      live: "#",
       playstore: "https://play.google.com/store/apps/details?id=com.digital.khanqah&hl=en",
       imageFolder: "images/maroofkhan/",
-      images: "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png,14.png,15.png,16.png"
+      images: "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png,14.png,15.png,16.png",
+      features: [
+        "AI Murshid for voice & text spiritual Q&A guidance",
+        "Full Al-Quran recitations, Hadiths, Duas & 99 Names of Allah",
+        "Location-aware Prayer Times, daily logger & Sufism meditation"
+      ]
     },
     {
       id: "flutter-yestwice",
@@ -1688,30 +1613,52 @@ $(document).ready(function () {
       desc: "Fragmented athletic training logs, recovery check-ins, and performance readiness tracking for athletes and coaches.",
       tech: "Flutter, Dart, GetX, REST API, PDF & Printing, Chewie / Video, Google Sign-in",
       live: "#",
+      appetize: "#",
       imageFolder: "images/yes_twic/",
-      images: "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png,14.png,15.png"
+      images: "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png,14.png,15.png",
+      features: [
+        "Daily athletic training logging & workout routines",
+        "Recovery check-ins & body readiness score analytics",
+        "Interactive calendar scheduling & performance reporting"
+      ]
     },
     {
       id: "flutter-smartplan",
       title: "SmartPlan — AI Study Planner",
       category: "flutter",
       badge: "client",
-      image: "images/SmartPlanAi.png",
+      image: "images/SmartPlanAi/2.png",
       desc: "Inefficient study schedules, lack of automated task breakdown, and poor time management for students.",
       tech: "Flutter, Dart, Provider, OpenAI API, SQLite",
       live: "#",
-      github: "https://github.com/hossainahammed/SmartPlan-AI-Study-Planner"
+      appetize: "#",
+      github: "https://github.com/hossainahammed/SmartPlan-AI-Study-Planner",
+      imageFolder: "images/SmartPlanAi/",
+      images: "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png,14.png,15.png,16.png,17.png,18.png,19.png,20.png,21.png,22.png",
+      features: [
+        "AI-powered study schedule generator",
+        "Task breakdown & deadline reminders",
+        "Progress analytics dashboard"
+      ]
     },
     {
       id: "flutter-expense",
       title: "Expense Tracker App",
       category: "flutter",
       badge: "team",
-      image: "images/Expences Tracker.png",
+      image: "images/ExpensesTracker/1.png",
       desc: "Manual budget tracking and difficulty visualizing daily spending habits.",
       tech: "Flutter, Dart, Hive DB, Fl Chart",
       live: "#",
-      github: "https://github.com/hossainahammed/Expense-Tracker-App"
+      appetize: "#",
+      github: "https://github.com/hossainahammed/Expense-Tracker-App",
+      imageFolder: "images/ExpensesTracker/",
+      images: "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,11.png,12.png,13.png,14.png,15.png",
+      features: [
+        "Daily income & expense logging with categories",
+        "Visual spending breakdown via dynamic charts",
+        "Local offline storage using Hive"
+      ]
     },
     {
       id: "web-honda",
@@ -1782,15 +1729,17 @@ $(document).ready(function () {
     const title = proj.title || "Untitled Project";
     const category = proj.category || "flutter";
     const badge = proj.badge || "";
-    const image = proj.image || "images/SmartPlanAi.png";
+    const image = proj.image || "images/SmartPlanAi/2.png";
     const desc = proj.desc || "";
     const tech = proj.tech || "";
     const playstore = proj.playstore || proj.playstoreurl || "";
+    const appetize = proj.appetize || proj.appetizeurl || "";
     const apk = proj.apk || proj.apkurl || "";
     const github = proj.github || proj.codeurl || "";
     const live = proj.live || proj.liveurl || "";
     const images = proj.images || "";
     const imageFolder = proj.imageFolder || proj.image_folder || "";
+    const features = proj.features || [];
 
     let techPillsHtml = "";
     if (tech) {
@@ -1802,31 +1751,39 @@ $(document).ready(function () {
     else if (badge === "team") badgeHtml = '<span class="team-badge"><i class="fas fa-users"></i> Team Project</span>';
     else if (badge === "both") badgeHtml = '<span class="team-badge"><i class="fas fa-users"></i> Team Project</span> <span class="client-badge"><i class="fas fa-user-shield"></i> Client Project</span>';
 
-    let linksHtml = "";
-    if (live && live !== "#") {
-      linksHtml += `<a href="${live}" target="_blank" rel="noopener" class="proj-link-btn live-btn" onclick="event.stopPropagation();"><i class="fas fa-play"></i> Live</a>`;
+    let featuresHtml = "";
+    if (Array.isArray(features) && features.length > 0) {
+      featuresHtml = `<ul class="proj-features">${features.map(f => `<li>${f}</li>`).join("")}</ul>`;
     }
+
+    let linksHtml = "";
+    // Row 1 buttons (Live, Playstore, Appetize)
+    linksHtml += `<span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>`;
     if (playstore && playstore !== "#") {
       linksHtml += `<a href="${playstore}" target="_blank" rel="noopener" class="proj-link-btn playstore-btn" onclick="event.stopPropagation();"><i class="fab fa-google-play"></i> Play Store</a>`;
+    } else {
+      linksHtml += `<span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>`;
     }
-    if (apk && apk !== "#") {
-      linksHtml += `<a href="${apk}" download class="proj-link-btn apk-btn" onclick="event.stopPropagation();"><i class="fas fa-download"></i> Download APK</a>`;
-    }
+
+    // Row 2 full-width buttons (Code or Locked Code)
     if (github && github !== "#") {
-      linksHtml += `<a href="${github}" target="_blank" rel="noopener" class="proj-link-btn code-btn" onclick="event.stopPropagation();"><i class="fab fa-github"></i> Code</a>`;
+      linksHtml += `<a href="${github}" target="_blank" rel="noopener" class="proj-link-btn code-btn full-width" onclick="event.stopPropagation();"><i class="fab fa-github"></i> Code</a>`;
+    } else {
+      linksHtml += `<span class="proj-link-btn client-code-btn full-width" onclick="event.stopPropagation();"><i class="fas fa-lock"></i> Locked Code</span>`;
     }
 
     return `
       <div class="project-card reveal active" data-id="${id}" data-title="${title}" data-liveurl="${live || '#'}" data-playstoreurl="${playstore || '#'}" data-apkurl="${apk || '#'}" data-image-folder="${imageFolder}" data-images="${images}">
         <div class="project-img-wrapper">
           ${badgeHtml}
-          <img src="${image}" alt="${title}" onerror="this.src='images/SmartPlanAi.png'" />
+          <img src="${image}" alt="${title}" onerror="this.onerror=null; this.src='images/SmartPlanAi.png'" />
         </div>
         <div class="project-info-body">
           <div class="proj-title">${title}</div>
           <div class="proj-meta">
             <p class="proj-desc"><strong>Problem Solved:</strong> ${desc}</p>
             <div class="proj-tech">${techPillsHtml}</div>
+            ${featuresHtml}
           </div>
         </div>
         <div class="project-links">
@@ -1864,7 +1821,7 @@ $(document).ready(function () {
 
     projects.forEach((proj) => {
       const projId = proj.id || ("proj-" + String(proj.title || "").toLowerCase().replace(/[^a-z0-9]+/g, "-"));
-      if (deletedIds.has(projId)) {
+      if (deletedIds.has(projId) || (proj.title && proj.title.toLowerCase().includes("dummy"))) {
         $(`.project-card[data-id="${projId}"]`).remove();
         return;
       }
@@ -2077,7 +2034,7 @@ $(document).ready(function () {
       if (isFirebaseConfigured() && db) {
         try {
           deleteDoc(doc(db, "projects", projId)).catch(err => console.warn("Firestore delete warning:", err));
-        } catch(e) {
+        } catch (e) {
           console.warn("Firestore delete error:", e);
         }
       }
@@ -2090,16 +2047,63 @@ $(document).ready(function () {
       }
 
       // 3. Remove card from DOM
-      $(`.project-card[data-id="${projId}"]`).fadeOut(300, function() { $(this).remove(); });
+      $(`.project-card[data-id="${projId}"]`).fadeOut(300, function () { $(this).remove(); });
 
       // 4. Filter local Projects Cache
       localProjectsCache = localProjectsCache.filter(p => p.id !== projId);
       localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
 
       // 5. Remove card from Admin list
-      $(`.admin-item-card[data-proj-id="${projId}"]`).slideUp(200, function() { $(this).remove(); });
+      $(`.admin-item-card[data-proj-id="${projId}"]`).slideUp(200, function () { $(this).remove(); });
     }
   });
+
+  /* ── Real-Time Automated Experience Counter (Month to Year) ── */
+  function calculateRealtimeExperience(startDateStr) {
+    let startDate = new Date(startDateStr || "2024-02-01");
+    if (isNaN(startDate.getTime())) {
+      startDate = new Date("2024-02-01");
+    }
+
+    const now = new Date();
+    let years = now.getFullYear() - startDate.getFullYear();
+    let months = now.getMonth() - startDate.getMonth();
+
+    if (now.getDate() < startDate.getDate()) {
+      months--;
+    }
+
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    if (years > 0 && months > 0) {
+      return `${years} Yrs ${months} Mos`;
+    } else if (years > 0) {
+      return `${years} ${years === 1 ? "Year" : "Years"}`;
+    } else if (months > 0) {
+      return `${months} ${months === 1 ? "Month" : "Months"}`;
+    } else {
+      return "0 Mos";
+    }
+  }
+
+  function updateExperienceDisplay(overrideExp, startDateStr) {
+    const $expEl = $(".stat-exp");
+    if (!$expEl.length) return;
+
+    if (overrideExp && overrideExp.trim() && overrideExp !== "1+ Years" && !overrideExp.includes("2024-") && !overrideExp.includes("2025-")) {
+      $expEl.text(overrideExp);
+    } else {
+      const start = startDateStr || $expEl.attr("data-start-date") || localStorage.getItem("stat_start_date") || "2024-02-01";
+      const computedExp = calculateRealtimeExperience(start);
+      $expEl.text(computedExp);
+    }
+  }
+
+  // Initial call on script load
+  updateExperienceDisplay();
 
   // 3. Stats Counters Controller & Sync
   function syncStatsFromBackend() {
@@ -2108,17 +2112,19 @@ $(document).ready(function () {
       const comp = data.comp || data.completed || "30";
       const deliv = data.deliv || data.delivered || "15";
       const pub = data.pub || data.published || "5";
-      const exp = data.exp || data.experience || "1+ Years";
+      const startDate = data.startDate || data.start_date || localStorage.getItem("stat_start_date") || "2024-02-01";
+      const exp = data.exp || data.experience || "";
 
       localStorage.setItem("stat_completed", comp);
       localStorage.setItem("stat_delivered", deliv);
       localStorage.setItem("stat_published", pub);
-      localStorage.setItem("stat_exp", exp);
+      localStorage.setItem("stat_start_date", startDate);
+      if (exp) localStorage.setItem("stat_exp", exp);
 
       $(".stat-number[data-target]").eq(0).attr("data-target", comp).text(comp + "+");
       $(".stat-number[data-target]").eq(1).attr("data-target", deliv).text(deliv + "+");
       $(".stat-number[data-target]").eq(2).attr("data-target", pub).text(pub + "+");
-      $(".stat-exp").text(exp);
+      updateExperienceDisplay(exp, startDate);
     };
 
     const savedComp = localStorage.getItem("stat_completed");
@@ -2127,8 +2133,11 @@ $(document).ready(function () {
         comp: localStorage.getItem("stat_completed"),
         deliv: localStorage.getItem("stat_delivered"),
         pub: localStorage.getItem("stat_published"),
+        startDate: localStorage.getItem("stat_start_date"),
         exp: localStorage.getItem("stat_exp")
       });
+    } else {
+      applyStats({ comp: "30", deliv: "15", pub: "5", startDate: "2024-02-01" });
     }
 
     if (isFirebaseConfigured() && db) {
@@ -2144,46 +2153,7 @@ $(document).ready(function () {
     }
   }
 
-  function loadAdminStats() {
-    const savedCompleted = localStorage.getItem("stat_completed") || "30";
-    const savedDelivered = localStorage.getItem("stat_delivered") || "15";
-    const savedPublished = localStorage.getItem("stat_published") || "5";
-    const savedExp = localStorage.getItem("stat_exp") || "1+ Years";
 
-    $("#statInputCompleted").val(savedCompleted);
-    $("#statInputDelivered").val(savedDelivered);
-    $("#statInputPublished").val(savedPublished);
-    $("#statInputExp").val(savedExp);
-  }
-
-  $("#adminStatsForm").on("submit", async function (e) {
-    e.preventDefault();
-
-    const comp = $("#statInputCompleted").val();
-    const deliv = $("#statInputDelivered").val();
-    const pub = $("#statInputPublished").val();
-    const exp = $("#statInputExp").val();
-
-    localStorage.setItem("stat_completed", comp);
-    localStorage.setItem("stat_delivered", deliv);
-    localStorage.setItem("stat_published", pub);
-    localStorage.setItem("stat_exp", exp);
-
-    // Update live DOM targets
-    $(".stat-number[data-target='30'], .stat-number[data-target]").eq(0).attr("data-target", comp).text(comp + "+");
-    $(".stat-number[data-target='15'], .stat-number[data-target]").eq(1).attr("data-target", deliv).text(deliv + "+");
-    $(".stat-number[data-target='5'], .stat-number[data-target]").eq(2).attr("data-target", pub).text(pub + "+");
-    $(".stat-exp").text(exp);
-
-    // Save to Firestore if available
-    if (isFirebaseConfigured() && db) {
-      try {
-        await setDoc(doc(db, "settings", "stats"), { comp, deliv, pub, exp, updatedAt: serverTimestamp() });
-      } catch (err) {}
-    }
-
-    $("#statsUpdateStatus").fadeIn().delay(3000).fadeOut();
-  });
 
   // 4. Contact Form Inbox & Form Intercept
   const inboxMessages = JSON.parse(localStorage.getItem("contact_inbox_messages") || "[]");
@@ -2209,7 +2179,7 @@ $(document).ready(function () {
     if (isFirebaseConfigured() && db) {
       try {
         await addDoc(collection(db, "messages"), { ...msgObj, timestamp: serverTimestamp() });
-      } catch (err) {}
+      } catch (err) { }
     }
 
     $status.text("✓ Message sent successfully! I will respond to your email shortly.").css("color", "#22c55e").fadeIn();
@@ -2259,8 +2229,8 @@ $(document).ready(function () {
 
     let animated = false;
 
-    function runCounterAnimation() {
-      if (animated) return;
+    window.triggerStatsAnimation = function (forceReset = false) {
+      if (animated && !forceReset) return;
       animated = true;
 
       // 1. Numeric Counters (Projects Completed, Delivered, Published Apps)
@@ -2269,14 +2239,14 @@ $(document).ready(function () {
         const defaultTarget = $el.text().includes("30") ? 30 : ($el.text().includes("15") ? 15 : 5);
         const target = parseInt($el.attr("data-target"), 10) || defaultTarget;
         const suffix = $el.attr("data-suffix") || "+";
-        const duration = 1500;
+        const duration = 1600;
         const startTime = performance.now();
 
         function step(currentTime) {
           const elapsed = currentTime - startTime;
           const progress = Math.min(elapsed / duration, 1);
           const easeProgress = 1 - Math.pow(1 - progress, 3);
-          const currentVal = Math.max(1, Math.floor(easeProgress * target));
+          const currentVal = Math.floor(easeProgress * target);
 
           $el.text(currentVal + suffix);
 
@@ -2289,20 +2259,16 @@ $(document).ready(function () {
         requestAnimationFrame(step);
       });
 
-      // 2. Experience Counter
-      $(".stat-exp").each(function () {
-        const $expEl = $(this);
-        const savedExp = localStorage.getItem("stat_exp") || "1+ Years";
-        $expEl.text(savedExp);
-      });
-    }
+      // 2. Experience Counter (Real-time month to year calculation)
+      updateExperienceDisplay();
+    };
 
     if ("IntersectionObserver" in window) {
       const statsObserver = new IntersectionObserver(
         (entries, observer) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              runCounterAnimation();
+              window.triggerStatsAnimation();
               observer.unobserve(entry.target);
             }
           });
@@ -2311,7 +2277,7 @@ $(document).ready(function () {
       );
       statsObserver.observe($statsSection[0]);
     } else {
-      runCounterAnimation();
+      window.triggerStatsAnimation();
     }
   }
 
@@ -2348,7 +2314,7 @@ $(document).ready(function () {
      ============================================================ */
 
   // 0. Upcoming App Showcase Manager & Engine
-  let autoShowcaseTimer = null;
+
 
   function renderFlutterShowcase(images, appTitle) {
     const $showcase = $("#flutterShowcase");
@@ -2367,8 +2333,8 @@ $(document).ready(function () {
     const $inner = $('<div class="showcase-inner"></div>');
     const $header = $(
       '<div class="showcase-header">' +
-        '<span class="showcase-app-label"><i class="fab fa-flutter showcase-flutter-icon"></i> ' + (appTitle || "Upcoming App") + '</span>' +
-        '<span class="showcase-counter"><span class="sc-cur">1</span> / <span class="sc-tot">' + total + '</span></span>' +
+      '<span class="showcase-app-label"><i class="fab fa-flutter showcase-flutter-icon"></i> ' + (appTitle || "Upcoming App") + '</span>' +
+      '<span class="showcase-counter"><span class="sc-cur">1</span> / <span class="sc-tot">' + total + '</span></span>' +
       '</div>'
     );
     const $strip = $('<div class="showcase-strip"></div>');
@@ -2376,9 +2342,9 @@ $(document).ready(function () {
     images.forEach((src, idx) => {
       const $phone = $(
         '<div class="sc-phone' + (idx === 0 ? ' sc-active' : '') + '">' +
-          '<div class="sc-phone-notch"></div>' +
-          '<div class="sc-phone-screen"><img src="' + src + '" alt="Screenshot ' + (idx + 1) + '" loading="lazy"/></div>' +
-          '<div class="sc-phone-bar"></div>' +
+        '<div class="sc-phone-notch"></div>' +
+        '<div class="sc-phone-screen"><img src="' + src + '" alt="Screenshot ' + (idx + 1) + '" loading="lazy"/></div>' +
+        '<div class="sc-phone-bar"></div>' +
         '</div>'
       );
       $phone.on("click", function () {
@@ -2430,10 +2396,29 @@ $(document).ready(function () {
 
     function resetTimer() {
       if (autoShowcaseTimer) clearInterval(autoShowcaseTimer);
-      autoShowcaseTimer = setInterval(function () {
-        goTo(currentIndex + 1);
-      }, 3500);
+      if (total > 1) {
+        autoShowcaseTimer = setInterval(function () {
+          goTo(currentIndex + 1);
+        }, 3000);
+      }
     }
+
+    let touchStartX = 0;
+    $strip.off("touchstart touchend").on("touchstart", function (e) {
+      if (e.originalEvent && e.originalEvent.touches) {
+        touchStartX = e.originalEvent.touches[0].clientX;
+      }
+    }).on("touchend", function (e) {
+      if (e.originalEvent && e.originalEvent.changedTouches) {
+        const touchEndX = e.originalEvent.changedTouches[0].clientX;
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 40) {
+          if (diff > 0) goTo(currentIndex + 1);
+          else goTo(currentIndex - 1);
+          resetTimer();
+        }
+      }
+    });
 
     goTo(0);
     resetTimer();
@@ -2460,7 +2445,7 @@ $(document).ready(function () {
 
     const saved = localStorage.getItem("settings_upcoming_showcase");
     if (saved) {
-      try { applyShowcase(JSON.parse(saved)); } catch(e) {}
+      try { applyShowcase(JSON.parse(saved)); } catch (e) { }
     } else {
       applyShowcase(null);
     }
@@ -2473,7 +2458,7 @@ $(document).ready(function () {
             applyShowcase(docSnap.data());
           }
         }, (err) => console.warn("Firestore upcoming_showcase listener warning:", err));
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 
@@ -2486,7 +2471,7 @@ $(document).ready(function () {
         if (data.title) $("#adminShowcaseTitle").val(data.title);
         if (data.folder) $("#adminShowcaseFolder").val(data.folder);
         if (data.images) $("#adminShowcaseImages").val(data.images);
-      } catch(e) {}
+      } catch (e) { }
     }
   });
 
@@ -2502,7 +2487,7 @@ $(document).ready(function () {
     if (isFirebaseConfigured() && db) {
       try {
         await setDoc(doc(db, "settings", "upcoming_showcase"), { ...dataObj, updatedAt: serverTimestamp() });
-      } catch (err) {}
+      } catch (err) { }
     }
     syncShowcaseFromBackend();
     alert("✓ Upcoming App Showcase config updated live!");
@@ -2537,13 +2522,13 @@ $(document).ready(function () {
           if (window.typedInstance2) window.typedInstance2.destroy();
           window.typedInstance1 = new Typed(".typing", { strings: roleArray, typeSpeed: 100, backSpeed: 60, loop: true });
           window.typedInstance2 = new Typed(".typing-2", { strings: roleArray, typeSpeed: 100, backSpeed: 60, loop: true });
-        } catch(e) {}
+        } catch (e) { }
       }
     };
 
     const saved = localStorage.getItem("settings_hero_about");
     if (saved) {
-      try { applyHeroAbout(JSON.parse(saved)); } catch(e) {}
+      try { applyHeroAbout(JSON.parse(saved)); } catch (e) { }
     }
 
     if (isFirebaseConfigured() && db) {
@@ -2551,7 +2536,7 @@ $(document).ready(function () {
         onSnapshot(doc(db, "settings", "hero_about"), (docSnap) => {
           if (docSnap.exists()) applyHeroAbout(docSnap.data());
         }, (err) => console.warn("Firestore hero_about listener warning:", err));
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 
@@ -2566,7 +2551,7 @@ $(document).ready(function () {
         if (data.heroIntro) $("#adminHeroIntro").val(data.heroIntro);
         if (data.aboutBio) $("#adminAboutBio").val(data.aboutBio);
         if (data.cvLink) $("#adminCvLink").val(data.cvLink);
-      } catch(e) {}
+      } catch (e) { }
     }
   }
 
@@ -2585,7 +2570,7 @@ $(document).ready(function () {
     if (isFirebaseConfigured() && db) {
       try {
         await setDoc(doc(db, "settings", "hero_about"), { ...dataObj, updatedAt: serverTimestamp() });
-      } catch (err) {}
+      } catch (err) { }
     }
     alert("✓ Hero & About Me settings updated live!");
   });
@@ -2613,7 +2598,7 @@ $(document).ready(function () {
 
     const saved = localStorage.getItem("custom_portfolio_services");
     if (saved) {
-      try { applyServices(JSON.parse(saved)); } catch(e) {}
+      try { applyServices(JSON.parse(saved)); } catch (e) { }
     }
 
     if (isFirebaseConfigured() && db) {
@@ -2629,7 +2614,7 @@ $(document).ready(function () {
             if ($("#adminModal").is(":visible")) renderAdminServices();
           }
         }, (err) => console.warn("Firestore services listener warning:", err));
-      } catch(e) {}
+      } catch (e) { }
     }
   }
 
@@ -2682,7 +2667,7 @@ $(document).ready(function () {
     if (isFirebaseConfigured() && db) {
       try {
         await addDoc(collection(db, "services"), { ...servObj, createdAt: serverTimestamp() });
-      } catch (err) {}
+      } catch (err) { }
     }
 
     $("#serviceFormContainer").slideUp();
@@ -2697,14 +2682,14 @@ $(document).ready(function () {
 
     if (confirm("Delete this service item?")) {
       if (isFirebaseConfigured() && db) {
-        try { deleteDoc(doc(db, "services", servId)); } catch(e) {}
+        try { deleteDoc(doc(db, "services", servId)); } catch (e) { }
       }
       let services = JSON.parse(localStorage.getItem("custom_portfolio_services") || "[]");
       services = services.filter(s => s.id !== servId);
       localStorage.setItem("custom_portfolio_services", JSON.stringify(services));
 
-      $(`.card[data-id="${servId}"]`).fadeOut(300, function() { $(this).remove(); });
-      $(`.admin-item-card[data-service-id="${servId}"]`).slideUp(200, function() { $(this).remove(); });
+      $(`.card[data-id="${servId}"]`).fadeOut(300, function () { $(this).remove(); });
+      $(`.admin-item-card[data-service-id="${servId}"]`).slideUp(200, function () { $(this).remove(); });
     }
   });
 
@@ -2734,7 +2719,7 @@ $(document).ready(function () {
 
     const saved = localStorage.getItem("custom_portfolio_skills");
     if (saved) {
-      try { applySkills(JSON.parse(saved)); } catch(e) {}
+      try { applySkills(JSON.parse(saved)); } catch (e) { }
     }
 
     if (isFirebaseConfigured() && db) {
@@ -2750,7 +2735,7 @@ $(document).ready(function () {
             if ($("#adminModal").is(":visible")) renderAdminSkills();
           }
         }, (err) => console.warn("Firestore skills listener warning:", err));
-      } catch(e) {}
+      } catch (e) { }
     }
   }
 
@@ -2803,7 +2788,7 @@ $(document).ready(function () {
     if (isFirebaseConfigured() && db) {
       try {
         await addDoc(collection(db, "skills"), { ...skillObj, createdAt: serverTimestamp() });
-      } catch (err) {}
+      } catch (err) { }
     }
 
     $("#skillFormContainer").slideUp();
@@ -2818,14 +2803,14 @@ $(document).ready(function () {
 
     if (confirm("Delete this skill category?")) {
       if (isFirebaseConfigured() && db) {
-        try { deleteDoc(doc(db, "skills", skillId)); } catch(e) {}
+        try { deleteDoc(doc(db, "skills", skillId)); } catch (e) { }
       }
       let skills = JSON.parse(localStorage.getItem("custom_portfolio_skills") || "[]");
       skills = skills.filter(s => s.id !== skillId);
       localStorage.setItem("custom_portfolio_skills", JSON.stringify(skills));
 
-      $(`.skills-category-card[data-id="${skillId}"]`).fadeOut(300, function() { $(this).remove(); });
-      $(`.admin-item-card[data-skill-id="${skillId}"]`).slideUp(200, function() { $(this).remove(); });
+      $(`.skills-category-card[data-id="${skillId}"]`).fadeOut(300, function () { $(this).remove(); });
+      $(`.admin-item-card[data-skill-id="${skillId}"]`).slideUp(200, function () { $(this).remove(); });
     }
   });
 
@@ -2835,17 +2820,24 @@ $(document).ready(function () {
       const comp = (data && data.comp && parseInt(data.comp, 10) > 0) ? data.comp : ((data && data.completed && parseInt(data.completed, 10) > 0) ? data.completed : "30");
       const deliv = (data && data.deliv && parseInt(data.deliv, 10) > 0) ? data.deliv : ((data && data.delivered && parseInt(data.delivered, 10) > 0) ? data.delivered : "15");
       const pub = (data && data.pub && parseInt(data.pub, 10) > 0) ? data.pub : ((data && data.published && parseInt(data.published, 10) > 0) ? data.published : "5");
-      const exp = (data && (data.exp || data.experience)) ? (data.exp || data.experience) : "1+ Years";
+      const startDate = (data && (data.startDate || data.start_date)) ? (data.startDate || data.start_date) : (localStorage.getItem("stat_start_date") || "2024-02-01");
+      const expOverride = (data && (data.exp || data.experience)) ? (data.exp || data.experience) : "";
 
       localStorage.setItem("stat_completed", comp);
       localStorage.setItem("stat_delivered", deliv);
       localStorage.setItem("stat_published", pub);
-      localStorage.setItem("stat_exp", exp);
+      localStorage.setItem("stat_start_date", startDate);
+      if (expOverride) localStorage.setItem("stat_exp", expOverride);
 
-      $(".stat-number[data-target]").eq(0).attr("data-target", comp).text(comp + "+");
-      $(".stat-number[data-target]").eq(1).attr("data-target", deliv).text(deliv + "+");
-      $(".stat-number[data-target]").eq(2).attr("data-target", pub).text(pub + "+");
-      $(".stat-exp").text(exp);
+      $(".stat-number[data-target]").eq(0).attr("data-target", comp);
+      $(".stat-number[data-target]").eq(1).attr("data-target", deliv);
+      $(".stat-number[data-target]").eq(2).attr("data-target", pub);
+      
+      updateExperienceDisplay(expOverride, startDate);
+
+      if (typeof window.triggerStatsAnimation === "function") {
+        window.triggerStatsAnimation(true);
+      }
     };
 
     const savedComp = localStorage.getItem("stat_completed");
@@ -2854,10 +2846,11 @@ $(document).ready(function () {
         comp: localStorage.getItem("stat_completed"),
         deliv: localStorage.getItem("stat_delivered"),
         pub: localStorage.getItem("stat_published"),
+        startDate: localStorage.getItem("stat_start_date"),
         exp: localStorage.getItem("stat_exp")
       });
     } else {
-      applyStats({ comp: "30", deliv: "15", pub: "5", exp: "1+ Years" });
+      applyStats({ comp: "30", deliv: "15", pub: "5", startDate: "2024-02-01" });
     }
 
     if (isFirebaseConfigured() && db) {
@@ -2877,11 +2870,13 @@ $(document).ready(function () {
     const savedCompleted = localStorage.getItem("stat_completed") || "30";
     const savedDelivered = localStorage.getItem("stat_delivered") || "15";
     const savedPublished = localStorage.getItem("stat_published") || "5";
-    const savedExp = localStorage.getItem("stat_exp") || "1+ Years";
+    const savedStartDate = localStorage.getItem("stat_start_date") || "2024-02";
+    const savedExp = localStorage.getItem("stat_exp") || "";
 
     $("#statInputCompleted").val(savedCompleted);
     $("#statInputDelivered").val(savedDelivered);
     $("#statInputPublished").val(savedPublished);
+    $("#statInputStartDate").val(savedStartDate.substring(0, 7));
     $("#statInputExp").val(savedExp);
   }
 
@@ -2891,24 +2886,27 @@ $(document).ready(function () {
     const comp = $("#statInputCompleted").val();
     const deliv = $("#statInputDelivered").val();
     const pub = $("#statInputPublished").val();
+    const startDateVal = $("#statInputStartDate").val() || "2024-02";
+    const startDate = startDateVal.includes("-") && startDateVal.length === 7 ? startDateVal + "-01" : startDateVal;
     const exp = $("#statInputExp").val();
 
     localStorage.setItem("stat_completed", comp);
     localStorage.setItem("stat_delivered", deliv);
     localStorage.setItem("stat_published", pub);
+    localStorage.setItem("stat_start_date", startDate);
     localStorage.setItem("stat_exp", exp);
 
     // Update live DOM targets
     $(".stat-number[data-target]").eq(0).attr("data-target", comp).text(comp + "+");
     $(".stat-number[data-target]").eq(1).attr("data-target", deliv).text(deliv + "+");
     $(".stat-number[data-target]").eq(2).attr("data-target", pub).text(pub + "+");
-    $(".stat-exp").text(exp);
+    updateExperienceDisplay(exp, startDate);
 
     // Save to Firestore if available
     if (isFirebaseConfigured() && db) {
       try {
-        await setDoc(doc(db, "settings", "stats"), { comp, deliv, pub, exp, updatedAt: serverTimestamp() });
-      } catch (err) {}
+        await setDoc(doc(db, "settings", "stats"), { comp, deliv, pub, startDate, exp, updatedAt: serverTimestamp() });
+      } catch (err) { }
     }
 
     $("#statsUpdateStatus").fadeIn().delay(3000).fadeOut();
@@ -2934,7 +2932,7 @@ $(document).ready(function () {
 
     const saved = localStorage.getItem("settings_social_contact");
     if (saved) {
-      try { applySocialContact(JSON.parse(saved)); } catch(e) {}
+      try { applySocialContact(JSON.parse(saved)); } catch (e) { }
     }
 
     if (isFirebaseConfigured() && db) {
@@ -2942,7 +2940,7 @@ $(document).ready(function () {
         onSnapshot(doc(db, "settings", "social_contact"), (docSnap) => {
           if (docSnap.exists()) applySocialContact(docSnap.data());
         }, (err) => console.warn("Firestore social_contact listener warning:", err));
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 
@@ -2955,7 +2953,7 @@ $(document).ready(function () {
         if (data.address) $("#adminContactAddress").val(data.address);
         if (data.github) $("#adminSocialGithub").val(data.github);
         if (data.linkedin) $("#adminSocialLinkedin").val(data.linkedin);
-      } catch(e) {}
+      } catch (e) { }
     }
   }
 
@@ -2972,7 +2970,7 @@ $(document).ready(function () {
     if (isFirebaseConfigured() && db) {
       try {
         await setDoc(doc(db, "settings", "social_contact"), { ...dataObj, updatedAt: serverTimestamp() });
-      } catch (err) {}
+      } catch (err) { }
     }
     alert("✓ Social links & contact info updated live!");
   });

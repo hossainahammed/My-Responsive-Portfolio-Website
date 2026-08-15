@@ -4,7 +4,7 @@
   "description": "Personal responsive portfolio website for Hossain Ahammed",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && powershell -Command \"if (Test-Path images) { Copy-Item -Recurse -Force images dist/images }\"",
+    "build": "vite build",
     "preview": "vite preview",
     "format": "prettier --write ."
   },
