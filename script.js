@@ -1477,8 +1477,8 @@ $(document).ready(function () {
         });
       },
       {
-        threshold: 0.15,
-        rootMargin: "0px 0px -50px 0px",
+        threshold: 0.05,
+        rootMargin: "0px 0px 100px 0px",
       },
     );
 
@@ -1489,6 +1489,11 @@ $(document).ready(function () {
     // Fallback for browsers that don't support IntersectionObserver
     $(".reveal, .reveal-grid").addClass("active");
   }
+
+  // Safety trigger: force all reveal containers active on load so no section stays invisible
+  setTimeout(function () {
+    $(".reveal, .reveal-grid, .project-card, .skills-category-card").addClass("active");
+  }, 300);
 
   // Card Cursor Spotlight Tracker
   $(document).on(
@@ -1621,8 +1626,131 @@ $(document).ready(function () {
     checkAdminSession();
   });
 
-  // 2. Projects Manager (CRUD)
+  // 2. Projects Manager (CRUD & Real-time Backend Sync)
   let localProjectsCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
+
+  function createProjectCardHtml(proj) {
+    const id = proj.id || "proj-" + Math.random().toString(36).substr(2, 5);
+    const title = proj.title || "Untitled Project";
+    const category = proj.category || "flutter";
+    const badge = proj.badge || "";
+    const image = proj.image || "images/SmartPlanAi.png";
+    const desc = proj.desc || "";
+    const tech = proj.tech || "";
+    const playstore = proj.playstore || proj.playstoreurl || "";
+    const apk = proj.apk || proj.apkurl || "";
+    const github = proj.github || proj.codeurl || "";
+    const live = proj.live || proj.liveurl || "";
+    const images = proj.images || "";
+    const imageFolder = proj.imageFolder || proj.image_folder || "";
+
+    let techPillsHtml = "";
+    if (tech) {
+      techPillsHtml = tech.split(",").map(t => `<span class="tech-pill">${t.trim()}</span>`).join(" ");
+    }
+
+    let badgeHtml = "";
+    if (badge === "client") badgeHtml = '<span class="client-badge"><i class="fas fa-user-shield"></i> Client Project</span>';
+    else if (badge === "team") badgeHtml = '<span class="team-badge"><i class="fas fa-users"></i> Team Project</span>';
+    else if (badge === "both") badgeHtml = '<span class="team-badge"><i class="fas fa-users"></i> Team Project</span> <span class="client-badge"><i class="fas fa-user-shield"></i> Client Project</span>';
+
+    let linksHtml = "";
+    if (live && live !== "#") {
+      linksHtml += `<a href="${live}" target="_blank" rel="noopener" class="proj-link-btn live-btn" onclick="event.stopPropagation();"><i class="fas fa-play"></i> Live</a>`;
+    }
+    if (playstore && playstore !== "#") {
+      linksHtml += `<a href="${playstore}" target="_blank" rel="noopener" class="proj-link-btn playstore-btn" onclick="event.stopPropagation();"><i class="fab fa-google-play"></i> Play Store</a>`;
+    }
+    if (apk && apk !== "#") {
+      linksHtml += `<a href="${apk}" download class="proj-link-btn apk-btn" onclick="event.stopPropagation();"><i class="fas fa-download"></i> Download APK</a>`;
+    }
+    if (github && github !== "#") {
+      linksHtml += `<a href="${github}" target="_blank" rel="noopener" class="proj-link-btn code-btn" onclick="event.stopPropagation();"><i class="fab fa-github"></i> Code</a>`;
+    }
+
+    return `
+      <div class="project-card reveal active" data-id="${id}" data-title="${title}" data-liveurl="${live || '#'}" data-playstoreurl="${playstore || '#'}" data-apkurl="${apk || '#'}" data-image-folder="${imageFolder}" data-images="${images}">
+        <div class="project-img-wrapper">
+          ${badgeHtml}
+          <img src="${image}" alt="${title}" onerror="this.src='images/SmartPlanAi.png'" />
+        </div>
+        <div class="project-info-body">
+          <div class="proj-title">${title}</div>
+          <div class="proj-meta">
+            <p class="proj-desc"><strong>Problem Solved:</strong> ${desc}</p>
+            <div class="proj-tech">${techPillsHtml}</div>
+          </div>
+        </div>
+        <div class="project-links">
+          ${linksHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  function getCategoryGrid(category) {
+    const cat = (category || "").toLowerCase();
+    if (cat === "web") {
+      const $g = $("#web-projects .projects-grid");
+      return $g.length ? $g : $(".title-web").siblings(".projects-grid");
+    } else if (cat === "php") {
+      const $g = $("#php-projects .projects-grid");
+      return $g.length ? $g : $(".title-php").siblings(".projects-grid");
+    } else {
+      const $g = $("#projects .projects-grid");
+      return $g.length ? $g : $(".projects-grid").first();
+    }
+  }
+
+  function renderProjectsToDOM(projects) {
+    if (!Array.isArray(projects)) return;
+    projects.forEach((proj) => {
+      const projId = proj.id || ("proj-" + String(proj.title || "").toLowerCase().replace(/[^a-z0-9]+/g, "-"));
+      if ($(`.project-card[data-id="${projId}"]`).length > 0) return;
+
+      const $grid = getCategoryGrid(proj.category);
+      if ($grid.length) {
+        const cardHtml = createProjectCardHtml({ ...proj, id: projId });
+        $grid.prepend(cardHtml);
+      }
+    });
+
+    $(".project-card").addClass("reveal active");
+    $(".projects-grid").addClass("reveal-grid active");
+  }
+
+  function syncProjectsFromBackend() {
+    // 1. Initial local cache render
+    const localCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
+    if (localCache.length) {
+      renderProjectsToDOM(localCache);
+    }
+
+    // 2. Real-time Firestore sync if backend connected
+    if (isFirebaseConfigured() && db) {
+      try {
+        const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+          const remoteProjects = [];
+          snapshot.forEach((docSnap) => {
+            remoteProjects.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          if (remoteProjects.length > 0) {
+            localProjectsCache = remoteProjects;
+            localStorage.setItem("custom_portfolio_projects", JSON.stringify(remoteProjects));
+            renderProjectsToDOM(remoteProjects);
+            if ($("#adminModal").is(":visible")) {
+              renderAdminProjects();
+            }
+          }
+        }, (err) => {
+          console.warn("Firestore projects snapshot warning:", err);
+        });
+      } catch (e) {
+        console.warn("Error initializing Firestore projects listener:", e);
+      }
+    }
+  }
 
   function renderAdminProjects() {
     const $list = $("#adminProjectList");
@@ -1641,7 +1769,16 @@ $(document).ready(function () {
       });
     });
 
-    const allProjects = [...localProjectsCache, ...domProjects];
+    // Dedupe all projects
+    const seen = new Set();
+    const allProjects = [];
+    [...localProjectsCache, ...domProjects].forEach((p) => {
+      const key = p.id || p.title;
+      if (!seen.has(key)) {
+        seen.add(key);
+        allProjects.push(p);
+      }
+    });
 
     if (!allProjects.length) {
       $list.html('<p style="color: var(--text-sec); font-size: 13px;">No project items found.</p>');
@@ -1653,10 +1790,9 @@ $(document).ready(function () {
         <div class="admin-item-card" data-proj-idx="${idx}">
           <div>
             <div class="admin-item-title">${proj.title}</div>
-            <div class="admin-item-meta">${proj.desc.substring(0, 75)}...</div>
+            <div class="admin-item-meta">${(proj.desc || "").substring(0, 75)}...</div>
           </div>
           <div class="admin-item-actions">
-            <button class="admin-action-btn primary-btn small btn-edit-proj" data-idx="${idx}"><i class="fas fa-edit"></i> Edit</button>
             <button class="admin-action-btn danger-btn small btn-delete-proj" data-idx="${idx}"><i class="fas fa-trash"></i> Delete</button>
           </div>
         </div>
@@ -1717,42 +1853,24 @@ $(document).ready(function () {
     const github = $("#pf-github").val().trim();
     const live = $("#pf-live").val().trim();
 
-    const techPillsHtml = tech.split(",").map(t => `<span class="tech-pill">${t.trim()}</span>`).join(" ");
-    
-    let badgeHtml = "";
-    if (badge === "client") badgeHtml = '<span class="client-badge"><i class="fas fa-user-shield"></i> Client Project</span>';
-    else if (badge === "team") badgeHtml = '<span class="team-badge"><i class="fas fa-users"></i> Team Project</span>';
+    const projId = `proj-${Date.now()}`;
+    const newProjObj = {
+      id: projId,
+      title, category, badge, image, desc, tech, playstore, apk, github, live, images
+    };
 
-    const newProjectCardHtml = `
-      <div class="project-card reveal active" data-id="proj-${Date.now()}" data-liveurl="${live || '#'}" data-playstoreurl="${playstore || '#'}" data-apkurl="${apk || '#'}">
-        <div class="project-img-wrapper">
-          ${badgeHtml}
-          <img src="${image}" alt="${title}" onerror="this.src='images/SmartPlanAi.png'" />
-        </div>
-        <div class="project-info-body">
-          <div class="proj-title">${title}</div>
-          <div class="proj-meta">
-            <p class="proj-desc"><strong>Problem Solved:</strong> ${desc}</p>
-            <div class="proj-tech">${techPillsHtml}</div>
-          </div>
-        </div>
-        <div class="project-links">
-          ${live ? `<a href="${live}" target="_blank" class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</a>` : ''}
-          ${playstore ? `<a href="${playstore}" target="_blank" class="proj-link-btn playstore-btn"><i class="fab fa-google-play"></i> Play Store</a>` : ''}
-          ${apk ? `<a href="${apk}" download class="proj-link-btn apk-btn"><i class="fas fa-download"></i> Download APK</a>` : ''}
-          ${github ? `<a href="${github}" target="_blank" class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>` : ''}
-        </div>
-      </div>
-    `;
+    const newProjectCardHtml = createProjectCardHtml(newProjObj);
 
-    // Append to website DOM
-    $(".projects-grid").first().prepend(newProjectCardHtml);
+    // Prepend to target category grid
+    const $targetGrid = getCategoryGrid(category);
+    $targetGrid.prepend(newProjectCardHtml);
+    $(".project-card").addClass("reveal active");
 
     // Save to Firestore if configured
     if (isFirebaseConfigured() && db) {
       try {
         await addDoc(collection(db, "projects"), {
-          title, category, badge, image, desc, tech, playstore, apk, github, live, createdAt: serverTimestamp()
+          ...newProjObj, createdAt: serverTimestamp()
         });
       } catch (err) {
         console.warn("Firestore project save warning:", err);
@@ -1760,7 +1878,7 @@ $(document).ready(function () {
     }
 
     // Save to LocalStorage cache
-    localProjectsCache.unshift({ title, category, image, desc });
+    localProjectsCache.unshift(newProjObj);
     localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
 
     $("#projectFormContainer").slideUp();
@@ -1771,8 +1889,15 @@ $(document).ready(function () {
   // Delete Project Action
   $(document).on("click", ".btn-delete-proj", function () {
     const idx = $(this).attr("data-idx");
+    const proj = localProjectsCache[idx];
     if (confirm("Are you sure you want to delete this project?")) {
-      if (localProjectsCache[idx]) {
+      if (proj) {
+        if (proj.id && isFirebaseConfigured() && db) {
+          try {
+            deleteDoc(doc(db, "projects", proj.id)).catch(err => console.warn("Firestore delete warning:", err));
+          } catch(e) {}
+        }
+        $(`.project-card[data-id="${proj.id}"]`).fadeOut(300, function() { $(this).remove(); });
         localProjectsCache.splice(idx, 1);
         localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
       } else {
@@ -1782,7 +1907,49 @@ $(document).ready(function () {
     }
   });
 
-  // 3. Stats Counters Controller
+  // 3. Stats Counters Controller & Sync
+  function syncStatsFromBackend() {
+    const applyStats = (data) => {
+      if (!data) return;
+      const comp = data.comp || data.completed || "30";
+      const deliv = data.deliv || data.delivered || "15";
+      const pub = data.pub || data.published || "5";
+      const exp = data.exp || data.experience || "1+ Years";
+
+      localStorage.setItem("stat_completed", comp);
+      localStorage.setItem("stat_delivered", deliv);
+      localStorage.setItem("stat_published", pub);
+      localStorage.setItem("stat_exp", exp);
+
+      $(".stat-number[data-target]").eq(0).attr("data-target", comp).text(comp + "+");
+      $(".stat-number[data-target]").eq(1).attr("data-target", deliv).text(deliv + "+");
+      $(".stat-number[data-target]").eq(2).attr("data-target", pub).text(pub + "+");
+      $(".stat-exp").text(exp);
+    };
+
+    const savedComp = localStorage.getItem("stat_completed");
+    if (savedComp) {
+      applyStats({
+        comp: localStorage.getItem("stat_completed"),
+        deliv: localStorage.getItem("stat_delivered"),
+        pub: localStorage.getItem("stat_published"),
+        exp: localStorage.getItem("stat_exp")
+      });
+    }
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        onSnapshot(doc(db, "settings", "stats"), (docSnap) => {
+          if (docSnap.exists()) {
+            applyStats(docSnap.data());
+          }
+        }, (err) => console.warn("Firestore stats listener warning:", err));
+      } catch (err) {
+        console.warn("Error setting up stats listener:", err);
+      }
+    }
+  }
+
   function loadAdminStats() {
     const savedCompleted = localStorage.getItem("stat_completed") || "30";
     const savedDelivered = localStorage.getItem("stat_delivered") || "15";
@@ -1978,6 +2145,10 @@ $(document).ready(function () {
       });
     }
   }
+
+  // Initialize real-time backend data synchronization for projects and stats
+  syncProjectsFromBackend();
+  syncStatsFromBackend();
 
   initStatsCounter();
 });
