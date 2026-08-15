@@ -1721,4 +1721,96 @@ $(document).ready(function () {
     window.currentlyEditingCard = null;
     $(".admin-form-scroll input, .admin-form-scroll textarea").val("");
   });
+
+  /* ============================================================
+     Animated Key Stats & Achievements Counter Engine
+     ============================================================ */
+  function initStatsCounter() {
+    const $statsSection = $("#stats");
+    if (!$statsSection.length) return;
+
+    let animated = false;
+
+    function runCounterAnimation() {
+      if (animated) return;
+      animated = true;
+
+      // 1. Numeric Counters (Projects Completed, Delivered, Published Apps)
+      $(".stat-number[data-target]").each(function () {
+        const $el = $(this);
+        const target = parseInt($el.attr("data-target"), 10) || 0;
+        const suffix = $el.attr("data-suffix") || "";
+        const duration = 1800;
+        const startTime = performance.now();
+
+        function step(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeProgress = 1 - Math.pow(1 - progress, 3);
+          const currentVal = Math.floor(easeProgress * target);
+
+          $el.text(currentVal + (progress >= 1 ? suffix : ""));
+
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          }
+        }
+        requestAnimationFrame(step);
+      });
+
+      // 2. Experience Counter (Month-to-Year ticker: 0 Months -> 12 Months -> 1+ Years)
+      $(".stat-exp").each(function () {
+        const $expEl = $(this);
+        const totalMonths = 14;
+        const duration = 2000;
+        const startTime = performance.now();
+
+        function stepExp(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeProgress = 1 - Math.pow(1 - progress, 3);
+          const currentMonth = Math.floor(easeProgress * totalMonths);
+
+          if (currentMonth < 12) {
+            $expEl.text(`${currentMonth} ${currentMonth === 1 ? 'Month' : 'Months'}`);
+          } else {
+            $expEl.text("1+ Years");
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(stepExp);
+          }
+        }
+        requestAnimationFrame(stepExp);
+      });
+    }
+
+    if ("IntersectionObserver" in window) {
+      const statsObserver = new IntersectionObserver(
+        (entries, observer) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              runCounterAnimation();
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.25 }
+      );
+      statsObserver.observe($statsSection[0]);
+    } else {
+      $(window).on("scroll", function () {
+        if ($statsSection.length) {
+          const top = $statsSection.offset().top;
+          const scrollPos = $(window).scrollTop() + $(window).height();
+
+          if (scrollPos > top + 100) {
+            runCounterAnimation();
+          }
+        }
+      });
+    }
+  }
+
+  initStatsCounter();
 });

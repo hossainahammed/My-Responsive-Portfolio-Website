@@ -3515,3 +3515,111 @@ footer span a:hover {
     justify-content: space-between;
   }
 }
+
+/* ============================================================
+   Key Stats & Achievements Section Styling
+   ============================================================ */
+.stats-section {
+  padding: 50px 0;
+  background: var(--bg-sec);
+  border-top: 1px solid var(--border-card);
+  border-bottom: 1px solid var(--border-card);
+  transition: var(--theme-transition);
+  position: relative;
+  z-index: 2;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 16px;
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: 0 10px 30px var(--shadow-main);
+  transition: var(--theme-transition);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-color);
+  box-shadow: 0 12px 35px var(--primary-glow);
+  background: var(--card-spotlight);
+}
+
+.stat-icon-wrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--accent-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 6px 20px var(--primary-glow);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-family: var(--font-title);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+
+.stat-title {
+  font-family: var(--font-title);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--card-text-highlight);
+  line-height: 1.3;
+}
+
+.stat-subtext {
+  font-size: 12px;
+  color: var(--text-sec);
+  margin-top: 2px;
+}
+
+/* Responsive Stat Cards */
+@media (max-width: 991px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .stats-section {
+    padding: 35px 0;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .stat-card {
+    padding: 18px 16px;
+  }
+  .stat-number {
+    font-size: 28px;
+  }
+}
