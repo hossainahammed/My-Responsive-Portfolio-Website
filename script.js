@@ -1511,45 +1511,48 @@ $(document).ready(function () {
   /* ================= Admin Panel Logic ================= */
   window.currentlyEditingCard = null;
 
-  function checkAdminSession() {
-    const isLoggedIn = localStorage.getItem("portfolio_admin_logged_in") === "true";
-    if (isLoggedIn) {
-      $("#admin-login-step").hide();
-      $("#admin-reset-step").hide();
-      $("#admin-dashboard-step").css("display", "flex");
-      if (isFirebaseConfigured()) {
-        $("#adminStatusBadge").text("🔥 Firebase Connected").removeClass("offline");
-      } else {
-        $("#adminStatusBadge").text("⚡ Local Storage Mode").addClass("offline");
-      }
-      renderAdminProjects();
-      renderAdminInbox();
-      loadAdminStats();
+  function showAdminLoginScreen() {
+    $("#admin-login-step").show();
+    $("#admin-reset-step").hide();
+    $("#admin-dashboard-step").hide();
+    $("#admin-email").val("");
+    $("#admin-key").val("");
+    $("#admin-error").hide();
+  }
+
+  function showAdminDashboard() {
+    $("#admin-login-step").hide();
+    $("#admin-reset-step").hide();
+    $("#admin-dashboard-step").css("display", "flex");
+    if (isFirebaseConfigured()) {
+      $("#adminStatusBadge").text("🔥 Firebase Connected").removeClass("offline");
     } else {
-      $("#admin-login-step").show();
-      $("#admin-reset-step").hide();
-      $("#admin-dashboard-step").hide();
+      $("#adminStatusBadge").text("⚡ Local Storage Mode").addClass("offline");
     }
+    renderAdminProjects();
+    renderAdminInbox();
+    loadAdminStats();
   }
 
   $(document).on("dblclick", "#admin-trigger", function (e) {
     e.preventDefault();
     $("#adminModal").show().attr("aria-hidden", "false");
     $("body").addClass("modal-open");
-    checkAdminSession();
+    showAdminLoginScreen();
   });
 
   $(document).on("click", "#openAdminLogin", function (e) {
     e.preventDefault();
     $("#adminModal").show().attr("aria-hidden", "false");
     $("body").addClass("modal-open");
-    checkAdminSession();
+    showAdminLoginScreen();
   });
 
   // Close Admin Modal
   $(".admin-close").on("click", function () {
     $("#adminModal").hide().attr("aria-hidden", "true");
     $("body").removeClass("modal-open");
+    showAdminLoginScreen();
   });
 
   // Tab Navigation
@@ -1573,7 +1576,7 @@ $(document).ready(function () {
     // Secret master password fallback
     if (key === "admin123" || key === "hossain" || (email === "hossainahammed627@gmail.com" && key === "admin123")) {
       localStorage.setItem("portfolio_admin_logged_in", "true");
-      checkAdminSession();
+      showAdminDashboard();
       return;
     }
 
@@ -1581,7 +1584,7 @@ $(document).ready(function () {
       try {
         await signInWithEmailAndPassword(auth, email, key);
         localStorage.setItem("portfolio_admin_logged_in", "true");
-        checkAdminSession();
+        showAdminDashboard();
       } catch (err) {
         $error.text("Invalid login credentials. Please verify your email and password.").show();
       }
@@ -1645,7 +1648,7 @@ $(document).ready(function () {
       } catch (err) {}
     }
     localStorage.removeItem("portfolio_admin_logged_in");
-    checkAdminSession();
+    showAdminLoginScreen();
   });
 
   // 2. Projects Manager (CRUD & 100% Dynamic Real-Time Firebase Sync Engine)
