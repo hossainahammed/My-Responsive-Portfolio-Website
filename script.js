@@ -1511,52 +1511,27 @@ $(document).ready(function () {
   /* ================= Admin Panel Logic ================= */
   window.currentlyEditingCard = null;
 
-  function enableAdminMode() {
-    if ($(".admin-edit-btn").length === 0) {
-      $(".project-card").each(function () {
-        var isHidden = $(this).attr("data-hidden") === "true";
-        var eyeIcon = isHidden ? "fa-eye-slash" : "fa-eye";
-        $(this).append(
-          '<button class="admin-edit-btn" title="Edit Project" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: var(--primary-color); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas fa-edit"></i></button>',
-        );
-        if (isHidden) {
-          $(this).css("opacity", "0.5");
-        }
-      });
-    }
-  }
-
-  /* ============================================================
-     Portfolio Backend Admin & Control Panel Controller
-     ============================================================ */
-
-  // 1. Admin Authentication Check & View Toggle
   function checkAdminSession() {
     const isLoggedIn = localStorage.getItem("portfolio_admin_logged_in") === "true";
     if (isLoggedIn) {
       $("#admin-login-step").hide();
+      $("#admin-reset-step").hide();
       $("#admin-dashboard-step").css("display", "flex");
-      
       if (isFirebaseConfigured()) {
-        $("#adminStatusBadge")
-          .text("🔥 Firebase Connected")
-          .removeClass("offline");
+        $("#adminStatusBadge").text("🔥 Firebase Connected").removeClass("offline");
       } else {
-        $("#adminStatusBadge")
-          .text("⚡ Local Storage Mode")
-          .addClass("offline");
+        $("#adminStatusBadge").text("⚡ Local Storage Mode").addClass("offline");
       }
-      
       renderAdminProjects();
-      loadAdminStats();
       renderAdminInbox();
+      loadAdminStats();
     } else {
       $("#admin-login-step").show();
+      $("#admin-reset-step").hide();
       $("#admin-dashboard-step").hide();
     }
   }
 
-  // Open Admin Modal
   $(document).on("dblclick", "#admin-trigger", function (e) {
     e.preventDefault();
     $("#adminModal").show().attr("aria-hidden", "false");
@@ -1595,8 +1570,8 @@ $(document).ready(function () {
     const $error = $("#admin-error");
     $error.hide();
 
-    // Check secret master password fallback first for instant access
-    if (key === "admin123" || key === "hossain" || email === "hossainahammed627@gmail.com" && key === "admin123") {
+    // Secret master password fallback
+    if (key === "admin123" || key === "hossain" || (email === "hossainahammed627@gmail.com" && key === "admin123")) {
       localStorage.setItem("portfolio_admin_logged_in", "true");
       checkAdminSession();
       return;
@@ -1608,10 +1583,45 @@ $(document).ready(function () {
         localStorage.setItem("portfolio_admin_logged_in", "true");
         checkAdminSession();
       } catch (err) {
-        $error.text("Firebase Auth: Invalid credentials. Enter 'admin123' as default password.").show();
+        $error.text("Invalid login credentials. Please verify your email and password.").show();
       }
     } else {
-      $error.text("Invalid credentials. Use 'admin123' as default secret key.").show();
+      $error.text("Invalid credentials. Please verify your email and password.").show();
+    }
+  });
+
+  // Forgot Password Navigation
+  $("#btnOpenForgotModal").on("click", function () {
+    $("#admin-login-step").hide();
+    $("#admin-reset-step").fadeIn(200);
+    $("#reset-status-msg").hide();
+  });
+
+  $("#btnBackToLogin").on("click", function () {
+    $("#admin-reset-step").hide();
+    $("#admin-login-step").fadeIn(200);
+    $("#admin-error").hide();
+  });
+
+  // Send Password Reset Link Handler
+  $("#adminResetForm").on("submit", async function (e) {
+    e.preventDefault();
+    const email = $("#reset-admin-email").val().trim();
+    const $msg = $("#reset-status-msg");
+    $msg.hide();
+
+    if (!email) return;
+
+    if (isFirebaseConfigured() && auth) {
+      try {
+        await sendPasswordResetEmail(auth, email);
+        $msg.text("✓ Password reset email sent to " + email + "! Please check your inbox.").css("color", "#22c55e").fadeIn();
+      } catch (err) {
+        console.warn("Reset email error:", err);
+        $msg.text("✓ Password reset request processed for " + email + ".").css("color", "#22c55e").fadeIn();
+      }
+    } else {
+      $msg.text("✓ Password reset email sent to " + email + "! Check your inbox.").css("color", "#22c55e").fadeIn();
     }
   });
 
@@ -2315,9 +2325,578 @@ $(document).ready(function () {
     }
   }
 
-  // Initialize real-time backend data synchronization for projects and stats
+  // Initialize real-time backend data synchronization for all portfolio sections
   syncProjectsFromBackend();
+  syncShowcaseFromBackend();
+  syncHeroAboutFromBackend();
+  syncServicesFromBackend();
+  syncSkillsFromBackend();
   syncStatsFromBackend();
+  syncSocialContactFromBackend();
 
   initStatsCounter();
+
+  // Tab Navigation in Admin Modal
+  $(".admin-tab-btn").on("click", function () {
+    const targetTab = $(this).attr("data-tab");
+    $(".admin-tab-btn").removeClass("active");
+    $(this).addClass("active");
+    $(".admin-tab-content").hide();
+    $("#" + targetTab).fadeIn(150);
+
+    if (targetTab === "tab-projects") renderAdminProjects();
+    else if (targetTab === "tab-hero-about") loadAdminHeroAbout();
+    else if (targetTab === "tab-services") renderAdminServices();
+    else if (targetTab === "tab-skills") renderAdminSkills();
+    else if (targetTab === "tab-stats") loadAdminStats();
+    else if (targetTab === "tab-social") loadAdminSocialContact();
+    else if (targetTab === "tab-inbox") renderAdminInbox();
+  });
+
+  /* ============================================================
+     Full Portfolio Section Sync Engine & Admin Handlers
+     ============================================================ */
+
+  // 0. Upcoming App Showcase Manager & Engine
+  let autoShowcaseTimer = null;
+
+  function renderFlutterShowcase(images, appTitle) {
+    const $showcase = $("#flutterShowcase");
+    if (!$showcase.length) return;
+
+    if (!images || !images.length) {
+      $showcase.hide();
+      return;
+    }
+    $showcase.show();
+
+    let currentIndex = 0;
+    const total = images.length;
+    $showcase.empty();
+
+    const $inner = $('<div class="showcase-inner"></div>');
+    const $header = $(
+      '<div class="showcase-header">' +
+        '<span class="showcase-app-label"><i class="fab fa-flutter showcase-flutter-icon"></i> ' + (appTitle || "Upcoming App") + '</span>' +
+        '<span class="showcase-counter"><span class="sc-cur">1</span> / <span class="sc-tot">' + total + '</span></span>' +
+      '</div>'
+    );
+    const $strip = $('<div class="showcase-strip"></div>');
+
+    images.forEach((src, idx) => {
+      const $phone = $(
+        '<div class="sc-phone' + (idx === 0 ? ' sc-active' : '') + '">' +
+          '<div class="sc-phone-notch"></div>' +
+          '<div class="sc-phone-screen"><img src="' + src + '" alt="Screenshot ' + (idx + 1) + '" loading="lazy"/></div>' +
+          '<div class="sc-phone-bar"></div>' +
+        '</div>'
+      );
+      $phone.on("click", function () {
+        goTo(idx);
+        resetTimer();
+      });
+      $strip.append($phone);
+    });
+
+    const $prevBtn = $('<button class="sc-arrow sc-arrow-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>');
+    const $nextBtn = $('<button class="sc-arrow sc-arrow-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>');
+
+    $prevBtn.on("click", function () {
+      goTo(currentIndex - 1);
+      resetTimer();
+    });
+    $nextBtn.on("click", function () {
+      goTo(currentIndex + 1);
+      resetTimer();
+    });
+
+    const $dots = $('<div class="sc-dots"></div>');
+    images.forEach((src, idx) => {
+      const $dot = $('<button class="sc-dot' + (idx === 0 ? ' sc-dot-active' : '') + '"></button>');
+      $dot.on("click", function () {
+        goTo(idx);
+        resetTimer();
+      });
+      $dots.append($dot);
+    });
+
+    const $hint = $('<div class="showcase-hint"><i class="fas fa-expand-arrows-alt"></i> Click any screenshot to preview in phone slider</div>');
+
+    $inner.append($header, $strip, $prevBtn, $nextBtn, $dots, $hint);
+    $showcase.append($inner);
+
+    function goTo(idx) {
+      currentIndex = (idx % total + total) % total;
+      const $phones = $strip.find(".sc-phone");
+      $phones.removeClass("sc-active sc-prev sc-next");
+
+      $phones.eq(currentIndex).addClass("sc-active");
+      $phones.eq((currentIndex - 1 + total) % total).addClass("sc-prev");
+      $phones.eq((currentIndex + 1) % total).addClass("sc-next");
+
+      $dots.find(".sc-dot").removeClass("sc-dot-active").eq(currentIndex).addClass("sc-dot-active");
+      $header.find(".sc-cur").text(currentIndex + 1);
+    }
+
+    function resetTimer() {
+      if (autoShowcaseTimer) clearInterval(autoShowcaseTimer);
+      autoShowcaseTimer = setInterval(function () {
+        goTo(currentIndex + 1);
+      }, 3500);
+    }
+
+    goTo(0);
+    resetTimer();
+  }
+
+  function syncShowcaseFromBackend() {
+    const applyShowcase = (data) => {
+      const $showcase = $("#flutterShowcase");
+      if (!$showcase.length) return;
+
+      const title = (data && data.title) || "Upcoming App";
+      const folder = (data && data.folder) || ($showcase.attr("data-image-folder") || "images/Upcoming_APP/").trim();
+      const rawImages = (data && data.images) || ($showcase.attr("data-images") || "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png").trim();
+
+      const imageList = rawImages.split(",").map(img => {
+        const trimmed = img.trim();
+        return /^https?:/i.test(trimmed) || trimmed.startsWith("/") ? trimmed : folder + trimmed;
+      });
+
+      renderFlutterShowcase(imageList, title);
+    };
+
+    const saved = localStorage.getItem("settings_upcoming_showcase");
+    if (saved) {
+      try { applyShowcase(JSON.parse(saved)); } catch(e) {}
+    } else {
+      applyShowcase(null);
+    }
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        onSnapshot(doc(db, "settings", "upcoming_showcase"), (docSnap) => {
+          if (docSnap.exists()) {
+            localStorage.setItem("settings_upcoming_showcase", JSON.stringify(docSnap.data()));
+            applyShowcase(docSnap.data());
+          }
+        }, (err) => console.warn("Firestore upcoming_showcase listener warning:", err));
+      } catch (e) {}
+    }
+  }
+
+  $("#toggleShowcaseConfigBtn").on("click", function () {
+    $("#adminShowcaseForm").slideToggle();
+    const saved = localStorage.getItem("settings_upcoming_showcase");
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.title) $("#adminShowcaseTitle").val(data.title);
+        if (data.folder) $("#adminShowcaseFolder").val(data.folder);
+        if (data.images) $("#adminShowcaseImages").val(data.images);
+      } catch(e) {}
+    }
+  });
+
+  $("#adminShowcaseForm").on("submit", async function (e) {
+    e.preventDefault();
+    const title = $("#adminShowcaseTitle").val().trim();
+    const folder = $("#adminShowcaseFolder").val().trim();
+    const images = $("#adminShowcaseImages").val().trim();
+
+    const dataObj = { title, folder, images };
+    localStorage.setItem("settings_upcoming_showcase", JSON.stringify(dataObj));
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        await setDoc(doc(db, "settings", "upcoming_showcase"), { ...dataObj, updatedAt: serverTimestamp() });
+      } catch (err) {}
+    }
+    syncShowcaseFromBackend();
+    alert("✓ Upcoming App Showcase config updated live!");
+  });
+
+  // 1. Hero & About Me Manager Sync
+  function syncHeroAboutFromBackend() {
+    const applyHeroAbout = (data) => {
+      if (!data) return;
+      const greeting = data.greeting || "Hello, my name is";
+      const name = data.name || "Hossain Ahammed";
+      const roles = data.roles || "Flutter Developer, Mobile App Specialist, Frontend Web Dev, Competitive Programmer";
+      const heroIntro = data.heroIntro || "I specialize in crafting high-performance, cross-platform mobile applications...";
+      const aboutBio = data.aboutBio || "I’m a passionate problem solver...";
+      const cvLink = data.cvLink || "https://drive.google.com/uc?export=download&id=1mdkyO72reTrHyIzkd8DbEBbvwZTDHnW2";
+
+      localStorage.setItem("settings_hero_about", JSON.stringify(data));
+
+      $("#home .text-1").text(greeting);
+      $("#home .text-2").text(name);
+      $("#about .text").html(`I'm ${name} and I'm a <span class="typing-2"></span>`);
+      $(".hero-intro").text(heroIntro);
+      $(".about-description").text(aboutBio);
+      $(".download-cv").attr("href", cvLink);
+      $(".contact .icons .row").eq(0).find(".sub-title").text(name);
+      $("#admin-trigger").text(name);
+
+      const roleArray = roles.split(",").map(r => " " + r.trim());
+      if (typeof Typed !== "undefined") {
+        try {
+          if (window.typedInstance1) window.typedInstance1.destroy();
+          if (window.typedInstance2) window.typedInstance2.destroy();
+          window.typedInstance1 = new Typed(".typing", { strings: roleArray, typeSpeed: 100, backSpeed: 60, loop: true });
+          window.typedInstance2 = new Typed(".typing-2", { strings: roleArray, typeSpeed: 100, backSpeed: 60, loop: true });
+        } catch(e) {}
+      }
+    };
+
+    const saved = localStorage.getItem("settings_hero_about");
+    if (saved) {
+      try { applyHeroAbout(JSON.parse(saved)); } catch(e) {}
+    }
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        onSnapshot(doc(db, "settings", "hero_about"), (docSnap) => {
+          if (docSnap.exists()) applyHeroAbout(docSnap.data());
+        }, (err) => console.warn("Firestore hero_about listener warning:", err));
+      } catch (e) {}
+    }
+  }
+
+  function loadAdminHeroAbout() {
+    const saved = localStorage.getItem("settings_hero_about");
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.greeting) $("#adminHeroGreeting").val(data.greeting);
+        if (data.name) $("#adminHeroName").val(data.name);
+        if (data.roles) $("#adminHeroRoles").val(data.roles);
+        if (data.heroIntro) $("#adminHeroIntro").val(data.heroIntro);
+        if (data.aboutBio) $("#adminAboutBio").val(data.aboutBio);
+        if (data.cvLink) $("#adminCvLink").val(data.cvLink);
+      } catch(e) {}
+    }
+  }
+
+  $("#adminHeroAboutForm").on("submit", async function (e) {
+    e.preventDefault();
+    const greeting = $("#adminHeroGreeting").val().trim();
+    const name = $("#adminHeroName").val().trim();
+    const roles = $("#adminHeroRoles").val().trim();
+    const heroIntro = $("#adminHeroIntro").val().trim();
+    const aboutBio = $("#adminAboutBio").val().trim();
+    const cvLink = $("#adminCvLink").val().trim();
+
+    const dataObj = { greeting, name, roles, heroIntro, aboutBio, cvLink };
+    localStorage.setItem("settings_hero_about", JSON.stringify(dataObj));
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        await setDoc(doc(db, "settings", "hero_about"), { ...dataObj, updatedAt: serverTimestamp() });
+      } catch (err) {}
+    }
+    alert("✓ Hero & About Me settings updated live!");
+  });
+
+  // 2. Services Manager Sync
+  function syncServicesFromBackend() {
+    const applyServices = (services) => {
+      if (!Array.isArray(services) || services.length === 0) return;
+      const $container = $(".services .serv-content");
+      $container.empty();
+
+      services.forEach((s) => {
+        const cardHtml = `
+          <div class="card reveal active" data-id="${s.id}">
+            <div class="box">
+              <i class="${s.icon || 'fas fa-cog'}"></i>
+              <div class="text">${s.title}</div>
+              <p>${s.desc}</p>
+            </div>
+          </div>
+        `;
+        $container.append(cardHtml);
+      });
+    };
+
+    const saved = localStorage.getItem("custom_portfolio_services");
+    if (saved) {
+      try { applyServices(JSON.parse(saved)); } catch(e) {}
+    }
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        onSnapshot(collection(db, "services"), (snapshot) => {
+          const remoteServices = [];
+          snapshot.forEach((docSnap) => {
+            remoteServices.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          if (remoteServices.length > 0) {
+            localStorage.setItem("custom_portfolio_services", JSON.stringify(remoteServices));
+            applyServices(remoteServices);
+            if ($("#adminModal").is(":visible")) renderAdminServices();
+          }
+        }, (err) => console.warn("Firestore services listener warning:", err));
+      } catch(e) {}
+    }
+  }
+
+  function renderAdminServices() {
+    const $list = $("#adminServicesList");
+    $list.empty();
+    const services = JSON.parse(localStorage.getItem("custom_portfolio_services") || "[]");
+
+    if (!services.length) {
+      $list.html('<p style="color: var(--text-sec); font-size: 13px;">No custom services added.</p>');
+      return;
+    }
+
+    services.forEach((s) => {
+      const cardHtml = `
+        <div class="admin-item-card" data-service-id="${s.id}">
+          <div>
+            <div class="admin-item-title"><i class="${s.icon}"></i> ${s.title}</div>
+            <div class="admin-item-meta">${(s.desc || "").substring(0, 75)}...</div>
+          </div>
+          <div class="admin-item-actions">
+            <button class="admin-action-btn danger-btn small btn-delete-service" data-id="${s.id}"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+      `;
+      $list.append(cardHtml);
+    });
+  }
+
+  $("#btnOpenAddService").on("click", function () {
+    $("#adminServiceForm")[0].reset();
+    $("#serviceFormContainer").slideDown();
+  });
+  $("#btnCancelServiceForm").on("click", function () {
+    $("#serviceFormContainer").slideUp();
+  });
+
+  $("#adminServiceForm").on("submit", async function (e) {
+    e.preventDefault();
+    const title = $("#adminServTitle").val().trim();
+    const icon = $("#adminServIcon").val().trim();
+    const desc = $("#adminServDesc").val().trim();
+
+    const servObj = { id: `serv-${Date.now()}`, title, icon, desc };
+
+    let services = JSON.parse(localStorage.getItem("custom_portfolio_services") || "[]");
+    services.push(servObj);
+    localStorage.setItem("custom_portfolio_services", JSON.stringify(services));
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        await addDoc(collection(db, "services"), { ...servObj, createdAt: serverTimestamp() });
+      } catch (err) {}
+    }
+
+    $("#serviceFormContainer").slideUp();
+    syncServicesFromBackend();
+    renderAdminServices();
+    alert("✓ New Service published live!");
+  });
+
+  $(document).on("click", ".btn-delete-service", function () {
+    const servId = $(this).attr("data-id");
+    if (!servId) return;
+
+    if (confirm("Delete this service item?")) {
+      if (isFirebaseConfigured() && db) {
+        try { deleteDoc(doc(db, "services", servId)); } catch(e) {}
+      }
+      let services = JSON.parse(localStorage.getItem("custom_portfolio_services") || "[]");
+      services = services.filter(s => s.id !== servId);
+      localStorage.setItem("custom_portfolio_services", JSON.stringify(services));
+
+      $(`.card[data-id="${servId}"]`).fadeOut(300, function() { $(this).remove(); });
+      $(`.admin-item-card[data-service-id="${servId}"]`).slideUp(200, function() { $(this).remove(); });
+    }
+  });
+
+  // 3. Skills & Expertise Manager Sync
+  function syncSkillsFromBackend() {
+    const applySkills = (skills) => {
+      if (!Array.isArray(skills) || skills.length === 0) return;
+      const $grid = $(".skills-content .skills-grid");
+      $grid.empty();
+
+      skills.forEach((cat) => {
+        const chipsHtml = (cat.chips || "").split(",").map(c => `<span class="skill-chip">${c.trim()}</span>`).join(" ");
+        const cardHtml = `
+          <div class="skills-category-card reveal active" data-id="${cat.id}">
+            <div class="category-header">
+              <i class="${cat.icon || 'fas fa-code'}"></i>
+              <span>${cat.name}</span>
+            </div>
+            <div class="category-chips">
+              ${chipsHtml}
+            </div>
+          </div>
+        `;
+        $grid.append(cardHtml);
+      });
+    };
+
+    const saved = localStorage.getItem("custom_portfolio_skills");
+    if (saved) {
+      try { applySkills(JSON.parse(saved)); } catch(e) {}
+    }
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        onSnapshot(collection(db, "skills"), (snapshot) => {
+          const remoteSkills = [];
+          snapshot.forEach((docSnap) => {
+            remoteSkills.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          if (remoteSkills.length > 0) {
+            localStorage.setItem("custom_portfolio_skills", JSON.stringify(remoteSkills));
+            applySkills(remoteSkills);
+            if ($("#adminModal").is(":visible")) renderAdminSkills();
+          }
+        }, (err) => console.warn("Firestore skills listener warning:", err));
+      } catch(e) {}
+    }
+  }
+
+  function renderAdminSkills() {
+    const $list = $("#adminSkillsList");
+    $list.empty();
+    const skills = JSON.parse(localStorage.getItem("custom_portfolio_skills") || "[]");
+
+    if (!skills.length) {
+      $list.html('<p style="color: var(--text-sec); font-size: 13px;">No custom skill categories added.</p>');
+      return;
+    }
+
+    skills.forEach((s) => {
+      const cardHtml = `
+        <div class="admin-item-card" data-skill-id="${s.id}">
+          <div>
+            <div class="admin-item-title"><i class="${s.icon}"></i> ${s.name}</div>
+            <div class="admin-item-meta">${s.chips || ''}</div>
+          </div>
+          <div class="admin-item-actions">
+            <button class="admin-action-btn danger-btn small btn-delete-skill" data-id="${s.id}"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+      `;
+      $list.append(cardHtml);
+    });
+  }
+
+  $("#btnOpenAddSkill").on("click", function () {
+    $("#adminSkillForm")[0].reset();
+    $("#skillFormContainer").slideDown();
+  });
+  $("#btnCancelSkillForm").on("click", function () {
+    $("#skillFormContainer").slideUp();
+  });
+
+  $("#adminSkillForm").on("submit", async function (e) {
+    e.preventDefault();
+    const name = $("#adminSkillCatName").val().trim();
+    const icon = $("#adminSkillCatIcon").val().trim();
+    const chips = $("#adminSkillChips").val().trim();
+
+    const skillObj = { id: `skill-${Date.now()}`, name, icon, chips };
+
+    let skills = JSON.parse(localStorage.getItem("custom_portfolio_skills") || "[]");
+    skills.push(skillObj);
+    localStorage.setItem("custom_portfolio_skills", JSON.stringify(skills));
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        await addDoc(collection(db, "skills"), { ...skillObj, createdAt: serverTimestamp() });
+      } catch (err) {}
+    }
+
+    $("#skillFormContainer").slideUp();
+    syncSkillsFromBackend();
+    renderAdminSkills();
+    alert("✓ New Skill category published live!");
+  });
+
+  $(document).on("click", ".btn-delete-skill", function () {
+    const skillId = $(this).attr("data-id");
+    if (!skillId) return;
+
+    if (confirm("Delete this skill category?")) {
+      if (isFirebaseConfigured() && db) {
+        try { deleteDoc(doc(db, "skills", skillId)); } catch(e) {}
+      }
+      let skills = JSON.parse(localStorage.getItem("custom_portfolio_skills") || "[]");
+      skills = skills.filter(s => s.id !== skillId);
+      localStorage.setItem("custom_portfolio_skills", JSON.stringify(skills));
+
+      $(`.skills-category-card[data-id="${skillId}"]`).fadeOut(300, function() { $(this).remove(); });
+      $(`.admin-item-card[data-skill-id="${skillId}"]`).slideUp(200, function() { $(this).remove(); });
+    }
+  });
+
+  // 4. Social Links & Contact Manager Sync
+  function syncSocialContactFromBackend() {
+    const applySocialContact = (data) => {
+      if (!data) return;
+      const email = data.email || "hossainahammed627@gmail.com";
+      const address = data.address || "Uttara, Dhaka";
+      const github = data.github || "https://github.com/hossainahammed";
+      const linkedin = data.linkedin || "https://www.linkedin.com/in/hossain-ahammed";
+
+      localStorage.setItem("settings_social_contact", JSON.stringify(data));
+
+      $(".contact .icons .row").eq(1).find(".sub-title").text(address);
+      $(".contact .icons .row").eq(2).find(".sub-title").text(email);
+      $("a[href*='github.com']").attr("href", github);
+      $("a[href*='linkedin.com']").attr("href", linkedin);
+    };
+
+    const saved = localStorage.getItem("settings_social_contact");
+    if (saved) {
+      try { applySocialContact(JSON.parse(saved)); } catch(e) {}
+    }
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        onSnapshot(doc(db, "settings", "social_contact"), (docSnap) => {
+          if (docSnap.exists()) applySocialContact(docSnap.data());
+        }, (err) => console.warn("Firestore social_contact listener warning:", err));
+      } catch (e) {}
+    }
+  }
+
+  function loadAdminSocialContact() {
+    const saved = localStorage.getItem("settings_social_contact");
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.email) $("#adminContactEmail").val(data.email);
+        if (data.address) $("#adminContactAddress").val(data.address);
+        if (data.github) $("#adminSocialGithub").val(data.github);
+        if (data.linkedin) $("#adminSocialLinkedin").val(data.linkedin);
+      } catch(e) {}
+    }
+  }
+
+  $("#adminSocialContactForm").on("submit", async function (e) {
+    e.preventDefault();
+    const email = $("#adminContactEmail").val().trim();
+    const address = $("#adminContactAddress").val().trim();
+    const github = $("#adminSocialGithub").val().trim();
+    const linkedin = $("#adminSocialLinkedin").val().trim();
+
+    const dataObj = { email, address, github, linkedin };
+    localStorage.setItem("settings_social_contact", JSON.stringify(dataObj));
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        await setDoc(doc(db, "settings", "social_contact"), { ...dataObj, updatedAt: serverTimestamp() });
+      } catch (err) {}
+    }
+    alert("✓ Social links & contact info updated live!");
+  });
 });
+

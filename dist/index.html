@@ -61,7 +61,7 @@
       }
     }
   </script>
-  <script type="module" crossorigin src="./assets/index-Bfm43lem.js"></script>
+  <script type="module" crossorigin src="./assets/index-CR6vsaWo.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-CI-ONIt3.css">
 </head>
 
@@ -1441,19 +1441,45 @@
           <div class="field" style="margin-bottom: 15px;">
             <input type="email" id="admin-email" placeholder="Admin Email (e.g. hossainahammed627@gmail.com)" required class="admin-input-field" />
           </div>
-          <div class="field" style="margin-bottom: 20px;">
+          <div class="field" style="margin-bottom: 12px;">
             <input type="password" id="admin-key" placeholder="Password / Secret Key" required class="admin-input-field" />
+          </div>
+          <div style="text-align: right; margin-bottom: 20px;">
+            <button type="button" id="btnOpenForgotModal" style="background: none; border: none; color: var(--primary-color); font-size: 13px; cursor: pointer; text-decoration: underline;">
+              Forgot Password?
+            </button>
           </div>
           <button type="submit" id="admin-login-btn" class="admin-action-btn primary-btn" style="width: 100%;">
             <i class="fas fa-sign-in-alt"></i> Login to Dashboard
           </button>
         </form>
         
-        <p id="admin-error" class="admin-alert-error" style="display: none;"></p>
+        <p id="admin-error" class="admin-alert-error" style="display: none; margin-top: 15px;"></p>
+      </div>
 
-        <div class="admin-info-note" style="margin-top: 20px; font-size: 12px; color: var(--text-sec); background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-card);">
-          <i class="fas fa-info-circle"></i> Default secret key: <strong style="color: var(--primary-color);">admin123</strong> or your Firebase Auth credentials.
+      <!-- STEP 1.5: Forgot Password View -->
+      <div id="admin-reset-step" class="admin-view-container" style="display: none; padding: 35px 25px; text-align: center; max-width: 440px; margin: 40px auto;">
+        <div class="admin-lock-icon">
+          <i class="fas fa-key"></i>
         </div>
+        <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Reset Admin Password</h3>
+        <p style="color: var(--text-sec); font-size: 14px; margin-bottom: 25px;">
+          Enter your registered admin email to receive a password reset link.
+        </p>
+
+        <form id="adminResetForm">
+          <div class="field" style="margin-bottom: 20px;">
+            <input type="email" id="reset-admin-email" placeholder="Enter Admin Email" required class="admin-input-field" value="hossainahammed627@gmail.com" />
+          </div>
+          <button type="submit" class="admin-action-btn primary-btn" style="width: 100%; margin-bottom: 12px;">
+            <i class="fas fa-paper-plane"></i> Send Password Reset Link
+          </button>
+          <button type="button" id="btnBackToLogin" class="admin-action-btn cancel-btn" style="width: 100%;">
+            Back to Login
+          </button>
+        </form>
+
+        <p id="reset-status-msg" style="display: none; margin-top: 15px; font-size: 13px; font-weight: 600;"></p>
       </div>
 
       <!-- STEP 2: Main Dashboard View (Visible when logged in) -->
@@ -1462,9 +1488,13 @@
         <!-- Dashboard Sub-Header & Navigation Tabs -->
         <div class="admin-dash-header">
           <div class="admin-nav-tabs">
-            <button class="admin-tab-btn active" data-tab="tab-projects"><i class="fas fa-folder-open"></i> Projects CRUD</button>
-            <button class="admin-tab-btn" data-tab="tab-stats"><i class="fas fa-chart-line"></i> Stats & Metrics</button>
-            <button class="admin-tab-btn" data-tab="tab-inbox"><i class="fas fa-inbox"></i> Inbox Messages <span id="inboxBadge" class="inbox-count-tag">0</span></button>
+            <button class="admin-tab-btn active" data-tab="tab-projects"><i class="fas fa-folder-open"></i> Projects</button>
+            <button class="admin-tab-btn" data-tab="tab-hero-about"><i class="fas fa-user-edit"></i> Hero & About</button>
+            <button class="admin-tab-btn" data-tab="tab-services"><i class="fas fa-concierge-bell"></i> Services</button>
+            <button class="admin-tab-btn" data-tab="tab-skills"><i class="fas fa-code"></i> Skills</button>
+            <button class="admin-tab-btn" data-tab="tab-stats"><i class="fas fa-chart-line"></i> Stats</button>
+            <button class="admin-tab-btn" data-tab="tab-social"><i class="fas fa-share-alt"></i> Social & Contact</button>
+            <button class="admin-tab-btn" data-tab="tab-inbox"><i class="fas fa-inbox"></i> Inbox <span id="inboxBadge" class="inbox-count-tag">0</span></button>
           </div>
           <button id="adminLogoutBtn" class="admin-logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
@@ -1477,6 +1507,33 @@
               <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Add new projects or modify existing project items in real-time.</p>
             </div>
             <button id="btnOpenAddProject" class="admin-action-btn primary-btn small"><i class="fas fa-plus"></i> Add New Project</button>
+          </div>
+
+          <!-- Upcoming App Showcase Config Box -->
+          <div class="admin-form-box" style="margin-top: 15px; margin-bottom: 20px;">
+            <div class="admin-form-header">
+              <h4 style="margin: 0;"><i class="fab fa-flutter"></i> Upcoming App 3D Showcase Manager</h4>
+              <button type="button" id="toggleShowcaseConfigBtn" class="admin-action-btn cancel-btn small">Configure</button>
+            </div>
+            <form id="adminShowcaseForm" class="admin-grid-form" style="display: none; margin-top: 15px;">
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label>Showcase App Title *</label>
+                  <input type="text" id="adminShowcaseTitle" value="Upcoming App" required class="admin-input-field" />
+                </div>
+                <div class="form-group col-6">
+                  <label>Image Folder Path *</label>
+                  <input type="text" id="adminShowcaseFolder" value="images/Upcoming_APP/" required class="admin-input-field" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Showcase Screenshot Files (comma-separated) *</label>
+                <input type="text" id="adminShowcaseImages" value="1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png" required class="admin-input-field" />
+              </div>
+              <div class="form-actions-bar">
+                <button type="submit" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Showcase Config</button>
+              </div>
+            </form>
           </div>
 
           <!-- Add / Edit Project Form Box -->
@@ -1573,7 +1630,130 @@
           </div>
         </div>
 
-        <!-- TAB 2: Update Stats & Metrics -->
+        <!-- TAB 2: Manage Hero & About Me Section -->
+        <div id="tab-hero-about" class="admin-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
+          <div class="admin-section-banner">
+            <div>
+              <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Hero & About Me Manager</h4>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Edit your name, titles, bio intro, and CV download links live.</p>
+            </div>
+          </div>
+
+          <form id="adminHeroAboutForm" style="max-width: 650px; margin: 20px 0;">
+            <div class="form-row">
+              <div class="form-group col-6" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px;">Greeting Line</label>
+                <input type="text" id="adminHeroGreeting" value="Hello, my name is" required class="admin-input-field" />
+              </div>
+              <div class="form-group col-6" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px;">Your Name</label>
+                <input type="text" id="adminHeroName" value="Hossain Ahammed" required class="admin-input-field" />
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Typing Animation Roles (comma-separated)</label>
+              <input type="text" id="adminHeroRoles" value="Flutter Developer, Mobile App Specialist, Frontend Web Dev, Competitive Programmer" required class="admin-input-field" />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Hero Intro Text</label>
+              <textarea id="adminHeroIntro" rows="3" class="admin-input-field">I specialize in crafting high-performance, cross-platform mobile applications and building robust SaaS products. Focused on delivering scalable business systems, automating workflows, and implementing modern development pipelines.</textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 6px;">About Me Description Bio</label>
+              <textarea id="adminAboutBio" rows="4" class="admin-input-field">I’m a passionate problem solver and a creative developer with a strong foundation in algorithms, web development, Flutter Development and software engineering. From competitive programming to full-stack development, I love transforming ideas into reality through efficient algorithms and elegant designs.</textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 25px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Download CV Link URL</label>
+              <input type="text" id="adminCvLink" value="https://drive.google.com/uc?export=download&id=1mdkyO72reTrHyIzkd8DbEBbvwZTDHnW2" class="admin-input-field" />
+            </div>
+
+            <button type="submit" id="btnSaveHeroAbout" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Hero & About Changes</button>
+          </form>
+        </div>
+
+        <!-- TAB 3: Manage Services Section -->
+        <div id="tab-services" class="admin-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
+          <div class="admin-section-banner">
+            <div>
+              <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Services Manager</h4>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Add or remove services displayed in the My Services section.</p>
+            </div>
+            <button id="btnOpenAddService" class="admin-action-btn primary-btn small"><i class="fas fa-plus"></i> Add Service</button>
+          </div>
+
+          <!-- Add Service Form Box -->
+          <div id="serviceFormContainer" class="admin-form-box" style="display: none; margin-top: 15px;">
+            <form id="adminServiceForm" class="admin-grid-form">
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label>Service Title *</label>
+                  <input type="text" id="adminServTitle" placeholder="e.g. App Development" required class="admin-input-field" />
+                </div>
+                <div class="form-group col-6">
+                  <label>FontAwesome Icon Class *</label>
+                  <input type="text" id="adminServIcon" placeholder="e.g. fas fa-mobile-alt" required class="admin-input-field" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Service Description *</label>
+                <textarea id="adminServDesc" rows="2" placeholder="Briefly describe what you offer..." required class="admin-input-field"></textarea>
+              </div>
+              <div class="form-actions-bar">
+                <button type="submit" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Service</button>
+                <button type="button" id="btnCancelServiceForm" class="admin-action-btn cancel-btn">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="adminServicesList" class="admin-projects-grid" style="margin-top: 20px;">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+
+        <!-- TAB 4: Manage Skills Section -->
+        <div id="tab-skills" class="admin-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
+          <div class="admin-section-banner">
+            <div>
+              <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Skills & Expertise Manager</h4>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Manage skill categories and chips displayed in your portfolio.</p>
+            </div>
+            <button id="btnOpenAddSkill" class="admin-action-btn primary-btn small"><i class="fas fa-plus"></i> Add Skill Category</button>
+          </div>
+
+          <!-- Add Skill Form Box -->
+          <div id="skillFormContainer" class="admin-form-box" style="display: none; margin-top: 15px;">
+            <form id="adminSkillForm" class="admin-grid-form">
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label>Category Name *</label>
+                  <input type="text" id="adminSkillCatName" placeholder="e.g. Mobile Development" required class="admin-input-field" />
+                </div>
+                <div class="form-group col-6">
+                  <label>FontAwesome Icon Class *</label>
+                  <input type="text" id="adminSkillCatIcon" placeholder="e.g. fas fa-mobile-alt" required class="admin-input-field" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Skill Chips (comma-separated) *</label>
+                <input type="text" id="adminSkillChips" placeholder="Flutter, Dart, GetX, Hive, Geolocation" required class="admin-input-field" />
+              </div>
+              <div class="form-actions-bar">
+                <button type="submit" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Skill Category</button>
+                <button type="button" id="btnCancelSkillForm" class="admin-action-btn cancel-btn">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="adminSkillsList" class="admin-projects-grid" style="margin-top: 20px;">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+
+        <!-- TAB 5: Update Stats & Metrics -->
         <div id="tab-stats" class="admin-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
           <div class="admin-section-banner">
             <div>
@@ -1617,7 +1797,43 @@
           </form>
         </div>
 
-        <!-- TAB 3: Contact Messages Inbox -->
+        <!-- TAB 6: Social & Contact Details Manager -->
+        <div id="tab-social" class="admin-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
+          <div class="admin-section-banner">
+            <div>
+              <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Social Links & Contact Info Manager</h4>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Update your email, location, GitHub, and LinkedIn links.</p>
+            </div>
+          </div>
+
+          <form id="adminSocialContactForm" style="max-width: 600px; margin: 20px 0;">
+            <div class="form-row">
+              <div class="form-group col-6" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px;">Contact Email</label>
+                <input type="email" id="adminContactEmail" value="hossainahammed627@gmail.com" required class="admin-input-field" />
+              </div>
+              <div class="form-group col-6" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px;">Contact Address / City</label>
+                <input type="text" id="adminContactAddress" value="Uttara, Dhaka" required class="admin-input-field" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-6" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px;">GitHub Profile URL</label>
+                <input type="text" id="adminSocialGithub" value="https://github.com/hossainahammed" required class="admin-input-field" />
+              </div>
+              <div class="form-group col-6" style="margin-bottom: 25px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px;">LinkedIn Profile URL</label>
+                <input type="text" id="adminSocialLinkedin" value="https://www.linkedin.com/in/hossain-ahammed" required class="admin-input-field" />
+              </div>
+            </div>
+
+            <button type="submit" id="btnSaveSocialContact" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Social & Contact Links</button>
+          </form>
+        </div>
+
+        <!-- TAB 7: Contact Messages Inbox -->
         <div id="tab-inbox" class="admin-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
           <div class="admin-section-banner">
             <div>
