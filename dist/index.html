@@ -52,8 +52,8 @@
       document.documentElement.setAttribute("data-theme", theme);
     })();
   </script>
-  <script type="module" crossorigin src="/assets/index-BWLzCn8d.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DuEIV_fo.css">
+  <script type="module" crossorigin src="/assets/index-CmA-wdi9.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-7opMFsOQ.css">
 </head>
 
 <body>
@@ -1643,234 +1643,226 @@
     </div>
   </footer>
 
-  <!-- Admin Panel Modal -->
+  <!-- Complete Portfolio Admin Control Panel Modal -->
   <div id="adminModal" class="live-modal" aria-hidden="true" style="z-index: 10000; display: none">
     <div class="live-modal__overlay admin-close"></div>
-    <div class="live-modal__content admin-content" style="max-width: 600px; padding: 30px">
-      <button class="live-modal__close admin-close" aria-label="Close">
-        &times;
-      </button>
-      <div class="live-modal__header">
-        <h3 style="margin-bottom: 10px">Admin Panel</h3>
+    <div class="live-modal__content admin-content" style="max-width: 850px; width: 95%; padding: 0; border-radius: 16px; overflow: hidden; height: 90vh;">
+      
+      <!-- Modal Header -->
+      <div class="admin-modal-topbar">
+        <div class="admin-topbar-title">
+          <i class="fas fa-user-shield"></i>
+          <span>Admin Control Panel</span>
+        </div>
+        <div class="admin-topbar-right">
+          <span id="adminStatusBadge" class="admin-status-badge">Offline Mode</span>
+          <button class="live-modal__close admin-close" aria-label="Close">&times;</button>
+        </div>
       </div>
 
-      <!-- Login Step -->
-      <div id="admin-login-step">
-        <p style="margin-bottom: 15px; color: var(--text-sec)">
-          Log in to add new projects to your portfolio.
-        </p>
-        <div class="field" style="margin-bottom: 15px">
-          <input type="email" id="admin-email" placeholder="Email Address" required style="
-                width: 100%;
-                padding: 12px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              " />
+      <!-- STEP 1: Admin Login View -->
+      <div id="admin-login-step" class="admin-view-container" style="padding: 35px 25px; text-align: center; max-width: 440px; margin: 40px auto;">
+        <div class="admin-lock-icon">
+          <i class="fas fa-lock"></i>
         </div>
-        <div class="field" style="margin-bottom: 20px">
-          <input type="password" id="admin-key" placeholder="Secret Key" required style="
-                width: 100%;
-                padding: 12px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              " />
-        </div>
-        <button id="admin-login-btn" style="
-              background: var(--accent-gradient);
-              color: #fff;
-              padding: 12px 20px;
-              border: none;
-              border-radius: 6px;
-              cursor: pointer;
-              font-weight: 600;
-              width: 100%;
-            ">
-          Login
-        </button>
-        <p id="admin-error" style="color: #ef4444; margin-top: 10px; display: none"></p>
-      </div>
-
-      <!-- Add Project Step -->
-      <div id="admin-form-step" style="display: none">
-        <p style="margin-bottom: 15px; color: var(--text-sec); font-size: 14px">
-          Fill out the details to generate the HTML for a new project.
+        <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Owner Authentication</h3>
+        <p style="color: var(--text-sec); font-size: 14px; margin-bottom: 25px;">
+          Enter your admin credentials to manage projects, edit stats, and view messages.
         </p>
-        <div style="
-              max-height: 400px;
-              overflow-y: auto;
-              padding-right: 10px;
-              margin-bottom: 15px;
-            " class="admin-form-scroll">
-          <input type="text" id="ap-title" placeholder="Project Title (e.g. Weather App)" style="
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              " />
-          <input type="text" id="ap-id" placeholder="Project ID (e.g. flutter-weather)" style="
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              " />
-          <input type="text" id="ap-image" placeholder="Image Name (e.g. weather.png) - put in images folder" style="
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              " />
-          <input type="text" id="ap-images"
-            placeholder="Screenshot Names (comma-separated, e.g. 1.png, 2.png - optional)" style="
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              " />
-          <textarea id="ap-desc" placeholder="Problem Solved Description" rows="2" style="
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              "></textarea>
-          <input type="text" id="ap-tech" placeholder="Tech Stack (comma separated: Flutter, Dart)" style="
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              " />
-          <textarea id="ap-features" placeholder="Key Features (comma separated: UI, API)" rows="2" style="
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              "></textarea>
 
-          <h4 style="margin-bottom: 5px; color: var(--primary-color)">
-            Links
-          </h4>
-          <input type="text" id="ap-live" placeholder="Live Demo URL (or #)" style="
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              " />
-          <input type="text" id="ap-appetize" placeholder="Appetize Embed URL (or #)" style="
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              " />
-          <input type="text" id="ap-video" placeholder="Video Embed URL (or #)" style="
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              " />
-          <input type="text" id="ap-github" placeholder="GitHub Repo URL" style="
-                width: 100%;
-                padding: 10px;
-                margin-bottom: 10px;
-                background: var(--input-bg);
-                border: 1px solid var(--input-border);
-                color: var(--text-main);
-                border-radius: 6px;
-              " />
-        </div>
-        <button id="admin-generate-btn" style="
-              background: var(--primary-color);
-              color: #fff;
-              padding: 10px 20px;
-              border: none;
-              border-radius: 6px;
-              cursor: pointer;
-              font-weight: 600;
-              width: 100%;
-            ">
-          Generate HTML & Preview
-        </button>
-      </div>
-
-      <!-- Result Step -->
-      <div id="admin-result-step" style="display: none">
-        <p style="margin-bottom: 10px; color: var(--text-sec)">
-          Copy this HTML and paste it into index.html under the Flutter
-          Projects grid:
-        </p>
-        <textarea id="admin-output-code" rows="10" readonly style="
-              width: 100%;
-              padding: 10px;
-              margin-bottom: 15px;
-              background: #1e1e1e;
-              color: #d4d4d4;
-              font-family: monospace;
-              border: 1px solid var(--border-card);
-              border-radius: 6px;
-              font-size: 12px;
-            "></textarea>
-        <div style="display: flex; gap: 10px">
-          <button id="admin-copy-btn" style="
-                background: var(--accent-gradient);
-                color: #fff;
-                padding: 10px;
-                flex: 1;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-weight: 600;
-              ">
-            Copy HTML
+        <form id="adminLoginForm">
+          <div class="field" style="margin-bottom: 15px;">
+            <input type="email" id="admin-email" placeholder="Admin Email (e.g. hossainahammed627@gmail.com)" required class="admin-input-field" />
+          </div>
+          <div class="field" style="margin-bottom: 20px;">
+            <input type="password" id="admin-key" placeholder="Password / Secret Key" required class="admin-input-field" />
+          </div>
+          <button type="submit" id="admin-login-btn" class="admin-action-btn primary-btn" style="width: 100%;">
+            <i class="fas fa-sign-in-alt"></i> Login to Dashboard
           </button>
-          <button id="admin-reset-btn" style="
-                background: var(--bg-card);
-                color: var(--text-main);
-                border: 1px solid var(--border-card);
-                padding: 10px;
-                flex: 1;
-                border-radius: 6px;
-                cursor: pointer;
-                font-weight: 600;
-              ">
-            Add Another
-          </button>
+        </form>
+        
+        <p id="admin-error" class="admin-alert-error" style="display: none;"></p>
+
+        <div class="admin-info-note" style="margin-top: 20px; font-size: 12px; color: var(--text-sec); background: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-card);">
+          <i class="fas fa-info-circle"></i> Default secret key: <strong style="color: var(--primary-color);">admin123</strong> or your Firebase Auth credentials.
         </div>
-        <p id="admin-copy-status" style="color: #22c55e; margin-top: 10px; display: none">
-          Copied to clipboard!
-        </p>
       </div>
+
+      <!-- STEP 2: Main Dashboard View (Visible when logged in) -->
+      <div id="admin-dashboard-step" class="admin-view-container" style="display: none; height: calc(100% - 60px); flex-direction: column;">
+        
+        <!-- Dashboard Sub-Header & Navigation Tabs -->
+        <div class="admin-dash-header">
+          <div class="admin-nav-tabs">
+            <button class="admin-tab-btn active" data-tab="tab-projects"><i class="fas fa-folder-open"></i> Projects CRUD</button>
+            <button class="admin-tab-btn" data-tab="tab-stats"><i class="fas fa-chart-line"></i> Stats & Metrics</button>
+            <button class="admin-tab-btn" data-tab="tab-inbox"><i class="fas fa-inbox"></i> Inbox Messages <span id="inboxBadge" class="inbox-count-tag">0</span></button>
+          </div>
+          <button id="adminLogoutBtn" class="admin-logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+
+        <!-- TAB 1: Manage Projects CRUD -->
+        <div id="tab-projects" class="admin-tab-content active" style="flex: 1; overflow-y: auto; padding: 20px;">
+          <div class="admin-section-banner">
+            <div>
+              <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Portfolio Projects Manager</h4>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Add new projects or modify existing project items in real-time.</p>
+            </div>
+            <button id="btnOpenAddProject" class="admin-action-btn primary-btn small"><i class="fas fa-plus"></i> Add New Project</button>
+          </div>
+
+          <!-- Add / Edit Project Form Box -->
+          <div id="projectFormContainer" class="admin-form-box" style="display: none; margin-top: 15px;">
+            <div class="admin-form-header">
+              <h4 id="projectFormTitle" style="margin: 0;">Add New Portfolio Project</h4>
+              <button type="button" id="btnCloseProjectForm" class="btn-text-close">&times;</button>
+            </div>
+            <form id="portfolioProjectForm" class="admin-grid-form">
+              <input type="hidden" id="pf-id" />
+              
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label>Project Title *</label>
+                  <input type="text" id="pf-title" placeholder="e.g. Sova — Fitness App" required class="admin-input-field" />
+                </div>
+                <div class="form-group col-6">
+                  <label>Category *</label>
+                  <select id="pf-category" class="admin-input-field">
+                    <option value="flutter">Flutter / Mobile App</option>
+                    <option value="web">Web Application</option>
+                    <option value="php">Backend & API</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label>Badge Type</label>
+                  <select id="pf-badge" class="admin-input-field">
+                    <option value="client">Client Project</option>
+                    <option value="team">Team Project</option>
+                    <option value="solo">Personal SaaS</option>
+                  </select>
+                </div>
+                <div class="form-group col-6">
+                  <label>Main Image Filename/URL *</label>
+                  <input type="text" id="pf-image" placeholder="images/Sova/1 21.png" required class="admin-input-field" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Problem Solved Description *</label>
+                <textarea id="pf-desc" rows="2" placeholder="Briefly describe the key feature or problem this app solves..." required class="admin-input-field"></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label>Tech Stack Pills (comma-separated) *</label>
+                  <input type="text" id="pf-tech" placeholder="Flutter, Dart, GetX, Firebase, REST API" required class="admin-input-field" />
+                </div>
+                <div class="form-group col-6">
+                  <label>Screenshot Folder / List (optional)</label>
+                  <input type="text" id="pf-images" placeholder="1.png, 2.png, 3.png" class="admin-input-field" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label>Play Store URL</label>
+                  <input type="text" id="pf-playstore" placeholder="https://play.google.com/store/apps/..." class="admin-input-field" />
+                </div>
+                <div class="form-group col-6">
+                  <label>Download APK URL</label>
+                  <input type="text" id="pf-apk" placeholder="images/project apk/app.apk" class="admin-input-field" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label>GitHub Code Link</label>
+                  <input type="text" id="pf-github" placeholder="https://github.com/hossainahammed/..." class="admin-input-field" />
+                </div>
+                <div class="form-group col-6">
+                  <label>Live Web / Appetize Demo Link</label>
+                  <input type="text" id="pf-live" placeholder="https://..." class="admin-input-field" />
+                </div>
+              </div>
+
+              <div class="form-actions-bar">
+                <button type="submit" id="btnSaveProject" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Project</button>
+                <button type="button" id="btnCancelProjectForm" class="admin-action-btn cancel-btn">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Existing Projects Real-time List -->
+          <div id="adminProjectList" class="admin-projects-grid" style="margin-top: 20px;">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+
+        <!-- TAB 2: Update Stats & Metrics -->
+        <div id="tab-stats" class="admin-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
+          <div class="admin-section-banner">
+            <div>
+              <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Key Stats & Achievements Counter</h4>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Update the counter numbers displayed live in the Stats section of your website.</p>
+            </div>
+          </div>
+
+          <form id="adminStatsForm" style="max-width: 550px; margin: 20px 0;">
+            <div class="form-group" style="margin-bottom: 18px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Total Projects Completed</label>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="number" id="statInputCompleted" value="30" min="0" class="admin-input-field" style="width: 120px;" />
+                <span style="color: var(--text-sec); font-weight: 600;">+</span>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 18px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Delivered Projects</label>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="number" id="statInputDelivered" value="15" min="0" class="admin-input-field" style="width: 120px;" />
+                <span style="color: var(--text-sec); font-weight: 600;">+</span>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 18px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Published Apps</label>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="number" id="statInputPublished" value="5" min="0" class="admin-input-field" style="width: 120px;" />
+                <span style="color: var(--text-sec); font-weight: 600;">+</span>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 25px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Experience Label</label>
+              <input type="text" id="statInputExp" value="1+ Years" class="admin-input-field" style="max-width: 250px;" />
+            </div>
+
+            <button type="submit" id="btnSaveStats" class="admin-action-btn primary-btn"><i class="fas fa-sync-alt"></i> Update Live Counters</button>
+            <p id="statsUpdateStatus" style="display: none; color: #22c55e; margin-top: 10px; font-weight: 600;">✓ Stats updated live on website!</p>
+          </form>
+        </div>
+
+        <!-- TAB 3: Contact Messages Inbox -->
+        <div id="tab-inbox" class="admin-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
+          <div class="admin-section-banner">
+            <div>
+              <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Contact Messages Inbox</h4>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Read messages submitted by clients and recruiters from your contact form.</p>
+            </div>
+            <button id="btnClearInbox" class="admin-action-btn cancel-btn small"><i class="fas fa-trash"></i> Clear Read Messages</button>
+          </div>
+
+          <div id="adminInboxList" class="admin-inbox-grid" style="margin-top: 20px;">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+
+      </div>
+
     </div>
   </div>
 

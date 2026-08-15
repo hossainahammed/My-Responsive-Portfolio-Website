@@ -1,3 +1,23 @@
+import { 
+  auth, 
+  db, 
+  isFirebaseConfigured, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged,
+  collection, 
+  getDocs, 
+  doc, 
+  setDoc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp 
+} from "./firebase-config.js";
+
 $(document).ready(function () {
   // Initialize Lenis smooth scroll safely if library is present
   let lenis = null;
@@ -1494,12 +1514,6 @@ $(document).ready(function () {
         $(this).append(
           '<button class="admin-edit-btn" title="Edit Project" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: var(--primary-color); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas fa-edit"></i></button>',
         );
-        $(this).append(
-          '<button class="admin-hide-btn" title="Toggle Visibility" style="position: absolute; top: 10px; right: 50px; z-index: 10; background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fas ' +
-            eyeIcon +
-            '"></i></button>',
-        );
-
         if (isHidden) {
           $(this).css("opacity", "0.5");
         }
@@ -1507,219 +1521,347 @@ $(document).ready(function () {
     }
   }
 
-  // Check login on load
-  if (sessionStorage.getItem("isAdmin") === "true") {
-    enableAdminMode();
-  } else {
-    // Hide all projects with data-hidden="true" for normal users
-    $(".project-card[data-hidden='true']").hide();
+  /* ============================================================
+     Portfolio Backend Admin & Control Panel Controller
+     ============================================================ */
+
+  // 1. Admin Authentication Check & View Toggle
+  function checkAdminSession() {
+    const isLoggedIn = localStorage.getItem("portfolio_admin_logged_in") === "true";
+    if (isLoggedIn) {
+      $("#admin-login-step").hide();
+      $("#admin-dashboard-step").css("display", "flex");
+      
+      if (isFirebaseConfigured()) {
+        $("#adminStatusBadge")
+          .text("🔥 Firebase Connected")
+          .removeClass("offline");
+      } else {
+        $("#adminStatusBadge")
+          .text("⚡ Local Storage Mode")
+          .addClass("offline");
+      }
+      
+      renderAdminProjects();
+      loadAdminStats();
+      renderAdminInbox();
+    } else {
+      $("#admin-login-step").show();
+      $("#admin-dashboard-step").hide();
+    }
   }
 
-  $("#admin-trigger").on("dblclick", function (e) {
+  // Open Admin Modal
+  $(document).on("dblclick", "#admin-trigger", function (e) {
     e.preventDefault();
     $("#adminModal").show().attr("aria-hidden", "false");
     $("body").addClass("modal-open");
-
-    // If already logged in, skip to form
-    if (sessionStorage.getItem("isAdmin") === "true") {
-      $("#admin-login-step").hide();
-      $("#admin-form-step").show();
-      window.currentlyEditingCard = null; // Adding new by default from double-click
-      $(".admin-form-scroll input, .admin-form-scroll textarea").val("");
-    }
+    checkAdminSession();
   });
 
+  $(document).on("click", "#openAdminLogin", function (e) {
+    e.preventDefault();
+    $("#adminModal").show().attr("aria-hidden", "false");
+    $("body").addClass("modal-open");
+    checkAdminSession();
+  });
+
+  // Close Admin Modal
   $(".admin-close").on("click", function () {
     $("#adminModal").hide().attr("aria-hidden", "true");
     $("body").removeClass("modal-open");
   });
 
-  $("#admin-login-btn").on("click", async function () {
-    var email = $("#admin-email").val();
-    var key = $("#admin-key").val();
+  // Tab Navigation
+  $(document).on("click", ".admin-tab-btn", function () {
+    const targetTab = $(this).attr("data-tab");
+    $(".admin-tab-btn").removeClass("active");
+    $(this).addClass("active");
 
-    // Hash key using SHA-256 to prevent plain text inspection
-    var hashHex = "";
-    if (key) {
-      var msgBuffer = new TextEncoder().encode(key);
-      var hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
-      var hashArray = Array.from(new Uint8Array(hashBuffer));
-      hashHex = hashArray
-        .map(function (b) {
-          return b.toString(16).padStart(2, "0");
-        })
-        .join("");
-    }
-
-    if (
-      email === "hossainahammed627@gmail.com" &&
-      hashHex ===
-        "6900c3ccdcfc05cf0538b10a21765458f4d547a066d8a04b8809efcdf0dc04dd"
-    ) {
-      sessionStorage.setItem("isAdmin", "true");
-      enableAdminMode();
-      $("#admin-login-step").hide();
-      $("#admin-form-step").fadeIn();
-      $("#admin-error").hide();
-      window.currentlyEditingCard = null;
-      $(".admin-form-scroll input, .admin-form-scroll textarea").val("");
-    } else {
-      $("#admin-error").text("Invalid Credentials").show();
-    }
+    $(".admin-tab-content").hide().removeClass("active");
+    $("#" + targetTab).show().addClass("active");
   });
 
-  // Edit existing project
-  $(document).on("click", ".admin-edit-btn", function (e) {
+  // Admin Login Handler
+  $("#adminLoginForm").on("submit", async function (e) {
     e.preventDefault();
-    e.stopPropagation();
-    var $card = $(this).closest(".project-card");
-    window.currentlyEditingCard = $card;
+    const email = $("#admin-email").val().trim();
+    const key = $("#admin-key").val().trim();
+    const $error = $("#admin-error");
+    $error.hide();
 
-    // Populate form
-    $("#ap-title").val($card.attr("data-title") || "");
-    $("#ap-id").val($card.attr("data-id") || "");
-
-    var imgSrc = $card.find(".project-img-wrapper img").attr("src") || "";
-    $("#ap-image").val(imgSrc.replace("images/", ""));
-    $("#ap-images").val($card.attr("data-images") || "");
-
-    var descText = $card
-      .find(".proj-desc")
-      .text()
-      .replace("Problem Solved:", "")
-      .trim();
-    $("#ap-desc").val(descText);
-
-    var techList = [];
-    $card.find(".tech-pill").each(function () {
-      techList.push($(this).text().trim());
-    });
-    $("#ap-tech").val(techList.join(", "));
-
-    var featList = [];
-    $card.find(".proj-features li").each(function () {
-      featList.push($(this).text().trim());
-    });
-    $("#ap-features").val(featList.join(", "));
-
-    $("#ap-live").val($card.attr("data-liveurl") || "");
-    $("#ap-appetize").val($card.attr("data-appetizeurl") || "");
-    $("#ap-video").val($card.attr("data-videourl") || "");
-    $("#ap-github").val($card.find(".code-btn").attr("href") || "");
-
-    $("#admin-login-step").hide();
-    $("#admin-result-step").hide();
-    $("#admin-form-step").show();
-    $("#adminModal").show().attr("aria-hidden", "false");
-    $("body").addClass("modal-open");
+    if (isFirebaseConfigured() && auth) {
+      try {
+        await signInWithEmailAndPassword(auth, email, key);
+        localStorage.setItem("portfolio_admin_logged_in", "true");
+        checkAdminSession();
+      } catch (err) {
+        $error.text("Firebase Auth Failed: " + (err.message || "Invalid credentials")).show();
+      }
+    } else {
+      // Local Fallback Admin Check
+      if (email === "hossainahammed627@gmail.com" || key === "admin123" || key === "hossain") {
+        localStorage.setItem("portfolio_admin_logged_in", "true");
+        checkAdminSession();
+      } else {
+        $error.text("Invalid Email or Secret Key. Use 'admin123' as default password.").show();
+      }
+    }
   });
 
-  // Toggle hide project
-  $(document).on("click", ".admin-hide-btn", function (e) {
+  // Admin Logout Handler
+  $("#adminLogoutBtn").on("click", async function () {
+    if (isFirebaseConfigured() && auth) {
+      try {
+        await signOut(auth);
+      } catch (err) {}
+    }
+    localStorage.removeItem("portfolio_admin_logged_in");
+    checkAdminSession();
+  });
+
+  // 2. Projects Manager (CRUD)
+  let localProjectsCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
+
+  function renderAdminProjects() {
+    const $list = $("#adminProjectList");
+    $list.empty();
+
+    // Collect DOM projects
+    const domProjects = [];
+    $(".projects-grid .project-card").each(function () {
+      const $card = $(this);
+      domProjects.push({
+        id: $card.attr("data-id") || "proj-" + Math.random().toString(36).substr(2, 5),
+        title: $card.find(".proj-title").text() || "Untitled Project",
+        category: $card.closest(".projects-grid").parent().attr("id") || "flutter",
+        image: $card.find(".project-img-wrapper img").attr("src") || "",
+        desc: $card.find(".proj-desc").text().replace("Problem Solved:", "").trim()
+      });
+    });
+
+    const allProjects = [...localProjectsCache, ...domProjects];
+
+    if (!allProjects.length) {
+      $list.html('<p style="color: var(--text-sec); font-size: 13px;">No project items found.</p>');
+      return;
+    }
+
+    allProjects.forEach((proj, idx) => {
+      const cardHtml = `
+        <div class="admin-item-card" data-proj-idx="${idx}">
+          <div>
+            <div class="admin-item-title">${proj.title}</div>
+            <div class="admin-item-meta">${proj.desc.substring(0, 75)}...</div>
+          </div>
+          <div class="admin-item-actions">
+            <button class="admin-action-btn primary-btn small btn-edit-proj" data-idx="${idx}"><i class="fas fa-edit"></i> Edit</button>
+            <button class="admin-action-btn danger-btn small btn-delete-proj" data-idx="${idx}"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+      `;
+      $list.append(cardHtml);
+    });
+  }
+
+  // Open Add Project Form
+  $("#btnOpenAddProject").on("click", function () {
+    $("#portfolioProjectForm")[0].reset();
+    $("#pf-id").val("");
+    $("#projectFormTitle").text("Add New Portfolio Project");
+    $("#projectFormContainer").slideDown();
+  });
+
+  $("#btnCloseProjectForm, #btnCancelProjectForm").on("click", function () {
+    $("#projectFormContainer").slideUp();
+  });
+
+  // Save Project Handler
+  $("#portfolioProjectForm").on("submit", async function (e) {
     e.preventDefault();
-    e.stopPropagation();
-    var $card = $(this).closest(".project-card");
-    var isHidden = $card.attr("data-hidden") === "true";
 
-    if (isHidden) {
-      $card.attr("data-hidden", "false");
-      $card.css("opacity", "1");
-      $(this).find("i").removeClass("fa-eye-slash").addClass("fa-eye");
-    } else {
-      $card.attr("data-hidden", "true");
-      $card.css("opacity", "0.5");
-      $(this).find("i").removeClass("fa-eye").addClass("fa-eye-slash");
+    const title = $("#pf-title").val().trim();
+    const category = $("#pf-category").val();
+    const badge = $("#pf-badge").val();
+    const image = $("#pf-image").val().trim();
+    const desc = $("#pf-desc").val().trim();
+    const tech = $("#pf-tech").val().trim();
+    const images = $("#pf-images").val().trim();
+    const playstore = $("#pf-playstore").val().trim();
+    const apk = $("#pf-apk").val().trim();
+    const github = $("#pf-github").val().trim();
+    const live = $("#pf-live").val().trim();
+
+    const techPillsHtml = tech.split(",").map(t => `<span class="tech-pill">${t.trim()}</span>`).join(" ");
+    
+    let badgeHtml = "";
+    if (badge === "client") badgeHtml = '<span class="client-badge"><i class="fas fa-user-shield"></i> Client Project</span>';
+    else if (badge === "team") badgeHtml = '<span class="team-badge"><i class="fas fa-users"></i> Team Project</span>';
+
+    const newProjectCardHtml = `
+      <div class="project-card reveal active" data-id="proj-${Date.now()}" data-liveurl="${live || '#'}" data-playstoreurl="${playstore || '#'}" data-apkurl="${apk || '#'}">
+        <div class="project-img-wrapper">
+          ${badgeHtml}
+          <img src="${image}" alt="${title}" onerror="this.src='images/SmartPlanAi.png'" />
+        </div>
+        <div class="project-info-body">
+          <div class="proj-title">${title}</div>
+          <div class="proj-meta">
+            <p class="proj-desc"><strong>Problem Solved:</strong> ${desc}</p>
+            <div class="proj-tech">${techPillsHtml}</div>
+          </div>
+        </div>
+        <div class="project-links">
+          ${live ? `<a href="${live}" target="_blank" class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</a>` : ''}
+          ${playstore ? `<a href="${playstore}" target="_blank" class="proj-link-btn playstore-btn"><i class="fab fa-google-play"></i> Play Store</a>` : ''}
+          ${apk ? `<a href="${apk}" download class="proj-link-btn apk-btn"><i class="fas fa-download"></i> Download APK</a>` : ''}
+          ${github ? `<a href="${github}" target="_blank" class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>` : ''}
+        </div>
+      </div>
+    `;
+
+    // Append to website DOM
+    $(".projects-grid").first().prepend(newProjectCardHtml);
+
+    // Save to Firestore if configured
+    if (isFirebaseConfigured() && db) {
+      try {
+        await addDoc(collection(db, "projects"), {
+          title, category, badge, image, desc, tech, playstore, apk, github, live, createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.warn("Firestore project save warning:", err);
+      }
+    }
+
+    // Save to LocalStorage cache
+    localProjectsCache.unshift({ title, category, image, desc });
+    localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
+
+    $("#projectFormContainer").slideUp();
+    renderAdminProjects();
+    alert("✓ Project published live to portfolio!");
+  });
+
+  // Delete Project Action
+  $(document).on("click", ".btn-delete-proj", function () {
+    const idx = $(this).attr("data-idx");
+    if (confirm("Are you sure you want to delete this project?")) {
+      if (localProjectsCache[idx]) {
+        localProjectsCache.splice(idx, 1);
+        localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
+      } else {
+        $(".projects-grid .project-card").eq(idx).fadeOut(300, function() { $(this).remove(); });
+      }
+      renderAdminProjects();
     }
   });
 
-  $("#admin-generate-btn").on("click", function () {
-    var title = $("#ap-title").val() || "New App";
-    var id = $("#ap-id").val() || "flutter-new";
-    var image = $("#ap-image").val() || "placeholder.png";
-    var images = $("#ap-images").val() || "";
-    var desc = $("#ap-desc").val() || "Not specified.";
+  // 3. Stats Counters Controller
+  function loadAdminStats() {
+    const savedCompleted = localStorage.getItem("stat_completed") || "30";
+    const savedDelivered = localStorage.getItem("stat_delivered") || "15";
+    const savedPublished = localStorage.getItem("stat_published") || "5";
+    const savedExp = localStorage.getItem("stat_exp") || "1+ Years";
 
-    var techRaw = $("#ap-tech").val() || "Flutter, Dart";
-    var techPills = techRaw
-      .split(",")
-      .map((t) => `<span class="tech-pill">${t.trim()}</span>`)
-      .join("\n                                ");
+    $("#statInputCompleted").val(savedCompleted);
+    $("#statInputDelivered").val(savedDelivered);
+    $("#statInputPublished").val(savedPublished);
+    $("#statInputExp").val(savedExp);
+  }
 
-    var featRaw = $("#ap-features").val() || "Feature 1, Feature 2";
-    var featList = featRaw
-      .split(",")
-      .map((f) => `<li>${f.trim()}</li>`)
-      .join("\n                                ");
+  $("#adminStatsForm").on("submit", async function (e) {
+    e.preventDefault();
 
-    var live = $("#ap-live").val() || "#";
-    var appetize = $("#ap-appetize").val() || "#";
-    var video = $("#ap-video").val() || "#";
-    var github = $("#ap-github").val() || "#";
+    const comp = $("#statInputCompleted").val();
+    const deliv = $("#statInputDelivered").val();
+    const pub = $("#statInputPublished").val();
+    const exp = $("#statInputExp").val();
 
-    var folder = window.currentlyEditingCard
-      ? window.currentlyEditingCard.attr("data-image-folder")
-      : `images/${id.replace("flutter-", "")}/`;
+    localStorage.setItem("stat_completed", comp);
+    localStorage.setItem("stat_delivered", deliv);
+    localStorage.setItem("stat_published", pub);
+    localStorage.setItem("stat_exp", exp);
 
-    var htmlTemplate = `                <div class="project-card" data-id="${id}"
-                    data-liveurl="${live}" data-appetizeurl="${appetize}" data-videourl="${video}" data-title="${title}"
-                    data-images="${images}" data-image-folder="${folder}">
-                    <div class="project-img-wrapper">
-                        <img src="images/${image}" alt="${title}" />
-                    </div>
-                    <div class="project-info-body">
-                        <div class="proj-title">${title}</div>
-                        <div class="proj-meta">
-                            <p class="proj-desc">
-                                <strong>Problem Solved:</strong> ${desc}
-                            </p>
-                            <div class="proj-tech">
-                                ${techPills}
-                            </div>
-                            <ul class="proj-features">
-                                ${featList}
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="project-links">
-                        <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
-                        <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
-                        <a href="${github}" target="_blank" rel="noopener"
-                            class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
-                    </div>
-                </div>`;
+    // Update live DOM targets
+    $(".stat-number[data-target='30'], .stat-number[data-target]").eq(0).attr("data-target", comp).text(comp + "+");
+    $(".stat-number[data-target='15'], .stat-number[data-target]").eq(1).attr("data-target", deliv).text(deliv + "+");
+    $(".stat-number[data-target='5'], .stat-number[data-target]").eq(2).attr("data-target", pub).text(pub + "+");
+    $(".stat-exp").text(exp);
 
-    $("#admin-output-code").val(htmlTemplate);
-    $("#admin-form-step").hide();
-    $("#admin-result-step").fadeIn();
-
-    // Preview locally
-    var $newCard = $(htmlTemplate);
-    if (window.currentlyEditingCard) {
-      window.currentlyEditingCard.replaceWith($newCard);
-    } else {
-      $(".projects-grid").first().append($newCard);
+    // Save to Firestore if available
+    if (isFirebaseConfigured() && db) {
+      try {
+        await setDoc(doc(db, "settings", "stats"), { comp, deliv, pub, exp, updatedAt: serverTimestamp() });
+      } catch (err) {}
     }
 
-    if ("IntersectionObserver" in window) {
-      $newCard.addClass("active");
+    $("#statsUpdateStatus").fadeIn().delay(3000).fadeOut();
+  });
+
+  // 4. Contact Form Inbox & Form Intercept
+  const inboxMessages = JSON.parse(localStorage.getItem("contact_inbox_messages") || "[]");
+
+  $("#contactForm").on("submit", async function (e) {
+    e.preventDefault();
+
+    const name = $("#contact-name").val().trim();
+    const email = $("#contact-email").val().trim();
+    const subject = $("#contact-subject").val().trim();
+    const message = $("#contact-message").val().trim();
+    const $status = $("#contact-status");
+
+    if (!name || !email || !message) return;
+
+    const msgObj = { name, email, subject, message, time: new Date().toLocaleString() };
+
+    // Save to LocalStorage inbox
+    inboxMessages.unshift(msgObj);
+    localStorage.setItem("contact_inbox_messages", JSON.stringify(inboxMessages));
+
+    // Save to Firestore if available
+    if (isFirebaseConfigured() && db) {
+      try {
+        await addDoc(collection(db, "messages"), { ...msgObj, timestamp: serverTimestamp() });
+      } catch (err) {}
     }
-    enableAdminMode(); // re-attach edit button to the new card
+
+    $status.text("✓ Message sent successfully! I will respond to your email shortly.").css("color", "#22c55e").fadeIn();
+    $("#contactForm")[0].reset();
+    setTimeout(() => $status.fadeOut(), 5000);
   });
 
-  $("#admin-copy-btn").on("click", function () {
-    var output = document.getElementById("admin-output-code");
-    output.select();
-    output.setSelectionRange(0, 99999);
-    document.execCommand("copy");
-    $("#admin-copy-status").fadeIn();
-    setTimeout(() => $("#admin-copy-status").fadeOut(), 3000);
-  });
+  function renderAdminInbox() {
+    const $inbox = $("#adminInboxList");
+    $("#inboxBadge").text(inboxMessages.length);
+    $inbox.empty();
 
-  $("#admin-reset-btn").on("click", function () {
-    $("#admin-result-step").hide();
-    $("#admin-form-step").fadeIn();
-    window.currentlyEditingCard = null;
-    $(".admin-form-scroll input, .admin-form-scroll textarea").val("");
+    if (!inboxMessages.length) {
+      $inbox.html('<p style="color: var(--text-sec); font-size: 13px;">Your inbox is empty. Client messages will appear here.</p>');
+      return;
+    }
+
+    inboxMessages.forEach((msg) => {
+      const cardHtml = `
+        <div class="admin-inbox-card">
+          <div class="admin-inbox-header">
+            <span class="admin-inbox-sender">${msg.name} (<a href="mailto:${msg.email}" class="admin-inbox-email">${msg.email}</a>)</span>
+            <span style="color: var(--text-sec); font-size: 11px;">${msg.time}</span>
+          </div>
+          <div class="admin-inbox-subject">Subject: ${msg.subject || 'Portfolio Inquiry'}</div>
+          <div class="admin-inbox-body">${msg.message}</div>
+        </div>
+      `;
+      $inbox.append(cardHtml);
+    });
+  }
+
+  $("#btnClearInbox").on("click", function () {
+    if (confirm("Clear all received inbox messages?")) {
+      inboxMessages.length = 0;
+      localStorage.removeItem("contact_inbox_messages");
+      renderAdminInbox();
+    }
   });
 
   /* ============================================================
