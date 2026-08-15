@@ -1590,6 +1590,14 @@ $(document).ready(function () {
     }
   });
 
+  // Toggle Admin Password Mask / Unmask
+  $(document).on("click", "#toggleAdminPassword", function () {
+    const $input = $("#admin-key");
+    const type = $input.attr("type") === "password" ? "text" : "password";
+    $input.attr("type", type);
+    $(this).toggleClass("fa-eye fa-eye-slash");
+  });
+
   // Forgot Password Navigation
   $("#btnOpenForgotModal").on("click", function () {
     $("#admin-login-step").hide();
@@ -1615,13 +1623,17 @@ $(document).ready(function () {
     if (isFirebaseConfigured() && auth) {
       try {
         await sendPasswordResetEmail(auth, email);
-        $msg.text("✓ Password reset email sent to " + email + "! Please check your inbox.").css("color", "#22c55e").fadeIn();
+        $msg.text("✓ Password reset email sent to " + email + "! Please check your inbox (and spam folder).").css("color", "#22c55e").fadeIn();
       } catch (err) {
         console.warn("Reset email error:", err);
-        $msg.text("✓ Password reset request processed for " + email + ".").css("color", "#22c55e").fadeIn();
+        if (err.code === "auth/user-not-found") {
+          $msg.text("⚠️ Email not registered in Firebase Auth. Please create user '" + email + "' in Firebase Console > Auth > Users tab first!").css("color", "#eab308").fadeIn();
+        } else {
+          $msg.text("✓ Password reset request submitted for " + email + ". Check your email inbox.").css("color", "#22c55e").fadeIn();
+        }
       }
     } else {
-      $msg.text("✓ Password reset email sent to " + email + "! Check your inbox.").css("color", "#22c55e").fadeIn();
+      $msg.text("✓ Password reset simulated: Email sent to " + email + ".").css("color", "#22c55e").fadeIn();
     }
   });
 
@@ -2835,6 +2847,91 @@ $(document).ready(function () {
       $(`.skills-category-card[data-id="${skillId}"]`).fadeOut(300, function() { $(this).remove(); });
       $(`.admin-item-card[data-skill-id="${skillId}"]`).slideUp(200, function() { $(this).remove(); });
     }
+  });
+
+  // 3.5. Key Stats & Achievements Counter Manager Sync
+  function syncStatsFromBackend() {
+    const applyStats = (data) => {
+      if (!data) return;
+      const comp = data.comp || data.completed || "30";
+      const deliv = data.deliv || data.delivered || "15";
+      const pub = data.pub || data.published || "5";
+      const exp = data.exp || data.experience || "1+ Years";
+
+      localStorage.setItem("stat_completed", comp);
+      localStorage.setItem("stat_delivered", deliv);
+      localStorage.setItem("stat_published", pub);
+      localStorage.setItem("stat_exp", exp);
+
+      $(".stat-number[data-target]").eq(0).attr("data-target", comp).text(comp + "+");
+      $(".stat-number[data-target]").eq(1).attr("data-target", deliv).text(deliv + "+");
+      $(".stat-number[data-target]").eq(2).attr("data-target", pub).text(pub + "+");
+      $(".stat-exp").text(exp);
+    };
+
+    const savedComp = localStorage.getItem("stat_completed");
+    if (savedComp) {
+      applyStats({
+        comp: localStorage.getItem("stat_completed"),
+        deliv: localStorage.getItem("stat_delivered"),
+        pub: localStorage.getItem("stat_published"),
+        exp: localStorage.getItem("stat_exp")
+      });
+    }
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        onSnapshot(doc(db, "settings", "stats"), (docSnap) => {
+          if (docSnap.exists()) {
+            applyStats(docSnap.data());
+          }
+        }, (err) => console.warn("Firestore stats listener warning:", err));
+      } catch (err) {
+        console.warn("Error setting up stats listener:", err);
+      }
+    }
+  }
+
+  function loadAdminStats() {
+    const savedCompleted = localStorage.getItem("stat_completed") || "30";
+    const savedDelivered = localStorage.getItem("stat_delivered") || "15";
+    const savedPublished = localStorage.getItem("stat_published") || "5";
+    const savedExp = localStorage.getItem("stat_exp") || "1+ Years";
+
+    $("#statInputCompleted").val(savedCompleted);
+    $("#statInputDelivered").val(savedDelivered);
+    $("#statInputPublished").val(savedPublished);
+    $("#statInputExp").val(savedExp);
+  }
+
+  $("#adminStatsForm").on("submit", async function (e) {
+    e.preventDefault();
+
+    const comp = $("#statInputCompleted").val();
+    const deliv = $("#statInputDelivered").val();
+    const pub = $("#statInputPublished").val();
+    const exp = $("#statInputExp").val();
+
+    localStorage.setItem("stat_completed", comp);
+    localStorage.setItem("stat_delivered", deliv);
+    localStorage.setItem("stat_published", pub);
+    localStorage.setItem("stat_exp", exp);
+
+    // Update live DOM targets
+    $(".stat-number[data-target]").eq(0).attr("data-target", comp).text(comp + "+");
+    $(".stat-number[data-target]").eq(1).attr("data-target", deliv).text(deliv + "+");
+    $(".stat-number[data-target]").eq(2).attr("data-target", pub).text(pub + "+");
+    $(".stat-exp").text(exp);
+
+    // Save to Firestore if available
+    if (isFirebaseConfigured() && db) {
+      try {
+        await setDoc(doc(db, "settings", "stats"), { comp, deliv, pub, exp, updatedAt: serverTimestamp() });
+      } catch (err) {}
+    }
+
+    $("#statsUpdateStatus").fadeIn().delay(3000).fadeOut();
+    alert("✓ Live stats updated successfully!");
   });
 
   // 4. Social Links & Contact Manager Sync
