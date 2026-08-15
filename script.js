@@ -1828,7 +1828,9 @@ $(document).ready(function () {
   function renderProjectsToDOM(projects) {
     if (!Array.isArray(projects) || projects.length === 0) return;
 
-    // Clear placeholders
+    const deletedIds = new Set(JSON.parse(localStorage.getItem("deleted_project_ids") || "[]"));
+
+    // Clear placeholders if any exist
     $("#projects .projects-grid, #web-projects .projects-grid, #php-projects .projects-grid").each(function () {
       if ($(this).find(".projects-loading-state").length > 0) {
         $(this).empty();
@@ -1837,12 +1839,16 @@ $(document).ready(function () {
 
     projects.forEach((proj) => {
       const projId = proj.id || ("proj-" + String(proj.title || "").toLowerCase().replace(/[^a-z0-9]+/g, "-"));
+      if (deletedIds.has(projId)) {
+        $(`.project-card[data-id="${projId}"]`).remove();
+        return;
+      }
       if ($(`.project-card[data-id="${projId}"]`).length > 0) return;
 
       const $grid = getCategoryGrid(proj.category);
       if ($grid.length) {
         const cardHtml = createProjectCardHtml({ ...proj, id: projId });
-        $grid.append(cardHtml);
+        $grid.prepend(cardHtml);
       }
     });
 
@@ -1866,19 +1872,15 @@ $(document).ready(function () {
   }
 
   function syncProjectsFromBackend() {
-    // 1. Initial local cache or baseline render
+    // 1. Initial local cache render
     let localCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
-    if (!localCache.length) {
-      localCache = BASELINE_PROJECTS;
-      localStorage.setItem("custom_portfolio_projects", JSON.stringify(localCache));
-    }
     renderProjectsToDOM(localCache);
 
     // 2. Real-time Firestore sync if backend connected
     if (isFirebaseConfigured() && db) {
       try {
         const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
-        onSnapshot(q, async (snapshot) => {
+        onSnapshot(q, (snapshot) => {
           const remoteProjects = [];
           snapshot.forEach((docSnap) => {
             remoteProjects.push({ id: docSnap.id, ...docSnap.data() });
@@ -1887,16 +1889,10 @@ $(document).ready(function () {
           if (remoteProjects.length > 0) {
             localProjectsCache = remoteProjects;
             localStorage.setItem("custom_portfolio_projects", JSON.stringify(remoteProjects));
-            // Clear grids and re-render 100% dynamically from Firestore
-            $("#projects .projects-grid, #web-projects .projects-grid, #php-projects .projects-grid").empty();
             renderProjectsToDOM(remoteProjects);
             if ($("#adminModal").is(":visible")) {
               renderAdminProjects();
             }
-          } else {
-            // First time running with empty Firestore: auto-seed baseline projects
-            console.log("🔥 Firestore collection empty. Seeding baseline projects to database...");
-            await seedBaselineProjectsToFirestore();
           }
         }, (err) => {
           console.warn("Firestore projects snapshot warning:", err);
@@ -1911,17 +1907,22 @@ $(document).ready(function () {
     const $list = $("#adminProjectList");
     $list.empty();
 
+    const deletedIds = new Set(JSON.parse(localStorage.getItem("deleted_project_ids") || "[]"));
+
     // Collect DOM projects
     const domProjects = [];
     $(".projects-grid .project-card").each(function () {
       const $card = $(this);
-      domProjects.push({
-        id: $card.attr("data-id") || "proj-" + Math.random().toString(36).substr(2, 5),
-        title: $card.find(".proj-title").text() || "Untitled Project",
-        category: $card.closest(".projects-grid").parent().attr("id") || "flutter",
-        image: $card.find(".project-img-wrapper img").attr("src") || "",
-        desc: $card.find(".proj-desc").text().replace("Problem Solved:", "").trim()
-      });
+      const id = $card.attr("data-id");
+      if (id && !deletedIds.has(id)) {
+        domProjects.push({
+          id: id,
+          title: $card.attr("data-title") || $card.find(".proj-title").text() || "Untitled Project",
+          category: $card.closest(".projects-grid").parent().attr("id") || "flutter",
+          image: $card.find(".project-img-wrapper img").attr("src") || "",
+          desc: $card.find(".proj-desc").text().replace("Problem Solved:", "").trim()
+        });
+      }
     });
 
     // Dedupe all projects
@@ -1929,7 +1930,7 @@ $(document).ready(function () {
     const allProjects = [];
     [...localProjectsCache, ...domProjects].forEach((p) => {
       const key = p.id || p.title;
-      if (!seen.has(key)) {
+      if (key && !seen.has(key) && !deletedIds.has(key)) {
         seen.add(key);
         allProjects.push(p);
       }
@@ -1940,15 +1941,15 @@ $(document).ready(function () {
       return;
     }
 
-    allProjects.forEach((proj, idx) => {
+    allProjects.forEach((proj) => {
       const cardHtml = `
-        <div class="admin-item-card" data-proj-idx="${idx}">
+        <div class="admin-item-card" data-proj-id="${proj.id}">
           <div>
             <div class="admin-item-title">${proj.title}</div>
             <div class="admin-item-meta">${(proj.desc || "").substring(0, 75)}...</div>
           </div>
           <div class="admin-item-actions">
-            <button class="admin-action-btn danger-btn small btn-delete-proj" data-idx="${idx}"><i class="fas fa-trash"></i> Delete</button>
+            <button class="admin-action-btn danger-btn small btn-delete-proj" data-id="${proj.id}"><i class="fas fa-trash"></i> Delete</button>
           </div>
         </div>
       `;
@@ -2043,22 +2044,35 @@ $(document).ready(function () {
 
   // Delete Project Action
   $(document).on("click", ".btn-delete-proj", function () {
-    const idx = $(this).attr("data-idx");
-    const proj = localProjectsCache[idx];
+    const projId = $(this).attr("data-id");
+    if (!projId) return;
+
     if (confirm("Are you sure you want to delete this project?")) {
-      if (proj) {
-        if (proj.id && isFirebaseConfigured() && db) {
-          try {
-            deleteDoc(doc(db, "projects", proj.id)).catch(err => console.warn("Firestore delete warning:", err));
-          } catch(e) {}
+      // 1. Delete from Firestore if connected
+      if (isFirebaseConfigured() && db) {
+        try {
+          deleteDoc(doc(db, "projects", projId)).catch(err => console.warn("Firestore delete warning:", err));
+        } catch(e) {
+          console.warn("Firestore delete error:", e);
         }
-        $(`.project-card[data-id="${proj.id}"]`).fadeOut(300, function() { $(this).remove(); });
-        localProjectsCache.splice(idx, 1);
-        localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
-      } else {
-        $(".projects-grid .project-card").eq(idx).fadeOut(300, function() { $(this).remove(); });
       }
-      renderAdminProjects();
+
+      // 2. Add to deleted IDs set in localStorage
+      let deletedIds = JSON.parse(localStorage.getItem("deleted_project_ids") || "[]");
+      if (!deletedIds.includes(projId)) {
+        deletedIds.push(projId);
+        localStorage.setItem("deleted_project_ids", JSON.stringify(deletedIds));
+      }
+
+      // 3. Remove card from DOM
+      $(`.project-card[data-id="${projId}"]`).fadeOut(300, function() { $(this).remove(); });
+
+      // 4. Filter local Projects Cache
+      localProjectsCache = localProjectsCache.filter(p => p.id !== projId);
+      localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
+
+      // 5. Remove card from Admin list
+      $(`.admin-item-card[data-proj-id="${projId}"]`).slideUp(200, function() { $(this).remove(); });
     }
   });
 
