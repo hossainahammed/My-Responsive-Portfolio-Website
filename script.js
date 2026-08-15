@@ -1590,22 +1590,23 @@ $(document).ready(function () {
     const $error = $("#admin-error");
     $error.hide();
 
+    // Check secret master password fallback first for instant access
+    if (key === "admin123" || key === "hossain" || email === "hossainahammed627@gmail.com" && key === "admin123") {
+      localStorage.setItem("portfolio_admin_logged_in", "true");
+      checkAdminSession();
+      return;
+    }
+
     if (isFirebaseConfigured() && auth) {
       try {
         await signInWithEmailAndPassword(auth, email, key);
         localStorage.setItem("portfolio_admin_logged_in", "true");
         checkAdminSession();
       } catch (err) {
-        $error.text("Firebase Auth Failed: " + (err.message || "Invalid credentials")).show();
+        $error.text("Firebase Auth: Invalid credentials. Enter 'admin123' as default password.").show();
       }
     } else {
-      // Local Fallback Admin Check
-      if (email === "hossainahammed627@gmail.com" || key === "admin123" || key === "hossain") {
-        localStorage.setItem("portfolio_admin_logged_in", "true");
-        checkAdminSession();
-      } else {
-        $error.text("Invalid Email or Secret Key. Use 'admin123' as default password.").show();
-      }
+      $error.text("Invalid credentials. Use 'admin123' as default secret key.").show();
     }
   });
 
