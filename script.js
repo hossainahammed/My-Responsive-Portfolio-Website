@@ -1669,8 +1669,32 @@ $(document).ready(function () {
   $("#btnOpenAddProject").on("click", function () {
     $("#portfolioProjectForm")[0].reset();
     $("#pf-id").val("");
+    $("#pf-image-preview").hide();
     $("#projectFormTitle").text("Add New Portfolio Project");
     $("#projectFormContainer").slideDown();
+  });
+
+  // Handle direct image file upload & live preview
+  $(document).on("change", "#pf-file-input", function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        const dataUrl = evt.target.result;
+        $("#pf-image").val(dataUrl);
+        $("#pf-image-preview").attr("src", dataUrl).fadeIn();
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  $(document).on("input", "#pf-image", function () {
+    const val = $(this).val().trim();
+    if (val) {
+      $("#pf-image-preview").attr("src", val).fadeIn();
+    } else {
+      $("#pf-image-preview").hide();
+    }
   });
 
   $("#btnCloseProjectForm, #btnCancelProjectForm").on("click", function () {

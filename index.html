@@ -1745,8 +1745,12 @@
                   </select>
                 </div>
                 <div class="form-group col-6">
-                  <label>Main Image Filename/URL *</label>
-                  <input type="text" id="pf-image" placeholder="images/Sova/1 21.png" required class="admin-input-field" />
+                  <label>Main Image (Upload File or Enter Path/URL) *</label>
+                  <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <input type="file" id="pf-file-input" accept="image/*" class="admin-input-field" style="padding: 8px; font-size: 12px;" />
+                    <input type="text" id="pf-image" placeholder="images/Sova/1 21.png or https://..." required class="admin-input-field" />
+                  </div>
+                  <img id="pf-image-preview" alt="Preview" style="display: none; height: 55px; margin-top: 8px; border-radius: 8px; border: 1px solid var(--border-card); object-fit: cover;" />
                 </div>
               </div>
 
