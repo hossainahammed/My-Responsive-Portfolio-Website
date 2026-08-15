@@ -168,6 +168,14 @@ html.theme-in-transition * {
   background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, rgba(236, 72, 153, 0.03) 40%, transparent 70%);
 }
 
+/* Hide heavy spotlight & cursor follower on touch / mobile devices for smooth 60fps scrolling */
+@media (max-width: 991px), (pointer: coarse) {
+  .spot,
+  .dot {
+    display: none !important;
+  }
+}
+
 /* Ambient decorative background blobs */
 .ambient-blob {
   position: fixed;
@@ -242,9 +250,10 @@ html.theme-in-transition * {
 }
 
 html {
-  /* Lenis handles smooth scrolling — do NOT set scroll-behavior: smooth here
-     as it conflicts with Lenis and causes double-easing jank. */
+  /* Lenis handles smooth scrolling — scroll-behavior: auto avoids conflict */
   scroll-behavior: auto;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
@@ -252,6 +261,9 @@ body {
   color: var(--text-main);
   font-family: var(--font-main);
   transition: var(--theme-transition);
+  overflow-x: hidden;
+  max-width: 100vw;
+  position: relative;
 }
 
 /* custom scroll bar */
@@ -1879,14 +1891,16 @@ footer span a:hover {
 /* responsive media query start */
 @media (max-width: 1104px) {
   .about .about-content .left img {
-    height: 350px;
-    width: 350px;
+    height: auto;
+    max-width: 350px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
   }
 }
 
 @media (max-width: 991px) {
   .max-width {
-    padding: 0 50px;
+    padding: 0 40px;
   }
 }
 
@@ -1903,6 +1917,9 @@ footer span a:hover {
   .navbar .menu {
     position: fixed;
     height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     width: 100%;
     left: -100%;
     top: 0;
@@ -1911,7 +1928,8 @@ footer span a:hover {
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     text-align: center;
-    padding-top: 80px;
+    padding-top: 90px;
+    padding-bottom: 60px;
     transition: all 0.3s ease;
   }
 
@@ -1925,26 +1943,28 @@ footer span a:hover {
 
   .navbar .menu li a {
     display: inline-block;
-    margin: 20px 0;
-    font-size: 25px;
+    margin: 15px 0;
+    font-size: 22px;
     color: var(--text-main) !important;
   }
 
   .home .home-content .text-2 {
-    font-size: 70px;
+    font-size: clamp(2.5rem, 6.5vw, 4.2rem);
+    line-height: 1.1;
+    word-break: break-word;
   }
 
   .home .home-content .text-3 {
-    font-size: 35px;
+    font-size: clamp(1.6rem, 4.5vw, 2.4rem);
   }
 
   .home .home-content .hero-btn {
-    font-size: 20px;
-    padding: 10px 24px;
+    font-size: 18px;
+    padding: 10px 22px;
   }
 
   .max-width {
-    max-width: 930px;
+    max-width: 100%;
   }
 
   .about .about-content .column {
@@ -1954,7 +1974,14 @@ footer span a:hover {
   .about .about-content .left {
     display: flex;
     justify-content: center;
-    margin: 0 auto 60px;
+    margin: 0 auto 40px;
+  }
+
+  .about .about-content .left img {
+    max-width: 320px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
   }
 
   .about .about-content .right {
@@ -1975,20 +2002,46 @@ footer span a:hover {
 
 @media (max-width: 690px) {
   .max-width {
-    padding: 0 23px;
+    padding: 0 20px;
+  }
+
+  .about .about-content .left img {
+    max-width: 270px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .certifications .cert-card {
+    padding: 20px;
+    gap: 20px;
+    max-width: 100%;
+  }
+
+  .certifications .cert-img-wrapper,
+  .certifications .cert-info-body {
+    min-width: 0 !important;
+    width: 100%;
+  }
+
+  .github-stats .calendar {
+    overflow-x: auto !important;
+    max-width: 100% !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 15px !important;
   }
 
   .home .home-content .text-2 {
-    font-size: 60px;
+    font-size: clamp(2rem, 7.5vw, 3.2rem);
   }
 
   .home .home-content .text-3 {
-    font-size: 32px;
+    font-size: clamp(1.3rem, 5vw, 1.9rem);
   }
 
   .home .home-content .hero-btn {
-    font-size: 18px;
-    padding: 8px 20px;
+    font-size: 16px;
+    padding: 8px 18px;
   }
 
   .services .serv-content .card {
@@ -1998,16 +2051,16 @@ footer span a:hover {
 
 @media (max-width: 500px) {
   .home .home-content .text-2 {
-    font-size: 50px;
+    font-size: clamp(1.75rem, 8vw, 2.6rem);
   }
 
   .home .home-content .text-3 {
-    font-size: 27px;
+    font-size: clamp(1.1rem, 5vw, 1.6rem);
   }
 
   .about .about-content .right .text,
   .skills .skills-content .left .text {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .contact .right form .fields {
@@ -2021,6 +2074,10 @@ footer span a:hover {
 
   .right form .error-box {
     width: 150px;
+  }
+
+  .right form .button-area button {
+    width: 100% !important;
   }
 
   .scroll-up-btn {

@@ -1,26 +1,76 @@
 $(document).ready(function () {
-  // Initialize Lenis smooth scroll
-  // NOTE: scroll-behavior:smooth is set to 'auto' in CSS to avoid double-easing conflict.
-  const lenis = new Lenis({
-    duration: 0.9, // snappier feel (was 1.2)
-    lerp: 0.1, // linear interpolation factor — lower = silkier glide
-    easing: (t) =>
-      t < 0.5 // easeInOutQuart — feels natural and premium
-        ? 8 * t * t * t * t
-        : 1 - Math.pow(-2 * t + 2, 4) / 2,
-    smoothWheel: true,
-    smoothTouch: false, // keep native touch on mobile (better UX)
-    wheelMultiplier: 1.0, // 1:1 wheel ratio — no over-scroll
-    touchMultiplier: 1.5,
-    infinite: false,
-  });
+  // Initialize Lenis smooth scroll safely if library is present
+  let lenis = null;
+  if (typeof Lenis !== "undefined") {
+    lenis = new Lenis({
+      duration: 0.9,
+      lerp: 0.1,
+      easing: (t) =>
+        t < 0.5
+          ? 8 * t * t * t * t
+          : 1 - Math.pow(-2 * t + 2, 4) / 2,
+      smoothWheel: true,
+      smoothTouch: false,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.5,
+      infinite: false,
+    });
 
-  // Drive Lenis via rAF loop (must NOT use setTimeout)
-  function raf(time) {
-    lenis.raf(time);
+    function raf(time) {
+      if (lenis) lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
     requestAnimationFrame(raf);
+
+    lenis.on("scroll", ({ scroll }) => {
+      if (scroll > 20) {
+        document.querySelector(".navbar")?.classList.add("sticky");
+      } else {
+        document.querySelector(".navbar")?.classList.remove("sticky");
+      }
+      if (scroll > 500) {
+        document.querySelector(".scroll-up-btn")?.classList.add("show");
+      } else {
+        document.querySelector(".scroll-up-btn")?.classList.remove("show");
+      }
+    });
+  } else {
+    // Fallback scroll listener if Lenis is absent
+    $(window).on("scroll", function () {
+      const scroll = $(window).scrollTop();
+      if (scroll > 20) {
+        $(".navbar").addClass("sticky");
+      } else {
+        $(".navbar").removeClass("sticky");
+      }
+      if (scroll > 500) {
+        $(".scroll-up-btn").addClass("show");
+      } else {
+        $(".scroll-up-btn").removeClass("show");
+      }
+    });
   }
-  requestAnimationFrame(raf);
+
+  // Unified smooth scroll helper with Lenis or native smooth fallback
+  function scrollToTarget(target, offset = -70) {
+    if (typeof target === "number") {
+      if (lenis) {
+        lenis.scrollTo(target);
+      } else {
+        window.scrollTo({ top: target, behavior: "smooth" });
+      }
+      return;
+    }
+    const $target = $(target);
+    if ($target.length) {
+      if (lenis) {
+        lenis.scrollTo($target[0], { offset });
+      } else {
+        const topPos = $target.offset().top + offset;
+        window.scrollTo({ top: Math.max(0, topPos), behavior: "smooth" });
+      }
+    }
+  }
 
   /* ============================================================
      Interactive Particle Canvas & Cursor Glow Spotlight
@@ -51,18 +101,19 @@ $(document).ready(function () {
   });
 
   function animateCursorFollower() {
-    spotX += (mouseX - spotX) * 0.12;
-    spotY += (mouseY - spotY) * 0.12;
-    dotX += (mouseX - dotX) * 0.3;
-    dotY += (mouseY - dotY) * 0.3;
+    // Only animate if spotlight element is rendered and visible
+    if (window.innerWidth > 991 && spotEl && getComputedStyle(spotEl).display !== "none") {
+      spotX += (mouseX - spotX) * 0.12;
+      spotY += (mouseY - spotY) * 0.12;
+      dotX += (mouseX - dotX) * 0.3;
+      dotY += (mouseY - dotY) * 0.3;
 
-    if (spotEl) {
       spotEl.style.left = spotX + "px";
       spotEl.style.top = spotY + "px";
-    }
-    if (dotEl) {
-      dotEl.style.left = dotX + "px";
-      dotEl.style.top = dotY + "px";
+      if (dotEl) {
+        dotEl.style.left = dotX + "px";
+        dotEl.style.top = dotY + "px";
+      }
     }
     requestAnimationFrame(animateCursorFollower);
   }
@@ -80,7 +131,8 @@ $(document).ready(function () {
       height = canvas.height = window.innerHeight;
     });
 
-    const numParticles = Math.min(Math.floor(window.innerWidth / 20), 75);
+    const isMobile = window.innerWidth <= 768;
+    const numParticles = isMobile ? 22 : Math.min(Math.floor(window.innerWidth / 20), 65);
     const particles = [];
     const colors = [
       "rgba(56, 189, 248, 0.7)",  // Cyan
@@ -93,14 +145,14 @@ $(document).ready(function () {
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.6,
-        vy: (Math.random() - 0.5) * 0.6,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
         radius: Math.random() * 2 + 1,
         color: colors[Math.floor(Math.random() * colors.length)],
       });
     }
 
-    // Cache photo element bounding boxes to prevent particles from rendering over profile pictures
+    // Cache photo element bounding boxes on resize/load (NOT on scroll)
     let photoRects = [];
     function updatePhotoRects() {
       photoRects = [];
@@ -108,17 +160,17 @@ $(document).ready(function () {
         const r = img.getBoundingClientRect();
         if (r.width > 0 && r.height > 0) {
           photoRects.push({
-            left: r.left - 50,
-            right: r.right + 50,
-            top: r.top - 50,
-            bottom: r.bottom + 50
+            left: r.left - 30,
+            right: r.right + 30,
+            top: r.top - 30,
+            bottom: r.bottom + 30
           });
         }
       });
     }
     updatePhotoRects();
-    window.addEventListener("scroll", updatePhotoRects, { passive: true });
     window.addEventListener("resize", updatePhotoRects, { passive: true });
+    window.addEventListener("load", updatePhotoRects, { passive: true });
 
     function isPointOverPhoto(x, y) {
       for (let k = 0; k < photoRects.length; k++) {
@@ -143,16 +195,13 @@ $(document).ready(function () {
         if (p.y < 0) p.y = height;
         if (p.y > height) p.y = 0;
 
-        // Skip particle rendering if inside profile photo bounding box
         if (isPointOverPhoto(p.x, p.y)) continue;
 
-        // Draw particle node
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
         ctx.fill();
 
-        // Draw constellation lines to nearby particles
         for (let j = i + 1; j < particles.length; j++) {
           let p2 = particles[j];
           if (isPointOverPhoto(p2.x, p2.y)) continue;
@@ -161,27 +210,28 @@ $(document).ready(function () {
           let dy = p.y - p2.y;
           let dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 120) {
+          if (dist < 110) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(56, 189, 248, ${0.15 * (1 - dist / 120)})`;
+            ctx.strokeStyle = `rgba(56, 189, 248, ${0.15 * (1 - dist / 110)})`;
             ctx.lineWidth = 0.8;
             ctx.stroke();
           }
         }
 
-        // Mouse interaction connection line
-        let mdx = p.x - mouseX;
-        let mdy = p.y - mouseY;
-        let mdist = Math.sqrt(mdx * mdx + mdy * mdy);
-        if (mdist < 140 && !isPointOverPhoto(mouseX, mouseY)) {
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(mouseX, mouseY);
-          ctx.strokeStyle = `rgba(236, 72, 153, ${0.25 * (1 - mdist / 140)})`;
-          ctx.lineWidth = 1;
-          ctx.stroke();
+        if (window.innerWidth > 991) {
+          let mdx = p.x - mouseX;
+          let mdy = p.y - mouseY;
+          let mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+          if (mdist < 130 && !isPointOverPhoto(mouseX, mouseY)) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mouseX, mouseY);
+            ctx.strokeStyle = `rgba(236, 72, 153, ${0.25 * (1 - mdist / 130)})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
         }
       }
 
@@ -194,6 +244,7 @@ $(document).ready(function () {
      3D Card Tilt & Dynamic Spotlight Tracker Engine
      ============================================================ */
   $(document).on("mousemove", ".project-card, .skills-category-card, .about-pillar, .serv-content .card", function (e) {
+    if (window.innerWidth <= 991) return; // Disable heavy 3D tilt on mobile/tablet
     const card = this;
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -201,7 +252,6 @@ $(document).ready(function () {
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
     
-    // Smooth 3D tilt max ±7.5 deg
     const rotateX = -((y - centerY) / centerY) * 7.5;
     const rotateY = ((x - centerX) / centerX) * 7.5;
 
@@ -212,24 +262,6 @@ $(document).ready(function () {
 
   $(document).on("mouseleave", ".project-card, .skills-category-card, .about-pillar, .serv-content .card", function () {
     this.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)";
-  });
-
-  // Relay Lenis scroll events so jQuery scroll handlers (sticky nav, reveal) keep working
-  lenis.on("scroll", ({ scroll }) => {
-    // Use the raw scroll position to drive scroll-based UI without re-triggering jQuery overhead
-    const y = scroll;
-    // sticky navbar
-    if (y > 20) {
-      document.querySelector(".navbar")?.classList.add("sticky");
-    } else {
-      document.querySelector(".navbar")?.classList.remove("sticky");
-    }
-    // scroll-up button
-    if (y > 500) {
-      document.querySelector(".scroll-up-btn")?.classList.add("show");
-    } else {
-      document.querySelector(".scroll-up-btn")?.classList.remove("show");
-    }
   });
 
   // Theme toggle functionality
@@ -441,50 +473,62 @@ $(document).ready(function () {
 
   // (sticky navbar & scroll-up button are handled inside lenis.on("scroll") above)
 
-  // slide-up script
+  // Slide-up scroll to top
   $(".scroll-up-btn").click(function () {
-    lenis.scrollTo(0);
+    scrollToTarget(0);
   });
 
+  // Nav menu link smooth scroll & mobile drawer close
   $(".navbar .menu li a").click(function (e) {
     e.preventDefault();
     const targetId = $(this).attr("href");
-    const targetElement = $(targetId);
-    if (targetElement.length) {
-      lenis.scrollTo(targetElement[0], { offset: -70 });
+    if (targetId) {
+      scrollToTarget(targetId, -70);
     }
+    // Close mobile menu drawer
+    $(".navbar .menu").removeClass("active");
+    $("#menuToggle i, .menu-toggle-btn i").removeClass("active");
   });
 
-  // Logo smooth scroll to top
+  // Logo smooth scroll to top & close mobile drawer
   $(".navbar .logo a").click(function (e) {
     e.preventDefault();
-    lenis.scrollTo(0);
+    scrollToTarget(0);
+    $(".navbar .menu").removeClass("active");
+    $("#menuToggle i, .menu-toggle-btn i").removeClass("active");
   });
 
-  // toggle menu/navbar script
-  $(".menu-btn").click(function () {
+  // Toggle mobile navbar drawer (specifically targeting hamburger toggle button)
+  $("#menuToggle, .menu-toggle-btn").on("click", function (e) {
+    e.stopPropagation();
     $(".navbar .menu").toggleClass("active");
-    $(".menu-btn i").toggleClass("active");
+    $("#menuToggle i, .menu-toggle-btn i").toggleClass("active");
+  });
+
+  // Close mobile drawer if clicked outside
+  $(document).on("click touchstart", function (e) {
+    if (!$(e.target).closest(".navbar").length && $(".navbar .menu").hasClass("active")) {
+      $(".navbar .menu").removeClass("active");
+      $("#menuToggle i, .menu-toggle-btn i").removeClass("active");
+    }
   });
 
   // Hire me button: smooth scroll to contact and focus name field
   $(".hire-btn").on("click", function (e) {
     e.preventDefault();
-    var target = $("#contact");
+    const target = $("#contact");
     if (target.length) {
-      lenis.scrollTo(target[0], {
-        offset: -60,
-        onComplete: function () {
-          var $name = $("#contact-name");
-          if ($name.length) {
-            $name.focus();
-          }
-        },
-      });
+      scrollToTarget(target[0], -60);
+      setTimeout(function () {
+        const $name = $("#contact-name");
+        if ($name.length) {
+          $name.focus();
+        }
+      }, 400);
     }
-    // close mobile menu if open
+    // Close mobile menu if open
     $(".navbar .menu").removeClass("active");
-    $(".menu-btn i").removeClass("active");
+    $("#menuToggle i, .menu-toggle-btn i").removeClass("active");
   });
 
   // Download CV button: try HEAD fetch, otherwise attempt open and show helpful message
@@ -1354,28 +1398,42 @@ $(document).ready(function () {
     });
   });
 
-  // Active navbar link highlighter on scroll
-  const sections = $("section");
+  // Active navbar link highlighter on scroll (optimized with cached bounds)
   const navLinks = $(".navbar .menu li a");
+  let cachedSections = [];
+
+  function updateSectionBounds() {
+    cachedSections = [];
+    $("section[id]").each(function () {
+      const $sec = $(this);
+      const top = $sec.offset().top;
+      cachedSections.push({
+        id: $sec.attr("id"),
+        top: top,
+        bottom: top + $sec.outerHeight(),
+      });
+    });
+  }
+
+  updateSectionBounds();
+  $(window).on("resize load", updateSectionBounds);
 
   function highlightNavbar() {
     let currentSectionId = "";
-    const scrollPos = $(document).scrollTop() + 150; // offset for navbar height
+    const scrollPos = $(window).scrollTop() + 150;
     const scrollBottom = $(window).scrollTop() + $(window).height();
     const pageHeight = $(document).height();
 
-    // Check if scrolled near the bottom
     if (scrollBottom >= pageHeight - 50) {
       currentSectionId = "contact";
     } else {
-      sections.each(function () {
-        const top = $(this).offset().top;
-        const bottom = top + $(this).outerHeight();
-
-        if (scrollPos >= top && scrollPos <= bottom) {
-          currentSectionId = $(this).attr("id");
+      for (let i = 0; i < cachedSections.length; i++) {
+        const sec = cachedSections[i];
+        if (scrollPos >= sec.top && scrollPos <= sec.bottom) {
+          currentSectionId = sec.id;
+          break;
         }
-      });
+      }
     }
 
     if (currentSectionId) {
