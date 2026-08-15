@@ -27,12 +27,13 @@ import {
 // Project Settings -> General -> Your apps -> Web App
 // =========================================================================
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBnm1F_nkPVLbJfee4IdjCkOyrKU_3R7mE",
+  authDomain: "hossain-portfolio-backend.firebaseapp.com",
+  projectId: "hossain-portfolio-backend",
+  storageBucket: "hossain-portfolio-backend.firebasestorage.app",
+  messagingSenderId: "460074328982",
+  appId: "1:460074328982:web:75fb34894142378490f3b7",
+  measurementId: "G-W52F76HP4J"
 };
 
 // Check if valid user keys are provided
