@@ -1626,7 +1626,130 @@ $(document).ready(function () {
     checkAdminSession();
   });
 
-  // 2. Projects Manager (CRUD & Real-time Backend Sync)
+  // 2. Projects Manager (CRUD & 100% Dynamic Real-Time Firebase Sync Engine)
+  const BASELINE_PROJECTS = [
+    {
+      id: "flutter-sova",
+      title: "SOVA — Night Club App",
+      category: "flutter",
+      badge: "client",
+      image: "images/Sova/1 21.png",
+      desc: "Disconnected nightlife experiences, lack of real-time DJ song requests, and fragmented event ticket purchasing for clubgoers.",
+      tech: "Flutter, Dart, GetX, HTTP, REST API",
+      live: "https://play.google.com/store/apps/details?id=com.zdenko_dikic.sova",
+      playstore: "https://play.google.com/store/apps/details?id=com.zdenko_dikic.sova",
+      imageFolder: "images/Sova/",
+      images: "1 21.png,2 8.png,3 21.png,4 1.png,5 1.png,6 1.png,7 1.png,8 1.png"
+    },
+    {
+      id: "flutter-digital-khanqah",
+      title: "Digital Khanqah — Islamic App",
+      category: "flutter",
+      badge: "both",
+      image: "images/maroofkhan/1.png",
+      desc: "Fragmented access to authentic Islamic learning, daily prayer tracking, Quran recitations, and AI spiritual guidance in a single mobile experience.",
+      tech: "Flutter, Dart, GetX, REST API, AI Integration, Audio Players, Geolocator",
+      live: "https://play.google.com/store/apps/details?id=com.digital.khanqah&hl=en",
+      playstore: "https://play.google.com/store/apps/details?id=com.digital.khanqah&hl=en",
+      imageFolder: "images/maroofkhan/",
+      images: "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png,14.png,15.png,16.png"
+    },
+    {
+      id: "flutter-yestwice",
+      title: "Yes Twice — Athletics App",
+      category: "flutter",
+      badge: "client",
+      image: "images/yes_twic/1.png",
+      desc: "Fragmented athletic training logs, recovery check-ins, and performance readiness tracking for athletes and coaches.",
+      tech: "Flutter, Dart, GetX, REST API, PDF & Printing, Chewie / Video, Google Sign-in",
+      live: "#",
+      imageFolder: "images/yes_twic/",
+      images: "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png,14.png,15.png"
+    },
+    {
+      id: "flutter-smartplan",
+      title: "SmartPlan — AI Study Planner",
+      category: "flutter",
+      badge: "client",
+      image: "images/SmartPlanAi.png",
+      desc: "Inefficient study schedules, lack of automated task breakdown, and poor time management for students.",
+      tech: "Flutter, Dart, Provider, OpenAI API, SQLite",
+      live: "#",
+      github: "https://github.com/hossainahammed/SmartPlan-AI-Study-Planner"
+    },
+    {
+      id: "flutter-expense",
+      title: "Expense Tracker App",
+      category: "flutter",
+      badge: "team",
+      image: "images/Expences Tracker.png",
+      desc: "Manual budget tracking and difficulty visualizing daily spending habits.",
+      tech: "Flutter, Dart, Hive DB, Fl Chart",
+      live: "#",
+      github: "https://github.com/hossainahammed/Expense-Tracker-App"
+    },
+    {
+      id: "web-honda",
+      title: "Honda Website",
+      category: "web",
+      badge: "",
+      image: "images/Honda Website.png",
+      desc: "Outdated showroom interfaces that fail to capture modern vehicle aesthetics.",
+      tech: "HTML5, CSS3, JavaScript, Responsive Design",
+      live: "https://melodic-phoenix-e0fc48.netlify.app/"
+    },
+    {
+      id: "web-shop",
+      title: "E-Commerce Shop Website",
+      category: "web",
+      badge: "",
+      image: "images/Shop and Product.png",
+      desc: "Cluttered checkout flows and slow product browsing on mobile devices.",
+      tech: "HTML5, CSS3, JavaScript, LocalStorage",
+      live: "https://hossainahammed.github.io/E-commerce-Website/"
+    },
+    {
+      id: "web-travel",
+      title: "Travel Booking Landing Page",
+      category: "web",
+      badge: "",
+      image: "images/Travel.png",
+      desc: "Low conversion rates on legacy tourism landing pages.",
+      tech: "HTML5, CSS3, JavaScript, Smooth Scroll",
+      live: "https://hossainahammed.github.io/Travel-Website-Landing-Page/"
+    },
+    {
+      id: "php-gym",
+      title: "GYM Website",
+      category: "php",
+      badge: "",
+      image: "images/GYM Website.png",
+      desc: "Manual gym membership registration and scheduling overhead.",
+      tech: "PHP, MySQL, HTML5, CSS3, JavaScript",
+      live: "https://hossainahammed.github.io/Basic-PHP-Gymnesium-Project/"
+    },
+    {
+      id: "php-library",
+      title: "Library Management System",
+      category: "php",
+      badge: "",
+      image: "images/Library Management.png",
+      desc: "Manual book tracking and lost record logs in educational institutions.",
+      tech: "PHP, MySQL, Bootstrap, jQuery",
+      live: "https://github.com/hossainahammed/Library-Management-System-PHP"
+    },
+    {
+      id: "php-crud",
+      title: "PHP CRUD Application",
+      category: "php",
+      badge: "",
+      image: "images/Crud Operation Home View.png",
+      desc: "Complex boilerplate code required for standard database record operations.",
+      tech: "PHP, MySQL, PDO, HTML/CSS",
+      live: "https://github.com/hossainahammed/PHP-CRUD-Operation"
+    }
+  ];
+
   let localProjectsCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
 
   function createProjectCardHtml(proj) {
@@ -1703,7 +1826,15 @@ $(document).ready(function () {
   }
 
   function renderProjectsToDOM(projects) {
-    if (!Array.isArray(projects)) return;
+    if (!Array.isArray(projects) || projects.length === 0) return;
+
+    // Clear placeholders
+    $("#projects .projects-grid, #web-projects .projects-grid, #php-projects .projects-grid").each(function () {
+      if ($(this).find(".projects-loading-state").length > 0) {
+        $(this).empty();
+      }
+    });
+
     projects.forEach((proj) => {
       const projId = proj.id || ("proj-" + String(proj.title || "").toLowerCase().replace(/[^a-z0-9]+/g, "-"));
       if ($(`.project-card[data-id="${projId}"]`).length > 0) return;
@@ -1711,7 +1842,7 @@ $(document).ready(function () {
       const $grid = getCategoryGrid(proj.category);
       if ($grid.length) {
         const cardHtml = createProjectCardHtml({ ...proj, id: projId });
-        $grid.prepend(cardHtml);
+        $grid.append(cardHtml);
       }
     });
 
@@ -1719,29 +1850,53 @@ $(document).ready(function () {
     $(".projects-grid").addClass("reveal-grid active");
   }
 
-  function syncProjectsFromBackend() {
-    // 1. Initial local cache render
-    const localCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
-    if (localCache.length) {
-      renderProjectsToDOM(localCache);
+  async function seedBaselineProjectsToFirestore() {
+    if (!isFirebaseConfigured() || !db) return;
+    try {
+      for (const proj of BASELINE_PROJECTS) {
+        await addDoc(collection(db, "projects"), {
+          ...proj,
+          createdAt: serverTimestamp()
+        });
+      }
+      console.log("🌱 Baseline projects successfully seeded to Firestore!");
+    } catch (err) {
+      console.warn("Firestore seeding warning:", err);
     }
+  }
+
+  function syncProjectsFromBackend() {
+    // 1. Initial local cache or baseline render
+    let localCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
+    if (!localCache.length) {
+      localCache = BASELINE_PROJECTS;
+      localStorage.setItem("custom_portfolio_projects", JSON.stringify(localCache));
+    }
+    renderProjectsToDOM(localCache);
 
     // 2. Real-time Firestore sync if backend connected
     if (isFirebaseConfigured() && db) {
       try {
         const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
-        onSnapshot(q, (snapshot) => {
+        onSnapshot(q, async (snapshot) => {
           const remoteProjects = [];
           snapshot.forEach((docSnap) => {
             remoteProjects.push({ id: docSnap.id, ...docSnap.data() });
           });
+
           if (remoteProjects.length > 0) {
             localProjectsCache = remoteProjects;
             localStorage.setItem("custom_portfolio_projects", JSON.stringify(remoteProjects));
+            // Clear grids and re-render 100% dynamically from Firestore
+            $("#projects .projects-grid, #web-projects .projects-grid, #php-projects .projects-grid").empty();
             renderProjectsToDOM(remoteProjects);
             if ($("#adminModal").is(":visible")) {
               renderAdminProjects();
             }
+          } else {
+            // First time running with empty Firestore: auto-seed baseline projects
+            console.log("🔥 Firestore collection empty. Seeding baseline projects to database...");
+            await seedBaselineProjectsToFirestore();
           }
         }, (err) => {
           console.warn("Firestore projects snapshot warning:", err);
