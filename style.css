@@ -4093,10 +4093,236 @@ footer span a:hover {
   }
   .admin-nav-tabs {
     overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
   }
   .admin-grid-form .form-row {
     flex-direction: column;
     gap: 0;
+  }
+}
+
+/* ============================================================
+   Realme C25s & Mobile Device Screen Responsiveness (320px - 768px)
+   ============================================================ */
+
+/* Mobile Container & Padding Adjustments */
+@media (max-width: 991px) {
+  section {
+    padding: 60px 0;
+  }
+  .max-width {
+    padding: 0 24px;
+  }
+  .home .home-content .text-2 {
+    font-size: clamp(38px, 8vw, 55px);
+  }
+  .home .home-content .text-3 {
+    font-size: 28px;
+  }
+  .projects-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  section {
+    padding: 45px 0;
+  }
+  .max-width {
+    padding: 0 16px;
+  }
+  section .title {
+    font-size: 28px;
+    margin-bottom: 35px;
+    padding-bottom: 14px;
+  }
+  section .title::before {
+    width: 120px;
+  }
+
+  /* Home / Hero Section Mobile */
+  .home {
+    min-height: 85vh;
+    padding-top: 100px;
+  }
+  .home .home-content .text-1 {
+    font-size: 20px;
+  }
+  .home .home-content .text-2 {
+    font-size: clamp(32px, 8.5vw, 44px);
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+  .home .home-content .text-3 {
+    font-size: 22px;
+  }
+  .home .home-content .hero-intro {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-top: 10px;
+  }
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .hero-actions .btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Navbar Sticky Mobile Fix */
+  .navbar.sticky {
+    top: 8px;
+    width: calc(100% - 16px);
+    padding: 8px 12px;
+    border-radius: 30px;
+  }
+  .navbar .max-width {
+    padding: 0 10px;
+  }
+  .navbar .logo a {
+    font-size: 24px;
+  }
+  .navbar .logo img {
+    height: 30px;
+  }
+
+  /* Projects Gallery & Cards Mobile */
+  .projects-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .project-card {
+    padding: 14px;
+  }
+  .project-img-wrapper {
+    height: 175px;
+    margin-bottom: 12px;
+  }
+  .project-card .proj-title {
+    font-size: 16px;
+  }
+  .project-links {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .proj-link-btn {
+    font-size: 11px;
+    padding: 8px 10px;
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+    justify-content: center;
+  }
+  .proj-link-btn.full-width {
+    flex: 1 1 100%;
+  }
+
+  /* 3D Showcase Mobile Responsive Scaling */
+  .flutter-showcase {
+    padding: 10px 0;
+    margin-bottom: 25px;
+  }
+  .showcase-inner {
+    padding: 14px 10px;
+  }
+  .sc-phone {
+    width: 130px;
+    height: 260px;
+  }
+  .sc-phone-screen img {
+    border-radius: 12px;
+  }
+  .sc-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  /* Skills & Services Grids Mobile */
+  .skills-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .skills-category-card {
+    padding: 14px;
+  }
+  .serv-content .card {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  /* Experience Timeline Mobile */
+  .timeline-container {
+    padding-left: 20px;
+  }
+  .timeline-dot {
+    left: -20px;
+  }
+  .timeline-content-box {
+    padding: 16px;
+  }
+
+  /* Admin Control Panel Modal Mobile */
+  .live-modal__content.admin-content {
+    width: 96% !important;
+    height: 94vh !important;
+    border-radius: 12px !important;
+  }
+  .admin-modal-topbar {
+    padding: 12px 16px;
+  }
+  .admin-topbar-title {
+    font-size: 15px;
+  }
+  .admin-item-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+  }
+  .admin-item-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Realme C25s (360px wide) specific tweaks */
+  .home .home-content .text-2 {
+    font-size: clamp(28px, 9.5vw, 38px);
+  }
+  .home .home-content .text-3 {
+    font-size: 19px;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .stat-card {
+    padding: 14px 10px;
+    gap: 10px;
+  }
+  .stat-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    font-size: 17px;
+    border-radius: 10px;
+  }
+  .stat-number {
+    font-size: 22px;
+  }
+  .stat-title {
+    font-size: 12px;
+  }
+  .stat-subtext {
+    font-size: 10px;
   }
 }
 

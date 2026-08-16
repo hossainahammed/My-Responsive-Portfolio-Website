@@ -2282,15 +2282,16 @@ $(document).ready(function () {
     }
   });
 
-  /* ── Experience Counter: converts total months to display string ── */
+  /* ── Experience Counter: converts total months to decimal years display string (e.g. 15 mos -> 1.3 Years+) ── */
   function formatExperienceFromMonths(totalMonths) {
-    totalMonths = parseInt(totalMonths, 10) || 0;
+    totalMonths = parseFloat(totalMonths) || 0;
     if (totalMonths <= 0) return "0 Days";
-    const years = Math.floor(totalMonths / 12);
-    const months = totalMonths % 12;
-    if (years > 0 && months > 0) return `${years} Yrs ${months} Mos`;
-    if (years > 0) return `${years} ${years === 1 ? "Year" : "Years"}`;
-    return `${months} ${months === 1 ? "Month" : "Months"}`;
+    if (totalMonths < 12) {
+      return `${totalMonths} ${totalMonths === 1 ? "Month" : "Months"}+`;
+    }
+    const yrsNum = totalMonths / 12;
+    const yrsStr = yrsNum.toFixed(1).replace(/\.0$/, "");
+    return `${yrsStr} ${yrsStr === "1" ? "Year" : "Years"}+`;
   }
 
   /* ── Animated count-up for experience: 0 days → months → years ── */
