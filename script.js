@@ -1724,10 +1724,26 @@ $(document).ready(function () {
 
   let localProjectsCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
 
+  function normalizeCategory(cat) {
+    if (!cat) return "flutter";
+    const c = String(cat).toLowerCase().trim();
+    if (c === "web" || c === "web-projects" || c.includes("web")) return "web";
+    if (c === "php" || c === "php-projects" || c.includes("php")) return "php";
+    return "flutter";
+  }
+
+  function getCardCategoryFromDOM($card) {
+    const dataCat = $card.attr("data-category");
+    if (dataCat) return normalizeCategory(dataCat);
+    if ($card.closest("#web-projects").length) return "web";
+    if ($card.closest("#php-projects").length) return "php";
+    return "flutter";
+  }
+
   function createProjectCardHtml(proj) {
     const id = proj.id || "proj-" + Math.random().toString(36).substr(2, 5);
     const title = proj.title || "Untitled Project";
-    const category = proj.category || "flutter";
+    const category = normalizeCategory(proj.category);
     const badge = proj.badge || "";
     const image = proj.image || "images/SmartPlanAi/2.png";
     const desc = proj.desc || "";
@@ -1739,7 +1755,13 @@ $(document).ready(function () {
     const live = proj.live || proj.liveurl || "";
     const images = proj.images || "";
     const imageFolder = proj.imageFolder || proj.image_folder || "";
-    const features = proj.features || [];
+    // codeType: 'open' = show Code button with link, 'locked' = show Locked Code button
+    const codeType = proj.codeType || (github && github !== "#" ? "open" : "locked");
+    let features = proj.features || [];
+    if (typeof features === "string") {
+      // Parse from newline-separated or comma-separated string
+      features = features.split(/[\n,]/).map(f => f.trim()).filter(Boolean);
+    }
 
     let techPillsHtml = "";
     if (tech) {
@@ -1750,6 +1772,7 @@ $(document).ready(function () {
     if (badge === "client") badgeHtml = '<span class="client-badge"><i class="fas fa-user-shield"></i> Client Project</span>';
     else if (badge === "team") badgeHtml = '<span class="team-badge"><i class="fas fa-users"></i> Team Project</span>';
     else if (badge === "both") badgeHtml = '<span class="team-badge"><i class="fas fa-users"></i> Team Project</span> <span class="client-badge"><i class="fas fa-user-shield"></i> Client Project</span>';
+    else if (badge === "solo") badgeHtml = '<span class="solo-badge"><i class="fas fa-user"></i> Personal</span>';
 
     let featuresHtml = "";
     if (Array.isArray(features) && features.length > 0) {
@@ -1757,7 +1780,7 @@ $(document).ready(function () {
     }
 
     let linksHtml = "";
-    // Row 1 buttons (Live, Playstore, Appetize)
+    // Row 1: Live / Play Store / Appetize
     linksHtml += `<span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>`;
     if (playstore && playstore !== "#") {
       linksHtml += `<a href="${playstore}" target="_blank" rel="noopener" class="proj-link-btn playstore-btn" onclick="event.stopPropagation();"><i class="fab fa-google-play"></i> Play Store</a>`;
@@ -1765,15 +1788,15 @@ $(document).ready(function () {
       linksHtml += `<span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>`;
     }
 
-    // Row 2 full-width buttons (Code or Locked Code)
-    if (github && github !== "#") {
+    // Row 2: Source Code button — controlled by codeType
+    if (codeType === "open" && github && github !== "#") {
       linksHtml += `<a href="${github}" target="_blank" rel="noopener" class="proj-link-btn code-btn full-width" onclick="event.stopPropagation();"><i class="fab fa-github"></i> Code</a>`;
     } else {
       linksHtml += `<span class="proj-link-btn client-code-btn full-width" onclick="event.stopPropagation();"><i class="fas fa-lock"></i> Locked Code</span>`;
     }
 
     return `
-      <div class="project-card reveal active" data-id="${id}" data-title="${title}" data-liveurl="${live || '#'}" data-playstoreurl="${playstore || '#'}" data-apkurl="${apk || '#'}" data-image-folder="${imageFolder}" data-images="${images}">
+      <div class="project-card reveal active" data-id="${id}" data-category="${category}" data-title="${title}" data-liveurl="${live || '#'}" data-playstoreurl="${playstore || '#'}" data-apkurl="${apk || '#'}" data-image-folder="${imageFolder}" data-images="${images}">
         <div class="project-img-wrapper">
           ${badgeHtml}
           <img src="${image}" alt="${title}" onerror="this.onerror=null; this.src='images/SmartPlanAi.png'" />
@@ -1794,7 +1817,7 @@ $(document).ready(function () {
   }
 
   function getCategoryGrid(category) {
-    const cat = (category || "").toLowerCase();
+    const cat = normalizeCategory(category);
     if (cat === "web") {
       const $g = $("#web-projects .projects-grid");
       return $g.length ? $g : $(".title-web").siblings(".projects-grid");
@@ -1807,7 +1830,7 @@ $(document).ready(function () {
     }
   }
 
-  function renderProjectsToDOM(projects) {
+  function renderProjectsToDOM(projects, forceUpdate = false) {
     if (!Array.isArray(projects) || projects.length === 0) return;
 
     const deletedIds = new Set(JSON.parse(localStorage.getItem("deleted_project_ids") || "[]"));
@@ -1825,12 +1848,24 @@ $(document).ready(function () {
         $(`.project-card[data-id="${projId}"]`).remove();
         return;
       }
-      if ($(`.project-card[data-id="${projId}"]`).length > 0) return;
 
-      const $grid = getCategoryGrid(proj.category);
-      if ($grid.length) {
-        const cardHtml = createProjectCardHtml({ ...proj, id: projId });
-        $grid.prepend(cardHtml);
+      const cat = normalizeCategory(proj.category);
+      const $targetGrid = getCategoryGrid(cat);
+      if (!$targetGrid.length) return;
+
+      const $existing = $(`.project-card[data-id="${projId}"]`);
+      const cardHtml = createProjectCardHtml({ ...proj, id: projId, category: cat });
+
+      if ($existing.length > 0) {
+        // If card is currently inside the wrong category grid (e.g. previously misclassified)
+        if ($existing.parent()[0] !== $targetGrid[0]) {
+          $existing.remove();
+          $targetGrid.prepend(cardHtml);
+        } else {
+          $existing.replaceWith(cardHtml);
+        }
+      } else {
+        $targetGrid.prepend(cardHtml);
       }
     });
 
@@ -1854,9 +1889,14 @@ $(document).ready(function () {
   }
 
   function syncProjectsFromBackend() {
-    // 1. Initial local cache render
+    // 1. Initial local cache render with category normalization
     let localCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
-    renderProjectsToDOM(localCache);
+    if (Array.isArray(localCache) && localCache.length > 0) {
+      localCache = localCache.map(p => ({ ...p, category: normalizeCategory(p.category) }));
+      localProjectsCache = localCache;
+      localStorage.setItem("custom_portfolio_projects", JSON.stringify(localCache));
+      renderProjectsToDOM(localCache);
+    }
 
     // 2. Real-time Firestore sync if backend connected
     if (isFirebaseConfigured() && db) {
@@ -1891,30 +1931,43 @@ $(document).ready(function () {
 
     const deletedIds = new Set(JSON.parse(localStorage.getItem("deleted_project_ids") || "[]"));
 
-    // Collect DOM projects
+    // Collect DOM projects (with full data)
     const domProjects = [];
     $(".projects-grid .project-card").each(function () {
       const $card = $(this);
       const id = $card.attr("data-id");
       if (id && !deletedIds.has(id)) {
+        let rawFeatures = [];
+        $card.find(".proj-features li").each(function() { rawFeatures.push($(this).text()); });
+        const githubHref = $card.find("a.code-btn").attr("href") || "";
         domProjects.push({
           id: id,
           title: $card.attr("data-title") || $card.find(".proj-title").text() || "Untitled Project",
-          category: $card.closest(".projects-grid").parent().attr("id") || "flutter",
+          category: getCardCategoryFromDOM($card),
           image: $card.find(".project-img-wrapper img").attr("src") || "",
-          desc: $card.find(".proj-desc").text().replace("Problem Solved:", "").trim()
+          desc: $card.find(".proj-desc").text().replace("Problem Solved:", "").trim(),
+          badge: $card.find(".client-badge").length && $card.find(".team-badge").length ? "both" :
+                 $card.find(".client-badge").length ? "client" :
+                 $card.find(".team-badge").length ? "team" :
+                 $card.find(".solo-badge").length ? "solo" : "",
+          codeType: $card.find("a.code-btn").length ? "open" : "locked",
+          github: githubHref && githubHref !== "#" ? githubHref : "",
+          features: rawFeatures
         });
       }
     });
 
-    // Dedupe all projects
+    // Dedupe: localProjectsCache takes priority (has full data)
     const seen = new Set();
     const allProjects = [];
     [...localProjectsCache, ...domProjects].forEach((p) => {
       const key = p.id || p.title;
       if (key && !seen.has(key) && !deletedIds.has(key)) {
         seen.add(key);
-        allProjects.push(p);
+        allProjects.push({
+          ...p,
+          category: normalizeCategory(p.category)
+        });
       }
     });
 
@@ -1923,19 +1976,65 @@ $(document).ready(function () {
       return;
     }
 
-    allProjects.forEach((proj) => {
-      const cardHtml = `
-        <div class="admin-item-card" data-proj-id="${proj.id}">
-          <div>
-            <div class="admin-item-title">${proj.title}</div>
-            <div class="admin-item-meta">${(proj.desc || "").substring(0, 75)}...</div>
-          </div>
-          <div class="admin-item-actions">
-            <button class="admin-action-btn danger-btn small btn-delete-proj" data-id="${proj.id}"><i class="fas fa-trash"></i> Delete</button>
-          </div>
+    // Group by category
+    const groups = {
+      flutter: { label: "📱 Flutter / Mobile Apps", icon: "fa-mobile-alt", projects: [] },
+      web:     { label: "🌐 Web Applications",      icon: "fa-globe",      projects: [] },
+      php:     { label: "🖥️ Backend & API",          icon: "fa-server",     projects: [] }
+    };
+
+    allProjects.forEach(proj => {
+      const cat = (proj.category || "flutter").toLowerCase();
+      if (groups[cat]) groups[cat].projects.push(proj);
+      else groups.flutter.projects.push(proj);
+    });
+
+    Object.entries(groups).forEach(([cat, group]) => {
+      if (!group.projects.length) return;
+
+      // Section heading
+      $list.append(`
+        <div class="admin-proj-section-header" style="
+          display: flex; align-items: center; gap: 10px;
+          margin: 20px 0 10px; padding: 10px 14px;
+          background: var(--card-bg); border-left: 3px solid var(--primary-color);
+          border-radius: 8px; font-weight: 700; font-size: 14px;
+        ">
+          <i class="fas ${group.icon}" style="color: var(--primary-color);"></i>
+          ${group.label}
+          <span style="margin-left: auto; background: var(--primary-color); color: #fff;
+            font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600;">
+            ${group.projects.length}
+          </span>
         </div>
-      `;
-      $list.append(cardHtml);
+      `);
+
+      group.projects.forEach((proj) => {
+        const codeLabel = proj.codeType === "open" || proj.github ? "🔓 Code" : "🔒 Locked";
+        const badgeLabel = proj.badge === "client" ? "Client" :
+                           proj.badge === "team" ? "Team" :
+                           proj.badge === "both" ? "Client+Team" :
+                           proj.badge === "solo" ? "Personal" : "";
+        const cardHtml = `
+          <div class="admin-item-card" data-proj-id="${proj.id}" style="border-left: 2px solid var(--border-card);">
+            <div style="flex: 1; min-width: 0;">
+              <div class="admin-item-title" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                ${proj.title}
+                ${badgeLabel ? `<span style="font-size: 10px; padding: 2px 7px; border-radius: 12px; background: rgba(56,189,248,0.15); color: var(--primary-color); font-weight: 600;">${badgeLabel}</span>` : ""}
+                <span style="font-size: 10px; padding: 2px 7px; border-radius: 12px; background: rgba(100,100,100,0.15); color: var(--text-sec); font-weight: 600;">${codeLabel}</span>
+              </div>
+              <div class="admin-item-meta" style="margin-top: 4px;">${(proj.desc || "").substring(0, 80)}${(proj.desc || "").length > 80 ? "…" : ""}</div>
+            </div>
+            <div class="admin-item-actions" style="display: flex; gap: 4px; flex-shrink: 0; align-items: center;">
+              <button class="admin-action-btn cancel-btn small btn-move-proj-up" data-id="${proj.id}" title="Move Up in order"><i class="fas fa-arrow-up"></i></button>
+              <button class="admin-action-btn cancel-btn small btn-move-proj-down" data-id="${proj.id}" title="Move Down in order"><i class="fas fa-arrow-down"></i></button>
+              <button class="admin-action-btn primary-btn small btn-edit-proj" data-id="${proj.id}"><i class="fas fa-edit"></i> Edit</button>
+              <button class="admin-action-btn danger-btn small btn-delete-proj" data-id="${proj.id}"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+        $list.append(cardHtml);
+      });
     });
   }
 
@@ -1944,8 +2043,81 @@ $(document).ready(function () {
     $("#portfolioProjectForm")[0].reset();
     $("#pf-id").val("");
     $("#pf-image-preview").hide();
-    $("#projectFormTitle").text("Add New Portfolio Project");
+    $("#projectFormTitle").html('<i class="fas fa-plus"></i> Add New Portfolio Project');
+    $("#btnSaveProject").html('<i class="fas fa-save"></i> Save Project');
     $("#projectFormContainer").slideDown();
+  });
+
+  // Edit Project Handler — populate ALL fields from cache or DOM
+  $(document).on("click", ".btn-edit-proj", function () {
+    const projId = $(this).attr("data-id");
+    if (!projId) return;
+
+    let proj = localProjectsCache.find(p => p.id === projId);
+    if (!proj) {
+      const $card = $(`.project-card[data-id="${projId}"]`);
+      if ($card.length) {
+        const githubHref = $card.find("a.code-btn").attr("href") || "";
+        let rawFeatures = [];
+        $card.find(".proj-features li").each(function() { rawFeatures.push($(this).text()); });
+        proj = {
+          id: projId,
+          title: $card.attr("data-title") || $card.find(".proj-title").text() || "",
+          category: getCardCategoryFromDOM($card),
+          badge: $card.find(".client-badge").length && $card.find(".team-badge").length ? "both" :
+                 $card.find(".client-badge").length ? "client" :
+                 $card.find(".team-badge").length ? "team" :
+                 $card.find(".solo-badge").length ? "solo" : "",
+          image: $card.find(".project-img-wrapper img").attr("src") || "",
+          desc: $card.find(".proj-desc").text().replace("Problem Solved:", "").trim(),
+          tech: $card.find(".tech-pill").map(function() { return $(this).text(); }).get().join(", "),
+          features: rawFeatures,
+          codeType: $card.find("a.code-btn").length ? "open" : "locked",
+          playstore: $card.attr("data-playstoreurl") && $card.attr("data-playstoreurl") !== "#" ? $card.attr("data-playstoreurl") : "",
+          apk: $card.attr("data-apkurl") && $card.attr("data-apkurl") !== "#" ? $card.attr("data-apkurl") : "",
+          github: githubHref && githubHref !== "#" ? githubHref : "",
+          live: $card.attr("data-liveurl") && $card.attr("data-liveurl") !== "#" ? $card.attr("data-liveurl") : "",
+          imageFolder: $card.attr("data-image-folder") || "",
+          images: $card.attr("data-images") || ""
+        };
+      }
+    }
+
+    if (!proj) { alert("Project data not found!"); return; }
+
+    // Populate all fields
+    $("#pf-id").val(proj.id);
+    $("#pf-title").val(proj.title || "");
+    $("#pf-category").val(proj.category || "flutter");
+    $("#pf-badge").val(proj.badge || "");
+    $("#pf-image").val(proj.image || "");
+    $("#pf-desc").val(proj.desc || "");
+    // Features: join array to newline-separated text
+    const featArray = Array.isArray(proj.features)
+      ? proj.features
+      : (typeof proj.features === "string" ? proj.features.split(/[\n,]/).map(f=>f.trim()).filter(Boolean) : []);
+    $("#pf-features").val(featArray.join("\n"));
+    $("#pf-tech").val(proj.tech || "");
+    $("#pf-images").val(proj.images || "");
+    $("#pf-image-folder").val(proj.imageFolder || proj.image_folder || "");
+    // Code type: determine from codeType field or fallback
+    const codeType = proj.codeType || (proj.github && proj.github !== "#" ? "open" : "locked");
+    $("#pf-code-type").val(codeType);
+    $("#pf-github").val(proj.github || proj.codeurl || "");
+    $("#pf-playstore").val(proj.playstore || proj.playstoreurl || "");
+    $("#pf-apk").val(proj.apk || proj.apkurl || "");
+    $("#pf-live").val(proj.live || proj.liveurl || "");
+
+    if (proj.image) {
+      $("#pf-image-preview").attr("src", proj.image).show();
+    } else {
+      $("#pf-image-preview").hide();
+    }
+
+    $("#projectFormTitle").html('<i class="fas fa-edit"></i> Edit Portfolio Project');
+    $("#btnSaveProject").html('<i class="fas fa-save"></i> Update Project');
+    $("#projectFormContainer").slideDown();
+    $("#projectFormContainer")[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
 
   // Handle direct image file upload & live preview
@@ -1973,55 +2145,107 @@ $(document).ready(function () {
 
   $("#btnCloseProjectForm, #btnCancelProjectForm").on("click", function () {
     $("#projectFormContainer").slideUp();
+    $("#portfolioProjectForm")[0].reset();
+    $("#pf-id").val("");
   });
 
-  // Save Project Handler
+  // Save Project Handler (Create & Edit)
   $("#portfolioProjectForm").on("submit", async function (e) {
     e.preventDefault();
 
+    const existingId = $("#pf-id").val().trim();
     const title = $("#pf-title").val().trim();
-    const category = $("#pf-category").val();
+    const category = normalizeCategory($("#pf-category").val());
     const badge = $("#pf-badge").val();
     const image = $("#pf-image").val().trim();
     const desc = $("#pf-desc").val().trim();
     const tech = $("#pf-tech").val().trim();
     const images = $("#pf-images").val().trim();
+    const imageFolder = $("#pf-image-folder").val().trim();
+    // Always read codeType and github — codeType controls which button renders on card
+    const codeType = $("#pf-code-type").val();
+    const github = $("#pf-github").val().trim();
     const playstore = $("#pf-playstore").val().trim();
     const apk = $("#pf-apk").val().trim();
-    const github = $("#pf-github").val().trim();
     const live = $("#pf-live").val().trim();
 
-    const projId = `proj-${Date.now()}`;
-    const newProjObj = {
+    // Parse features from newline-or-comma textarea
+    const featuresRaw = $("#pf-features").val().trim();
+    const features = featuresRaw
+      ? featuresRaw.split(/[\n,]/).map(f => f.trim()).filter(Boolean)
+      : [];
+
+    const isEdit = Boolean(existingId);
+    const projId = isEdit ? existingId : `proj-${Date.now()}`;
+
+    const projObj = {
       id: projId,
-      title, category, badge, image, desc, tech, playstore, apk, github, live, images
+      title, category, badge, image, desc, tech, features,
+      codeType, github, playstore, apk, live, images, imageFolder
     };
 
-    const newProjectCardHtml = createProjectCardHtml(newProjObj);
-
-    // Prepend to target category grid
+    const newProjectCardHtml = createProjectCardHtml(projObj);
     const $targetGrid = getCategoryGrid(category);
-    $targetGrid.prepend(newProjectCardHtml);
+
+    if (isEdit) {
+      const $existingCard = $(`.project-card[data-id="${projId}"]`);
+      if ($existingCard.length) {
+        if ($existingCard.parent()[0] !== $targetGrid[0]) {
+          $existingCard.remove();
+          $targetGrid.prepend(newProjectCardHtml);
+        } else {
+          $existingCard.replaceWith(newProjectCardHtml);
+        }
+      } else {
+        $targetGrid.prepend(newProjectCardHtml);
+      }
+    } else {
+      $targetGrid.prepend(newProjectCardHtml);
+    }
     $(".project-card").addClass("reveal active");
 
     // Save to Firestore if configured
     if (isFirebaseConfigured() && db) {
       try {
-        await addDoc(collection(db, "projects"), {
-          ...newProjObj, createdAt: serverTimestamp()
-        });
+        if (isEdit) {
+          await setDoc(doc(db, "projects", projId), {
+            ...projObj, updatedAt: serverTimestamp()
+          }, { merge: true });
+        } else {
+          await addDoc(collection(db, "projects"), {
+            ...projObj, createdAt: serverTimestamp()
+          });
+        }
       } catch (err) {
         console.warn("Firestore project save warning:", err);
       }
     }
 
-    // Save to LocalStorage cache
-    localProjectsCache.unshift(newProjObj);
+    // Save/Update LocalStorage cache
+    const existingIdx = localProjectsCache.findIndex(p => p.id === projId);
+    if (existingIdx !== -1) {
+      localProjectsCache[existingIdx] = projObj;
+    } else {
+      localProjectsCache.unshift(projObj);
+    }
     localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
 
     $("#projectFormContainer").slideUp();
+    $("#portfolioProjectForm")[0].reset();
+    $("#pf-id").val("");
+    $("#pf-image-preview").hide();
     renderAdminProjects();
-    alert("✓ Project published live to portfolio!");
+    alert(isEdit ? "\u2713 Project updated live!" : "\u2713 Project published live to portfolio!");
+  });
+
+  // Toggle GitHub input visibility based on code type
+  $(document).on("change", "#pf-code-type", function () {
+    if ($(this).val() === "open") {
+      $("#pf-github-group").slideDown(150);
+    } else {
+      $("#pf-github-group").slideUp(150);
+      $("#pf-github").val("");
+    }
   });
 
   // Delete Project Action
@@ -2058,100 +2282,63 @@ $(document).ready(function () {
     }
   });
 
-  /* ── Real-Time Automated Experience Counter (Month to Year) ── */
-  function calculateRealtimeExperience(startDateStr) {
-    let startDate = new Date(startDateStr || "2024-02-01");
-    if (isNaN(startDate.getTime())) {
-      startDate = new Date("2024-02-01");
-    }
-
-    const now = new Date();
-    let years = now.getFullYear() - startDate.getFullYear();
-    let months = now.getMonth() - startDate.getMonth();
-
-    if (now.getDate() < startDate.getDate()) {
-      months--;
-    }
-
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
-
-    if (years > 0 && months > 0) {
-      return `${years} Yrs ${months} Mos`;
-    } else if (years > 0) {
-      return `${years} ${years === 1 ? "Year" : "Years"}`;
-    } else if (months > 0) {
-      return `${months} ${months === 1 ? "Month" : "Months"}`;
-    } else {
-      return "0 Mos";
-    }
+  /* ── Experience Counter: converts total months to display string ── */
+  function formatExperienceFromMonths(totalMonths) {
+    totalMonths = parseInt(totalMonths, 10) || 0;
+    if (totalMonths <= 0) return "0 Days";
+    const years = Math.floor(totalMonths / 12);
+    const months = totalMonths % 12;
+    if (years > 0 && months > 0) return `${years} Yrs ${months} Mos`;
+    if (years > 0) return `${years} ${years === 1 ? "Year" : "Years"}`;
+    return `${months} ${months === 1 ? "Month" : "Months"}`;
   }
 
-  function updateExperienceDisplay(overrideExp, startDateStr) {
+  /* ── Animated count-up for experience: 0 days → months → years ── */
+  function animateExperienceCounter($el, totalMonths) {
+    totalMonths = parseInt(totalMonths, 10) || 0;
+    if (totalMonths <= 0) { $el.text("0 Days"); return; }
+
+    // Total "units" to count through: days portion (0→29) then months (0→totalMonths)
+    const totalDays = totalMonths * 30; // approximate days for animation range
+    const duration = 1800;
+    const startTime = performance.now();
+
+    function step(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const currentDays = Math.floor(easeProgress * totalDays);
+      const currentMonths = Math.floor(currentDays / 30);
+      const remainingDays = currentDays % 30;
+
+      if (currentMonths === 0) {
+        // Show days phase
+        $el.text(currentDays + " Days");
+      } else {
+        // Show months/years phase
+        $el.text(formatExperienceFromMonths(currentMonths));
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        // Final value
+        $el.text(formatExperienceFromMonths(totalMonths));
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function updateExperienceDisplay(totalMonths) {
     const $expEl = $(".stat-exp");
     if (!$expEl.length) return;
-
-    if (overrideExp && overrideExp.trim() && overrideExp !== "1+ Years" && !overrideExp.includes("2024-") && !overrideExp.includes("2025-")) {
-      $expEl.text(overrideExp);
-    } else {
-      const start = startDateStr || $expEl.attr("data-start-date") || localStorage.getItem("stat_start_date") || "2024-02-01";
-      const computedExp = calculateRealtimeExperience(start);
-      $expEl.text(computedExp);
-    }
+    const months = parseInt(totalMonths || localStorage.getItem("stat_exp_months") || $expEl.attr("data-exp-months") || "30", 10);
+    $expEl.attr("data-exp-months", months);
+    $expEl.text(formatExperienceFromMonths(months));
   }
 
   // Initial call on script load
   updateExperienceDisplay();
-
-  // 3. Stats Counters Controller & Sync
-  function syncStatsFromBackend() {
-    const applyStats = (data) => {
-      if (!data) return;
-      const comp = data.comp || data.completed || "30";
-      const deliv = data.deliv || data.delivered || "15";
-      const pub = data.pub || data.published || "5";
-      const startDate = data.startDate || data.start_date || localStorage.getItem("stat_start_date") || "2024-02-01";
-      const exp = data.exp || data.experience || "";
-
-      localStorage.setItem("stat_completed", comp);
-      localStorage.setItem("stat_delivered", deliv);
-      localStorage.setItem("stat_published", pub);
-      localStorage.setItem("stat_start_date", startDate);
-      if (exp) localStorage.setItem("stat_exp", exp);
-
-      $(".stat-number[data-target]").eq(0).attr("data-target", comp).text(comp + "+");
-      $(".stat-number[data-target]").eq(1).attr("data-target", deliv).text(deliv + "+");
-      $(".stat-number[data-target]").eq(2).attr("data-target", pub).text(pub + "+");
-      updateExperienceDisplay(exp, startDate);
-    };
-
-    const savedComp = localStorage.getItem("stat_completed");
-    if (savedComp) {
-      applyStats({
-        comp: localStorage.getItem("stat_completed"),
-        deliv: localStorage.getItem("stat_delivered"),
-        pub: localStorage.getItem("stat_published"),
-        startDate: localStorage.getItem("stat_start_date"),
-        exp: localStorage.getItem("stat_exp")
-      });
-    } else {
-      applyStats({ comp: "30", deliv: "15", pub: "5", startDate: "2024-02-01" });
-    }
-
-    if (isFirebaseConfigured() && db) {
-      try {
-        onSnapshot(doc(db, "settings", "stats"), (docSnap) => {
-          if (docSnap.exists()) {
-            applyStats(docSnap.data());
-          }
-        }, (err) => console.warn("Firestore stats listener warning:", err));
-      } catch (err) {
-        console.warn("Error setting up stats listener:", err);
-      }
-    }
-  }
 
 
 
@@ -2223,6 +2410,48 @@ $(document).ready(function () {
   /* ============================================================
      Animated Key Stats & Achievements Counter Engine
      ============================================================ */
+
+  // Standalone function to update stat DOM values and run animation
+  function applyStatsToDOM(comp, deliv, pub, expMonths) {
+    const $statEls = $(".stat-number[data-target]");
+
+    // 1. Set data-target attributes before animating
+    $statEls.eq(0).attr("data-target", comp).attr("data-suffix", "+");
+    $statEls.eq(1).attr("data-target", deliv).attr("data-suffix", "+");
+    $statEls.eq(2).attr("data-target", pub).attr("data-suffix", "+");
+
+    // 2. Animate numeric counters from 0 to target
+    $statEls.each(function () {
+      const $el = $(this);
+      const target = parseInt($el.attr("data-target"), 10);
+      if (isNaN(target)) return;
+      const suffix = $el.attr("data-suffix") || "+";
+      const duration = 1400;
+      const startTime = performance.now();
+
+      function step(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        const currentVal = Math.floor(easeProgress * target);
+        $el.text(currentVal + suffix);
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          $el.text(target + suffix);
+        }
+      }
+      requestAnimationFrame(step);
+    });
+
+    // 3. Animate experience counter (0 days → months → years)
+    const $expEl = $(".stat-exp");
+    if ($expEl.length) {
+      $expEl.attr("data-exp-months", expMonths);
+      animateExperienceCounter($expEl, expMonths);
+    }
+  }
+
   function initStatsCounter() {
     const $statsSection = $("#stats");
     if (!$statsSection.length) return;
@@ -2233,34 +2462,12 @@ $(document).ready(function () {
       if (animated && !forceReset) return;
       animated = true;
 
-      // 1. Numeric Counters (Projects Completed, Delivered, Published Apps)
-      $(".stat-number[data-target]").each(function () {
-        const $el = $(this);
-        const defaultTarget = $el.text().includes("30") ? 30 : ($el.text().includes("15") ? 15 : 5);
-        const target = parseInt($el.attr("data-target"), 10) || defaultTarget;
-        const suffix = $el.attr("data-suffix") || "+";
-        const duration = 1600;
-        const startTime = performance.now();
+      const comp = localStorage.getItem("stat_completed") || "30";
+      const deliv = localStorage.getItem("stat_delivered") || "15";
+      const pub = localStorage.getItem("stat_published") || "5";
+      const expMonths = localStorage.getItem("stat_exp_months") || $(".stat-exp").attr("data-exp-months") || "30";
 
-        function step(currentTime) {
-          const elapsed = currentTime - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-          const easeProgress = 1 - Math.pow(1 - progress, 3);
-          const currentVal = Math.floor(easeProgress * target);
-
-          $el.text(currentVal + suffix);
-
-          if (progress < 1) {
-            requestAnimationFrame(step);
-          } else {
-            $el.text(target + suffix);
-          }
-        }
-        requestAnimationFrame(step);
-      });
-
-      // 2. Experience Counter (Real-time month to year calculation)
-      updateExperienceDisplay();
+      applyStatsToDOM(comp, deliv, pub, expMonths);
     };
 
     if ("IntersectionObserver" in window) {
@@ -2462,6 +2669,138 @@ $(document).ready(function () {
     }
   }
 
+  function renderShowcaseSerializer() {
+    const $container = $("#showcaseSerializerContainer");
+    if (!$container.length) return;
+    $container.empty();
+
+    const folder = $("#adminShowcaseFolder").val().trim() || "images/Upcoming_APP/";
+    const rawImagesStr = $("#adminShowcaseImages").val().trim();
+    if (!rawImagesStr) {
+      $container.html('<p style="font-size: 12px; color: var(--text-sec);">No showcase screenshots added yet.</p>');
+      return;
+    }
+
+    const items = rawImagesStr.split(",").map(s => s.trim()).filter(Boolean);
+
+    items.forEach((file, idx) => {
+      const src = /^https?:/i.test(file) || file.startsWith("/") || file.startsWith("data:") ? file : folder + file;
+      const $tile = $(`
+        <div class="sc-serializer-tile" data-idx="${idx}" style="
+          position: relative; flex-shrink: 0; width: 90px; background: rgba(30,41,59,0.8);
+          border: 1px solid var(--border-card); border-radius: 8px; padding: 6px; text-align: center;
+        ">
+          <div style="
+            position: absolute; top: 4px; left: 4px; background: var(--primary-color);
+            color: #fff; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 10px; z-index: 2;
+          ">#${idx + 1}</div>
+          <img src="${src}" alt="Tile ${idx + 1}" style="width: 100%; height: 75px; object-fit: contain; border-radius: 4px; margin-bottom: 4px;" onerror="this.src='images/SmartPlanAi.png'" />
+          <div style="font-size: 9px; color: var(--text-sec); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-bottom: 4px;">${file.length > 15 ? file.substring(0,12) + '...' : file}</div>
+          <div style="display: flex; justify-content: center; gap: 3px;">
+            <button type="button" class="btn-sc-move-left admin-action-btn cancel-btn small" data-idx="${idx}" style="padding: 2px 6px; font-size: 10px;" ${idx === 0 ? "disabled style='opacity:0.3; padding: 2px 6px; font-size: 10px;'" : ""} title="Move Left">&leftarrow;</button>
+            <button type="button" class="btn-sc-move-right admin-action-btn cancel-btn small" data-idx="${idx}" style="padding: 2px 6px; font-size: 10px;" ${idx === items.length - 1 ? "disabled style='opacity:0.3; padding: 2px 6px; font-size: 10px;'" : ""} title="Move Right">&rightarrow;</button>
+            <button type="button" class="btn-sc-delete admin-action-btn danger-btn small" data-idx="${idx}" style="padding: 2px 6px; font-size: 10px;" title="Remove">&times;</button>
+          </div>
+        </div>
+      `);
+      $container.append($tile);
+    });
+  }
+
+  // Handle Move Left in Showcase Serializer
+  $(document).on("click", ".btn-sc-move-left", function () {
+    const idx = parseInt($(this).attr("data-idx"), 10);
+    const items = $("#adminShowcaseImages").val().trim().split(",").map(s => s.trim()).filter(Boolean);
+    if (idx > 0 && idx < items.length) {
+      const temp = items[idx];
+      items[idx] = items[idx - 1];
+      items[idx - 1] = temp;
+      $("#adminShowcaseImages").val(items.join(","));
+      renderShowcaseSerializer();
+    }
+  });
+
+  // Handle Move Right in Showcase Serializer
+  $(document).on("click", ".btn-sc-move-right", function () {
+    const idx = parseInt($(this).attr("data-idx"), 10);
+    const items = $("#adminShowcaseImages").val().trim().split(",").map(s => s.trim()).filter(Boolean);
+    if (idx >= 0 && idx < items.length - 1) {
+      const temp = items[idx];
+      items[idx] = items[idx + 1];
+      items[idx + 1] = temp;
+      $("#adminShowcaseImages").val(items.join(","));
+      renderShowcaseSerializer();
+    }
+  });
+
+  // Handle Delete in Showcase Serializer
+  $(document).on("click", ".btn-sc-delete", function () {
+    const idx = parseInt($(this).attr("data-idx"), 10);
+    const items = $("#adminShowcaseImages").val().trim().split(",").map(s => s.trim()).filter(Boolean);
+    if (idx >= 0 && idx < items.length) {
+      items.splice(idx, 1);
+      $("#adminShowcaseImages").val(items.join(","));
+      renderShowcaseSerializer();
+    }
+  });
+
+  // Handle Upload/Add Image to Showcase Serializer
+  $(document).on("click", "#btnAddShowcaseFile", function () {
+    const fileInput = document.getElementById("showcaseAddFileInput");
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        const dataUrl = evt.target.result;
+        const items = $("#adminShowcaseImages").val().trim().split(",").map(s => s.trim()).filter(Boolean);
+        items.push(dataUrl);
+        $("#adminShowcaseImages").val(items.join(","));
+        renderShowcaseSerializer();
+        fileInput.value = "";
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const namePrompt = prompt("Enter image filename (e.g. 14.png) or full URL:");
+      if (namePrompt && namePrompt.trim()) {
+        const items = $("#adminShowcaseImages").val().trim().split(",").map(s => s.trim()).filter(Boolean);
+        items.push(namePrompt.trim());
+        $("#adminShowcaseImages").val(items.join(","));
+        renderShowcaseSerializer();
+      }
+    }
+  });
+
+  $(document).on("input", "#adminShowcaseImages, #adminShowcaseFolder", function () {
+    renderShowcaseSerializer();
+  });
+
+  // Move Project Up / Down Serializer Handlers
+  $(document).on("click", ".btn-move-proj-up", function () {
+    const id = $(this).attr("data-id");
+    const idx = localProjectsCache.findIndex(p => p.id === id);
+    if (idx > 0) {
+      const temp = localProjectsCache[idx];
+      localProjectsCache[idx] = localProjectsCache[idx - 1];
+      localProjectsCache[idx - 1] = temp;
+      localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
+      renderProjectsToDOM(localProjectsCache);
+      renderAdminProjects();
+    }
+  });
+
+  $(document).on("click", ".btn-move-proj-down", function () {
+    const id = $(this).attr("data-id");
+    const idx = localProjectsCache.findIndex(p => p.id === id);
+    if (idx >= 0 && idx < localProjectsCache.length - 1) {
+      const temp = localProjectsCache[idx];
+      localProjectsCache[idx] = localProjectsCache[idx + 1];
+      localProjectsCache[idx + 1] = temp;
+      localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
+      renderProjectsToDOM(localProjectsCache);
+      renderAdminProjects();
+    }
+  });
+
   $("#toggleShowcaseConfigBtn").on("click", function () {
     $("#adminShowcaseForm").slideToggle();
     const saved = localStorage.getItem("settings_upcoming_showcase");
@@ -2473,6 +2812,7 @@ $(document).ready(function () {
         if (data.images) $("#adminShowcaseImages").val(data.images);
       } catch (e) { }
     }
+    renderShowcaseSerializer();
   });
 
   $("#adminShowcaseForm").on("submit", async function (e) {
@@ -2502,6 +2842,7 @@ $(document).ready(function () {
       const roles = data.roles || "Flutter Developer, Mobile App Specialist, Frontend Web Dev, Competitive Programmer";
       const heroIntro = data.heroIntro || "I specialize in crafting high-performance, cross-platform mobile applications...";
       const aboutBio = data.aboutBio || "I’m a passionate problem solver...";
+      const aboutImg = data.aboutImg || "images/profile-1.jpeg";
       const cvLink = data.cvLink || "https://drive.google.com/uc?export=download&id=1mdkyO72reTrHyIzkd8DbEBbvwZTDHnW2";
 
       localStorage.setItem("settings_hero_about", JSON.stringify(data));
@@ -2511,6 +2852,7 @@ $(document).ready(function () {
       $("#about .text").html(`I'm ${name} and I'm a <span class="typing-2"></span>`);
       $(".hero-intro").text(heroIntro);
       $(".about-description").text(aboutBio);
+      $("#about-profile-img, .about .column.left img").attr("src", aboutImg);
       $(".download-cv").attr("href", cvLink);
       $(".contact .icons .row").eq(0).find(".sub-title").text(name);
       $("#admin-trigger").text(name);
@@ -2550,10 +2892,37 @@ $(document).ready(function () {
         if (data.roles) $("#adminHeroRoles").val(data.roles);
         if (data.heroIntro) $("#adminHeroIntro").val(data.heroIntro);
         if (data.aboutBio) $("#adminAboutBio").val(data.aboutBio);
+        if (data.aboutImg) {
+          $("#adminAboutImgUrl").val(data.aboutImg);
+          $("#adminAboutImgPreview").attr("src", data.aboutImg).show();
+        }
         if (data.cvLink) $("#adminCvLink").val(data.cvLink);
       } catch (e) { }
     }
   }
+
+  // Handle direct file upload for About Profile Image
+  $(document).on("change", "#adminAboutImgFile", function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        const dataUrl = evt.target.result;
+        $("#adminAboutImgUrl").val(dataUrl);
+        $("#adminAboutImgPreview").attr("src", dataUrl).fadeIn();
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  $(document).on("input", "#adminAboutImgUrl", function () {
+    const val = $(this).val().trim();
+    if (val) {
+      $("#adminAboutImgPreview").attr("src", val).fadeIn();
+    } else {
+      $("#adminAboutImgPreview").hide();
+    }
+  });
 
   $("#adminHeroAboutForm").on("submit", async function (e) {
     e.preventDefault();
@@ -2562,9 +2931,10 @@ $(document).ready(function () {
     const roles = $("#adminHeroRoles").val().trim();
     const heroIntro = $("#adminHeroIntro").val().trim();
     const aboutBio = $("#adminAboutBio").val().trim();
+    const aboutImg = $("#adminAboutImgUrl").val().trim();
     const cvLink = $("#adminCvLink").val().trim();
 
-    const dataObj = { greeting, name, roles, heroIntro, aboutBio, cvLink };
+    const dataObj = { greeting, name, roles, heroIntro, aboutBio, aboutImg, cvLink };
     localStorage.setItem("settings_hero_about", JSON.stringify(dataObj));
 
     if (isFirebaseConfigured() && db) {
@@ -2572,6 +2942,7 @@ $(document).ready(function () {
         await setDoc(doc(db, "settings", "hero_about"), { ...dataObj, updatedAt: serverTimestamp() });
       } catch (err) { }
     }
+    syncHeroAboutFromBackend();
     alert("✓ Hero & About Me settings updated live!");
   });
 
@@ -2817,40 +3188,44 @@ $(document).ready(function () {
   // 3.5. Key Stats & Achievements Counter Manager Sync
   function syncStatsFromBackend() {
     const applyStats = (data) => {
-      const comp = (data && data.comp && parseInt(data.comp, 10) > 0) ? data.comp : ((data && data.completed && parseInt(data.completed, 10) > 0) ? data.completed : "30");
-      const deliv = (data && data.deliv && parseInt(data.deliv, 10) > 0) ? data.deliv : ((data && data.delivered && parseInt(data.delivered, 10) > 0) ? data.delivered : "15");
-      const pub = (data && data.pub && parseInt(data.pub, 10) > 0) ? data.pub : ((data && data.published && parseInt(data.published, 10) > 0) ? data.published : "5");
-      const startDate = (data && (data.startDate || data.start_date)) ? (data.startDate || data.start_date) : (localStorage.getItem("stat_start_date") || "2024-02-01");
-      const expOverride = (data && (data.exp || data.experience)) ? (data.exp || data.experience) : "";
+      const comp = String(
+        (data && data.comp !== undefined && data.comp !== null && data.comp !== "") ? data.comp :
+        ((data && data.completed !== undefined && data.completed !== null && data.completed !== "") ? data.completed :
+        (localStorage.getItem("stat_completed") || "30"))
+      );
+      const deliv = String(
+        (data && data.deliv !== undefined && data.deliv !== null && data.deliv !== "") ? data.deliv :
+        ((data && data.delivered !== undefined && data.delivered !== null && data.delivered !== "") ? data.delivered :
+        (localStorage.getItem("stat_delivered") || "15"))
+      );
+      const pub = String(
+        (data && data.pub !== undefined && data.pub !== null && data.pub !== "") ? data.pub :
+        ((data && data.published !== undefined && data.published !== null && data.published !== "") ? data.published :
+        (localStorage.getItem("stat_published") || "5"))
+      );
+      const expMonths = String(
+        (data && data.expMonths !== undefined && data.expMonths !== null && data.expMonths !== "") ? data.expMonths :
+        (localStorage.getItem("stat_exp_months") || "30")
+      );
 
       localStorage.setItem("stat_completed", comp);
       localStorage.setItem("stat_delivered", deliv);
       localStorage.setItem("stat_published", pub);
-      localStorage.setItem("stat_start_date", startDate);
-      if (expOverride) localStorage.setItem("stat_exp", expOverride);
+      localStorage.setItem("stat_exp_months", expMonths);
 
-      $(".stat-number[data-target]").eq(0).attr("data-target", comp);
-      $(".stat-number[data-target]").eq(1).attr("data-target", deliv);
-      $(".stat-number[data-target]").eq(2).attr("data-target", pub);
-      
-      updateExperienceDisplay(expOverride, startDate);
-
-      if (typeof window.triggerStatsAnimation === "function") {
-        window.triggerStatsAnimation(true);
-      }
+      applyStatsToDOM(comp, deliv, pub, expMonths);
     };
 
     const savedComp = localStorage.getItem("stat_completed");
-    if (savedComp && parseInt(savedComp, 10) > 0) {
+    if (savedComp) {
       applyStats({
         comp: localStorage.getItem("stat_completed"),
         deliv: localStorage.getItem("stat_delivered"),
         pub: localStorage.getItem("stat_published"),
-        startDate: localStorage.getItem("stat_start_date"),
-        exp: localStorage.getItem("stat_exp")
+        expMonths: localStorage.getItem("stat_exp_months")
       });
     } else {
-      applyStats({ comp: "30", deliv: "15", pub: "5", startDate: "2024-02-01" });
+      applyStats({ comp: "30", deliv: "15", pub: "5", expMonths: "30" });
     }
 
     if (isFirebaseConfigured() && db) {
@@ -2870,47 +3245,51 @@ $(document).ready(function () {
     const savedCompleted = localStorage.getItem("stat_completed") || "30";
     const savedDelivered = localStorage.getItem("stat_delivered") || "15";
     const savedPublished = localStorage.getItem("stat_published") || "5";
-    const savedStartDate = localStorage.getItem("stat_start_date") || "2024-02";
-    const savedExp = localStorage.getItem("stat_exp") || "";
+    const savedExpMonths = localStorage.getItem("stat_exp_months") || "30";
 
     $("#statInputCompleted").val(savedCompleted);
     $("#statInputDelivered").val(savedDelivered);
     $("#statInputPublished").val(savedPublished);
-    $("#statInputStartDate").val(savedStartDate.substring(0, 7));
-    $("#statInputExp").val(savedExp);
+    $("#statInputExpMonths").val(savedExpMonths);
+    $("#statExpPreview").text("Will display as: " + formatExperienceFromMonths(savedExpMonths));
   }
+
+  // Live preview as user types months
+  $(document).on("input", "#statInputExpMonths", function () {
+    const val = parseInt($(this).val(), 10);
+    if (!isNaN(val) && val >= 0) {
+      $("#statExpPreview").text("Will display as: " + formatExperienceFromMonths(val));
+    } else {
+      $("#statExpPreview").text("");
+    }
+  });
 
   $("#adminStatsForm").on("submit", async function (e) {
     e.preventDefault();
 
-    const comp = $("#statInputCompleted").val();
-    const deliv = $("#statInputDelivered").val();
-    const pub = $("#statInputPublished").val();
-    const startDateVal = $("#statInputStartDate").val() || "2024-02";
-    const startDate = startDateVal.includes("-") && startDateVal.length === 7 ? startDateVal + "-01" : startDateVal;
-    const exp = $("#statInputExp").val();
+    const comp = $("#statInputCompleted").val().trim();
+    const deliv = $("#statInputDelivered").val().trim();
+    const pub = $("#statInputPublished").val().trim();
+    const expMonths = $("#statInputExpMonths").val().trim() || "30";
 
+    // Persist to localStorage
     localStorage.setItem("stat_completed", comp);
     localStorage.setItem("stat_delivered", deliv);
     localStorage.setItem("stat_published", pub);
-    localStorage.setItem("stat_start_date", startDate);
-    localStorage.setItem("stat_exp", exp);
+    localStorage.setItem("stat_exp_months", expMonths);
 
-    // Update live DOM targets
-    $(".stat-number[data-target]").eq(0).attr("data-target", comp).text(comp + "+");
-    $(".stat-number[data-target]").eq(1).attr("data-target", deliv).text(deliv + "+");
-    $(".stat-number[data-target]").eq(2).attr("data-target", pub).text(pub + "+");
-    updateExperienceDisplay(exp, startDate);
+    // Apply live DOM update & animation
+    applyStatsToDOM(comp, deliv, pub, expMonths);
 
     // Save to Firestore if available
     if (isFirebaseConfigured() && db) {
       try {
-        await setDoc(doc(db, "settings", "stats"), { comp, deliv, pub, startDate, exp, updatedAt: serverTimestamp() });
+        await setDoc(doc(db, "settings", "stats"), { comp, deliv, pub, expMonths, updatedAt: serverTimestamp() });
       } catch (err) { }
     }
 
     $("#statsUpdateStatus").fadeIn().delay(3000).fadeOut();
-    alert("✓ Live stats updated successfully!");
+    alert("\u2713 Live stats updated successfully!");
   });
 
   // 4. Social Links & Contact Manager Sync
@@ -2972,6 +3351,7 @@ $(document).ready(function () {
         await setDoc(doc(db, "settings", "social_contact"), { ...dataObj, updatedAt: serverTimestamp() });
       } catch (err) { }
     }
+    syncSocialContactFromBackend();
     alert("✓ Social links & contact info updated live!");
   });
 });

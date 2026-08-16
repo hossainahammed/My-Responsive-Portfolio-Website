@@ -185,7 +185,7 @@
       <h2 class="title">About Me</h2>
       <div class="about-content">
         <div class="column left reveal">
-          <img src="images/profile-1.jpeg" alt="" />
+          <img id="about-profile-img" src="images/profile-1.jpeg" alt="Hossain Ahammed Profile Picture" />
         </div>
         <div class="column right reveal">
           <div class="text">
@@ -302,7 +302,7 @@
             <i class="fas fa-history"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-number stat-exp" data-type="experience" data-start-date="2024-02-01">2 Yrs 6 Mos</div>
+            <div class="stat-number stat-exp" data-type="experience" data-exp-months="30">0 Days</div>
             <div class="stat-title">Years of Experience</div>
             <div class="stat-subtext">Real-Time App &amp; Software Dev</div>
           </div>
@@ -675,14 +675,15 @@
 
       <div class="projects-grid reveal-grid">
         <!-- 1. flutter-sova -->
-        <div class="project-card" data-id="flutter-sova"
+        <div class="project-card" data-id="flutter-sova" data-category="flutter"
           data-liveurl="https://play.google.com/store/apps/details?id=com.zdenko_dikic.sova"
           data-playstoreurl="https://play.google.com/store/apps/details?id=com.zdenko_dikic.sova" data-appetizeurl="#"
           data-videourl="#" data-title="SOVA — Night Club App" data-image-folder="images/Sova/"
           data-images="1 21.png,2 8.png,3 21.png,4 1.png,5 1.png,6 1.png,7 1.png,8 1.png">
           <div class="project-img-wrapper">
             <span class="client-badge"><i class="fas fa-user-shield"></i> Client Project</span>
-            <img src="images/Sova/1 21.png" alt="SOVA — Night Club App" onerror="this.onerror=null; this.src='images/SmartPlanAi.png'" />
+            <img src="images/Sova/1 21.png" alt="SOVA — Night Club App"
+              onerror="this.onerror=null; this.src='images/SmartPlanAi.png'" />
           </div>
           <div class="project-info-body">
             <div class="proj-title">SOVA — Night Club App</div>
@@ -710,13 +711,14 @@
             <a href="https://play.google.com/store/apps/details?id=com.zdenko_dikic.sova" target="_blank" rel="noopener"
               class="proj-link-btn playstore-btn" onclick="event.stopPropagation();"><i class="fab fa-google-play"></i>
               Play Store</a>
-            <span class="proj-link-btn client-code-btn full-width" onclick="event.stopPropagation();"><i class="fas fa-lock"></i>
+            <span class="proj-link-btn client-code-btn full-width" onclick="event.stopPropagation();"><i
+                class="fas fa-lock"></i>
               Locked Code</span>
           </div>
         </div>
 
         <!-- 2. flutter-digital-khanqah -->
-        <div class="project-card" data-id="flutter-digital-khanqah"
+        <div class="project-card" data-id="flutter-digital-khanqah" data-category="flutter"
           data-liveurl="https://play.google.com/store/apps/details?id=com.digital.khanqah&amp;hl=en"
           data-playstoreurl="https://play.google.com/store/apps/details?id=com.digital.khanqah&amp;hl=en"
           data-appetizeurl="#" data-videourl="#" data-title="Digital Khanqah — Islamic &amp; Spiritual Guidance App"
@@ -757,14 +759,16 @@
               rel="noopener" class="proj-link-btn playstore-btn" onclick="event.stopPropagation();"><i
                 class="fab fa-google-play"></i>
               Play Store</a>
-            <span class="proj-link-btn client-code-btn full-width" onclick="event.stopPropagation();"><i class="fas fa-lock"></i>
+            <span class="proj-link-btn client-code-btn full-width" onclick="event.stopPropagation();"><i
+                class="fas fa-lock"></i>
               Locked Code</span>
           </div>
         </div>
 
         <!-- 3. flutter-yestwice -->
-        <div class="project-card" data-id="flutter-yestwice" data-liveurl="#" data-appetizeurl="#" data-videourl="#"
-          data-title="Yes Twice — Athletic Performance &amp; Recovery App" data-image-folder="images/yes_twic/"
+        <div class="project-card" data-id="flutter-yestwice" data-category="flutter" data-liveurl="#"
+          data-appetizeurl="#" data-videourl="#" data-title="Yes Twice — Athletic Performance &amp; Recovery App"
+          data-image-folder="images/yes_twic/"
           data-images="1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png,14.png,15.png">
           <div class="project-img-wrapper">
             <span class="client-badge"><i class="fas fa-user-shield"></i> Client Project</span>
@@ -797,18 +801,21 @@
           <div class="project-links">
             <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
             <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
-            <span class="proj-link-btn client-code-btn full-width" onclick="event.stopPropagation();"><i class="fas fa-lock"></i>
+            <span class="proj-link-btn client-code-btn full-width" onclick="event.stopPropagation();"><i
+                class="fas fa-lock"></i>
               Locked Code</span>
           </div>
         </div>
 
         <!-- 4. flutter-smartplan -->
-        <div class="project-card" data-id="flutter-smartplan" data-liveurl="#" data-appetizeurl="#" data-videourl="#"
-          data-title="SmartPlan — AI Study Planner App" data-image-folder="images/SmartPlanAi/"
+        <div class="project-card" data-id="flutter-smartplan" data-category="flutter" data-liveurl="#"
+          data-appetizeurl="#" data-videourl="#" data-title="SmartPlan — AI Study Planner App"
+          data-image-folder="images/SmartPlanAi/"
           data-images="1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png,14.png,15.png,16.png,17.png,18.png,19.png,20.png,21.png,22.png">
           <div class="project-img-wrapper">
             <span class="client-badge"><i class="fas fa-user-shield"></i> Client Project</span>
-            <img src="images/SmartPlanAi/2.png" alt="SmartPlan AI Study Planner" onerror="this.onerror=null; this.src='images/SmartPlanAi.png'" />
+            <img src="images/SmartPlanAi/2.png" alt="SmartPlan AI Study Planner"
+              onerror="this.onerror=null; this.src='images/SmartPlanAi.png'" />
           </div>
           <div class="project-info-body">
             <div class="proj-title">SmartPlan — AI Study Planner</div>
@@ -835,23 +842,27 @@
             <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
             <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
             <a href="https://github.com/hossainahammed/SmartPlan-AI-Study-Planner" target="_blank" rel="noopener"
-              class="proj-link-btn code-btn full-width" onclick="event.stopPropagation();"><i class="fab fa-github"></i> Code</a>
+              class="proj-link-btn code-btn full-width" onclick="event.stopPropagation();"><i class="fab fa-github"></i>
+              Code</a>
           </div>
         </div>
 
         <!-- 5. flutter-expense -->
-        <div class="project-card" data-id="flutter-expense" data-liveurl="#" data-appetizeurl="#" data-videourl="#"
-          data-title="Expense Tracker App" data-image-folder="images/ExpensesTracker/"
+        <div class="project-card" data-id="flutter-expense" data-category="flutter" data-liveurl="#"
+          data-appetizeurl="#" data-videourl="#" data-title="Expense Tracker App"
+          data-image-folder="images/ExpensesTracker/"
           data-images="1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,11.png,12.png,13.png,14.png,15.png">
           <div class="project-img-wrapper">
             <span class="team-badge"><i class="fas fa-users"></i> Team Project</span>
-            <img src="images/ExpensesTracker/1.png" alt="Expense Tracker App" onerror="this.onerror=null; this.src='images/Expences Tracker.png'" />
+            <img src="images/ExpensesTracker/1.png" alt="Expense Tracker App"
+              onerror="this.onerror=null; this.src='images/Expences Tracker.png'" />
           </div>
           <div class="project-info-body">
             <div class="proj-title">Expense Tracker App</div>
             <div class="proj-meta">
               <p class="proj-desc">
-                <strong>Problem Solved:</strong> Manual budget tracking and difficulty visualizing daily spending habits.
+                <strong>Problem Solved:</strong> Manual budget tracking and difficulty visualizing daily spending
+                habits.
               </p>
               <div class="proj-tech">
                 <span class="tech-pill">Flutter</span>
@@ -870,7 +881,8 @@
             <span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>
             <span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>
             <a href="https://github.com/hossainahammed/Expense-Tracker-App" target="_blank" rel="noopener"
-              class="proj-link-btn code-btn full-width" onclick="event.stopPropagation();"><i class="fab fa-github"></i> Code</a>
+              class="proj-link-btn code-btn full-width" onclick="event.stopPropagation();"><i class="fab fa-github"></i>
+              Code</a>
           </div>
         </div>
       </div>
@@ -884,8 +896,8 @@
       <h2 class="title title-web">Web Projects</h2>
       <p class="subtitle">Click a project image to open a live preview.</p>
       <div class="projects-grid reveal-grid">
-        <div class="project-card" data-id="web-honda" data-liveurl="https://melodic-phoenix-e0fc48.netlify.app/"
-          data-title="Honda Website">
+        <div class="project-card" data-id="web-honda" data-category="web"
+          data-liveurl="https://melodic-phoenix-e0fc48.netlify.app/" data-title="Honda Website">
           <div class="project-img-wrapper">
             <img src="images/Honda Website.png" alt="Honda Website" />
           </div>
@@ -914,8 +926,8 @@
               class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
           </div>
         </div>
-        <div class="project-card" data-id="web-travel" data-liveurl="https://hossainahammed.github.io/Traveler-main/"
-          data-title="Traveler Website">
+        <div class="project-card" data-id="web-travel" data-category="web"
+          data-liveurl="https://hossainahammed.github.io/Traveler-main/" data-title="Traveler Website">
           <div class="project-img-wrapper">
             <img src="images/Travel.png" alt="Traveler Website" />
           </div>
@@ -944,8 +956,8 @@
               class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
           </div>
         </div>
-        <div class="project-card" data-id="web-shop" data-liveurl="https://hossainahammed.github.io/Shop-Product/"
-          data-title="Shop and Product">
+        <div class="project-card" data-id="web-shop" data-category="web"
+          data-liveurl="https://hossainahammed.github.io/Shop-Product/" data-title="Shop and Product">
           <div class="project-img-wrapper">
             <img src="images/Shop and Product.png" alt="Shop and Product" />
           </div>
@@ -975,7 +987,7 @@
               class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
           </div>
         </div>
-        <div class="project-card" data-id="web-lib"
+        <div class="project-card" data-id="web-lib" data-category="web"
           data-liveurl="https://hossainahammed.github.io/Library-Managment/Library%20Management%20frontpage.html"
           data-title="Library Management">
           <div class="project-img-wrapper">
@@ -1017,7 +1029,7 @@
       <h2 class="title title-php">PHP Projects</h2>
       <p class="subtitle">Click a project image to open a live preview.</p>
       <div class="projects-grid reveal-grid">
-        <div class="project-card" data-id="php-gym"
+        <div class="project-card" data-id="php-gym" data-category="php"
           data-liveurl="https://hossainahammed.github.io/Basic-PHP-Gymnesium-Project/" data-title="GYM Website">
           <div class="project-img-wrapper">
             <img src="images/GYM Website.png" alt="GYM Website" />
@@ -1048,7 +1060,7 @@
               class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
           </div>
         </div>
-        <div class="project-card" data-id="php-gymsocial"
+        <div class="project-card" data-id="php-gymsocial" data-category="php"
           data-liveurl="https://hossainahammed.github.io/Gymnasium-Social-Website-PHP-/"
           data-title="Gymnasium Social page">
           <div class="project-img-wrapper">
@@ -1081,7 +1093,7 @@
               class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
           </div>
         </div>
-        <div class="project-card" data-id="php-gymcomplete"
+        <div class="project-card" data-id="php-gymcomplete" data-category="php"
           data-liveurl="https://hossainahammed.github.io/Gymnasium-Website/" data-title="Gymnasium-Website">
           <div class="project-img-wrapper">
             <img src="images/Gymnasium Complete Project.png" alt="Gymnasium Complete Project" />
@@ -1112,7 +1124,7 @@
               class="proj-link-btn code-btn"><i class="fab fa-github"></i> Code</a>
           </div>
         </div>
-        <div class="project-card" data-id="php-crud"
+        <div class="project-card" data-id="php-crud" data-category="php"
           data-liveurl="https://hossainahammed.github.io/Crud-Operation-PHP-/" data-title="Crud Operation Project">
           <div class="project-img-wrapper">
             <img src="images/Crud Operation Home View.png" alt="Crud Operation Project" />
@@ -1413,8 +1425,9 @@
   <!-- Complete Portfolio Admin Control Panel Modal -->
   <div id="adminModal" class="live-modal" aria-hidden="true" style="z-index: 10000; display: none">
     <div class="live-modal__overlay admin-close"></div>
-    <div class="live-modal__content admin-content" style="max-width: 850px; width: 95%; padding: 0; border-radius: 16px; overflow: hidden; height: 90vh;">
-      
+    <div class="live-modal__content admin-content"
+      style="max-width: 850px; width: 95%; padding: 0; border-radius: 16px; overflow: hidden; height: 90vh;">
+
       <!-- Modal Header -->
       <div class="admin-modal-topbar">
         <div class="admin-topbar-title">
@@ -1428,7 +1441,8 @@
       </div>
 
       <!-- STEP 1: Admin Login View -->
-      <div id="admin-login-step" class="admin-view-container" style="padding: 35px 25px; text-align: center; max-width: 440px; margin: 40px auto;">
+      <div id="admin-login-step" class="admin-view-container"
+        style="padding: 35px 25px; text-align: center; max-width: 440px; margin: 40px auto;">
         <div class="admin-lock-icon">
           <i class="fas fa-lock"></i>
         </div>
@@ -1439,14 +1453,19 @@
 
         <form id="adminLoginForm">
           <div class="field" style="margin-bottom: 15px;">
-            <input type="email" id="admin-email" placeholder="Admin Email (e.g. hossainahammed627@gmail.com)" required class="admin-input-field" />
+            <input type="email" id="admin-email" placeholder="Admin Email (e.g. hossainahammed627@gmail.com)" required
+              class="admin-input-field" />
           </div>
           <div class="field" style="margin-bottom: 12px; position: relative;">
-            <input type="password" id="admin-key" placeholder="Password / Secret Key" required class="admin-input-field" style="padding-right: 42px;" />
-            <i id="toggleAdminPassword" class="fas fa-eye" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-sec); font-size: 15px;" title="Toggle Password Visibility"></i>
+            <input type="password" id="admin-key" placeholder="Password / Secret Key" required class="admin-input-field"
+              style="padding-right: 42px;" />
+            <i id="toggleAdminPassword" class="fas fa-eye"
+              style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-sec); font-size: 15px;"
+              title="Toggle Password Visibility"></i>
           </div>
           <div style="text-align: right; margin-bottom: 20px;">
-            <button type="button" id="btnOpenForgotModal" style="background: none; border: none; color: var(--primary-color); font-size: 13px; cursor: pointer; text-decoration: underline;">
+            <button type="button" id="btnOpenForgotModal"
+              style="background: none; border: none; color: var(--primary-color); font-size: 13px; cursor: pointer; text-decoration: underline;">
               Forgot Password?
             </button>
           </div>
@@ -1454,12 +1473,13 @@
             <i class="fas fa-sign-in-alt"></i> Login to Dashboard
           </button>
         </form>
-        
+
         <p id="admin-error" class="admin-alert-error" style="display: none; margin-top: 15px;"></p>
       </div>
 
       <!-- STEP 1.5: Forgot Password View -->
-      <div id="admin-reset-step" class="admin-view-container" style="display: none; padding: 35px 25px; text-align: center; max-width: 440px; margin: 40px auto;">
+      <div id="admin-reset-step" class="admin-view-container"
+        style="display: none; padding: 35px 25px; text-align: center; max-width: 440px; margin: 40px auto;">
         <div class="admin-lock-icon">
           <i class="fas fa-key"></i>
         </div>
@@ -1470,7 +1490,8 @@
 
         <form id="adminResetForm">
           <div class="field" style="margin-bottom: 20px;">
-            <input type="email" id="reset-admin-email" placeholder="Enter Admin Email" required class="admin-input-field" value="hossainahammed627@gmail.com" />
+            <input type="email" id="reset-admin-email" placeholder="Enter Admin Email" required
+              class="admin-input-field" value="hossainahammed627@gmail.com" />
           </div>
           <button type="submit" class="admin-action-btn primary-btn" style="width: 100%; margin-bottom: 12px;">
             <i class="fas fa-paper-plane"></i> Send Password Reset Link
@@ -1484,18 +1505,24 @@
       </div>
 
       <!-- STEP 2: Main Dashboard View (Visible when logged in) -->
-      <div id="admin-dashboard-step" class="admin-view-container" style="display: none; height: calc(100% - 60px); flex-direction: column;">
-        
+      <div id="admin-dashboard-step" class="admin-view-container"
+        style="display: none; height: calc(100% - 60px); flex-direction: column;">
+
         <!-- Dashboard Sub-Header & Navigation Tabs -->
         <div class="admin-dash-header">
           <div class="admin-nav-tabs">
-            <button class="admin-tab-btn active" data-tab="tab-projects"><i class="fas fa-folder-open"></i> Projects</button>
-            <button class="admin-tab-btn" data-tab="tab-hero-about"><i class="fas fa-user-edit"></i> Hero & About</button>
-            <button class="admin-tab-btn" data-tab="tab-services"><i class="fas fa-concierge-bell"></i> Services</button>
+            <button class="admin-tab-btn active" data-tab="tab-projects"><i class="fas fa-folder-open"></i>
+              Projects</button>
+            <button class="admin-tab-btn" data-tab="tab-hero-about"><i class="fas fa-user-edit"></i> Hero &
+              About</button>
+            <button class="admin-tab-btn" data-tab="tab-services"><i class="fas fa-concierge-bell"></i>
+              Services</button>
             <button class="admin-tab-btn" data-tab="tab-skills"><i class="fas fa-code"></i> Skills</button>
             <button class="admin-tab-btn" data-tab="tab-stats"><i class="fas fa-chart-line"></i> Stats</button>
-            <button class="admin-tab-btn" data-tab="tab-social"><i class="fas fa-share-alt"></i> Social & Contact</button>
-            <button class="admin-tab-btn" data-tab="tab-inbox"><i class="fas fa-inbox"></i> Inbox <span id="inboxBadge" class="inbox-count-tag">0</span></button>
+            <button class="admin-tab-btn" data-tab="tab-social"><i class="fas fa-share-alt"></i> Social &
+              Contact</button>
+            <button class="admin-tab-btn" data-tab="tab-inbox"><i class="fas fa-inbox"></i> Inbox <span id="inboxBadge"
+                class="inbox-count-tag">0</span></button>
           </div>
           <button id="adminLogoutBtn" class="admin-logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
@@ -1505,16 +1532,19 @@
           <div class="admin-section-banner">
             <div>
               <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Portfolio Projects Manager</h4>
-              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Add new projects or modify existing project items in real-time.</p>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Add new projects or modify existing
+                project items in real-time.</p>
             </div>
-            <button id="btnOpenAddProject" class="admin-action-btn primary-btn small"><i class="fas fa-plus"></i> Add New Project</button>
+            <button id="btnOpenAddProject" class="admin-action-btn primary-btn small"><i class="fas fa-plus"></i> Add
+              New Project</button>
           </div>
 
           <!-- Upcoming App Showcase Config Box -->
           <div class="admin-form-box" style="margin-top: 15px; margin-bottom: 20px;">
             <div class="admin-form-header">
               <h4 style="margin: 0;"><i class="fab fa-flutter"></i> Upcoming App 3D Showcase Manager</h4>
-              <button type="button" id="toggleShowcaseConfigBtn" class="admin-action-btn cancel-btn small">Configure</button>
+              <button type="button" id="toggleShowcaseConfigBtn"
+                class="admin-action-btn cancel-btn small">Configure</button>
             </div>
             <form id="adminShowcaseForm" class="admin-grid-form" style="display: none; margin-top: 15px;">
               <div class="form-row">
@@ -1524,15 +1554,40 @@
                 </div>
                 <div class="form-group col-6">
                   <label>Image Folder Path *</label>
-                  <input type="text" id="adminShowcaseFolder" value="images/Upcoming_APP/" required class="admin-input-field" />
+                  <input type="text" id="adminShowcaseFolder" value="images/Upcoming_APP/" required
+                    class="admin-input-field" />
                 </div>
               </div>
               <div class="form-group">
-                <label>Showcase Screenshot Files (comma-separated) *</label>
-                <input type="text" id="adminShowcaseImages" value="1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png" required class="admin-input-field" />
+                <label>Showcase Screenshot Files (comma-separated filenames or URLs) *</label>
+                <input type="text" id="adminShowcaseImages"
+                  value="1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png" required
+                  class="admin-input-field" />
               </div>
+
+              <!-- Interactive Visual Screenshot Serializer & Reorder Manager -->
+              <div class="form-group" style="margin-top: 10px;">
+                <label style="display: flex; align-items: center; justify-content: space-between;">
+                  <span><i class="fas fa-sort-numeric-down"></i> Visual Screenshot Sequence &amp; Serialization
+                    Manager</span>
+                  <span style="font-size: 11px; color: var(--text-sec);">Use &leftarrow; &rightarrow; arrows to reorder
+                    screenshots sequence</span>
+                </label>
+                <div id="showcaseSerializerContainer"
+                  style="display: flex; gap: 10px; overflow-x: auto; padding: 12px; background: rgba(15,23,42,0.6); border-radius: 10px; border: 1px solid var(--border-card); min-height: 120px; align-items: center;">
+                  <!-- Populated dynamically by JS -->
+                </div>
+                <div style="margin-top: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                  <input type="file" id="showcaseAddFileInput" accept="image/*" class="admin-input-field"
+                    style="padding: 6px; font-size: 12px; max-width: 250px;" />
+                  <button type="button" id="btnAddShowcaseFile" class="admin-action-btn primary-btn small"><i
+                      class="fas fa-plus"></i> Add Uploaded Image</button>
+                </div>
+              </div>
+
               <div class="form-actions-bar">
-                <button type="submit" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Showcase Config</button>
+                <button type="submit" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Showcase
+                  Config</button>
               </div>
             </form>
           </div>
@@ -1545,18 +1600,19 @@
             </div>
             <form id="portfolioProjectForm" class="admin-grid-form">
               <input type="hidden" id="pf-id" />
-              
+
               <div class="form-row">
                 <div class="form-group col-6">
                   <label>Project Title *</label>
-                  <input type="text" id="pf-title" placeholder="e.g. Sova — Fitness App" required class="admin-input-field" />
+                  <input type="text" id="pf-title" placeholder="e.g. Sova — Fitness App" required
+                    class="admin-input-field" />
                 </div>
                 <div class="form-group col-6">
                   <label>Category *</label>
                   <select id="pf-category" class="admin-input-field">
                     <option value="flutter">Flutter / Mobile App</option>
                     <option value="web">Web Application</option>
-                    <option value="php">Backend & API</option>
+                    <option value="php">Backend &amp; API</option>
                   </select>
                 </div>
               </div>
@@ -1567,39 +1623,73 @@
                   <select id="pf-badge" class="admin-input-field">
                     <option value="client">Client Project</option>
                     <option value="team">Team Project</option>
-                    <option value="solo">Personal SaaS</option>
+                    <option value="both">Client + Team (Both)</option>
+                    <option value="solo">Personal / SaaS</option>
+                    <option value="">No Badge</option>
                   </select>
                 </div>
                 <div class="form-group col-6">
                   <label>Main Image (Upload File or Enter Path/URL) *</label>
                   <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <input type="file" id="pf-file-input" accept="image/*" class="admin-input-field" style="padding: 8px; font-size: 12px;" />
-                    <input type="text" id="pf-image" placeholder="images/Sova/1 21.png or https://..." required class="admin-input-field" />
+                    <input type="file" id="pf-file-input" accept="image/*" class="admin-input-field"
+                      style="padding: 8px; font-size: 12px;" />
+                    <input type="text" id="pf-image" placeholder="images/Sova/1 21.png or https://..." required
+                      class="admin-input-field" />
                   </div>
-                  <img id="pf-image-preview" alt="Preview" style="display: none; height: 55px; margin-top: 8px; border-radius: 8px; border: 1px solid var(--border-card); object-fit: cover;" />
+                  <img id="pf-image-preview" alt="Preview"
+                    style="display: none; height: 55px; margin-top: 8px; border-radius: 8px; border: 1px solid var(--border-card); object-fit: cover;" />
                 </div>
               </div>
 
               <div class="form-group">
                 <label>Problem Solved Description *</label>
-                <textarea id="pf-desc" rows="2" placeholder="Briefly describe the key feature or problem this app solves..." required class="admin-input-field"></textarea>
+                <textarea id="pf-desc" rows="2"
+                  placeholder="Briefly describe the key feature or problem this app solves..." required
+                  class="admin-input-field"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Key Features (3 bullet points — one per line, or comma-separated)</label>
+                <p style="margin: 0 0 6px; font-size: 12px; color: var(--text-sec);">Each line = one bullet point shown
+                  on the card. Leave blank to hide feature list.</p>
+                <textarea id="pf-features" rows="3"
+                  placeholder="Live club &amp; event discovery with ticket booking&#10;Real-time DJ song requests &amp; fee status&#10;Club communities, group creation &amp; reward coins"
+                  class="admin-input-field"></textarea>
               </div>
 
               <div class="form-row">
                 <div class="form-group col-6">
                   <label>Tech Stack Pills (comma-separated) *</label>
-                  <input type="text" id="pf-tech" placeholder="Flutter, Dart, GetX, Firebase, REST API" required class="admin-input-field" />
+                  <input type="text" id="pf-tech" placeholder="Flutter, Dart, GetX, Firebase, REST API" required
+                    class="admin-input-field" />
                 </div>
                 <div class="form-group col-6">
-                  <label>Screenshot Folder / List (optional)</label>
-                  <input type="text" id="pf-images" placeholder="1.png, 2.png, 3.png" class="admin-input-field" />
+                  <label>Screenshot Image List (comma-separated filenames or URLs)</label>
+                  <input type="text" id="pf-images" placeholder="1.png, 2.png, 3.png  OR  https://..."
+                    class="admin-input-field" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label>Source Code Button</label>
+                  <select id="pf-code-type" class="admin-input-field">
+                    <option value="open">🔓 Code — Public GitHub Link</option>
+                    <option value="locked">🔒 Locked Code — Private / NDA</option>
+                  </select>
+                </div>
+                <div class="form-group col-6" id="pf-github-group">
+                  <label>GitHub Code Link</label>
+                  <input type="text" id="pf-github" placeholder="https://github.com/hossainahammed/..."
+                    class="admin-input-field" />
                 </div>
               </div>
 
               <div class="form-row">
                 <div class="form-group col-6">
                   <label>Play Store URL</label>
-                  <input type="text" id="pf-playstore" placeholder="https://play.google.com/store/apps/..." class="admin-input-field" />
+                  <input type="text" id="pf-playstore" placeholder="https://play.google.com/store/apps/..."
+                    class="admin-input-field" />
                 </div>
                 <div class="form-group col-6">
                   <label>Download APK URL</label>
@@ -1609,17 +1699,18 @@
 
               <div class="form-row">
                 <div class="form-group col-6">
-                  <label>GitHub Code Link</label>
-                  <input type="text" id="pf-github" placeholder="https://github.com/hossainahammed/..." class="admin-input-field" />
+                  <label>Live Demo / Web URL</label>
+                  <input type="text" id="pf-live" placeholder="https://..." class="admin-input-field" />
                 </div>
                 <div class="form-group col-6">
-                  <label>Live Web / Appetize Demo Link</label>
-                  <input type="text" id="pf-live" placeholder="https://..." class="admin-input-field" />
+                  <label>Image Folder Path (optional, for gallery)</label>
+                  <input type="text" id="pf-image-folder" placeholder="images/Sova/" class="admin-input-field" />
                 </div>
               </div>
 
               <div class="form-actions-bar">
-                <button type="submit" id="btnSaveProject" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Project</button>
+                <button type="submit" id="btnSaveProject" class="admin-action-btn primary-btn"><i
+                    class="fas fa-save"></i> Save Project</button>
                 <button type="button" id="btnCancelProjectForm" class="admin-action-btn cancel-btn">Cancel</button>
               </div>
             </form>
@@ -1632,11 +1723,13 @@
         </div>
 
         <!-- TAB 2: Manage Hero & About Me Section -->
-        <div id="tab-hero-about" class="admin-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
+        <div id="tab-hero-about" class="admin-tab-content"
+          style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
           <div class="admin-section-banner">
             <div>
               <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Hero & About Me Manager</h4>
-              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Edit your name, titles, bio intro, and CV download links live.</p>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Edit your name, titles, bio intro,
+                and CV download links live.</p>
             </div>
           </div>
 
@@ -1644,7 +1737,8 @@
             <div class="form-row">
               <div class="form-group col-6" style="margin-bottom: 15px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 6px;">Greeting Line</label>
-                <input type="text" id="adminHeroGreeting" value="Hello, my name is" required class="admin-input-field" />
+                <input type="text" id="adminHeroGreeting" value="Hello, my name is" required
+                  class="admin-input-field" />
               </div>
               <div class="form-group col-6" style="margin-bottom: 15px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 6px;">Your Name</label>
@@ -1653,37 +1747,61 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 15px;">
-              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Typing Animation Roles (comma-separated)</label>
-              <input type="text" id="adminHeroRoles" value="Flutter Developer, Mobile App Specialist, Frontend Web Dev, Competitive Programmer" required class="admin-input-field" />
+              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Typing Animation Roles
+                (comma-separated)</label>
+              <input type="text" id="adminHeroRoles"
+                value="Flutter Developer, Mobile App Specialist, Frontend Web Dev, Competitive Programmer" required
+                class="admin-input-field" />
             </div>
 
             <div class="form-group" style="margin-bottom: 15px;">
               <label style="display: block; font-weight: 600; margin-bottom: 6px;">Hero Intro Text</label>
-              <textarea id="adminHeroIntro" rows="3" class="admin-input-field">I specialize in crafting high-performance, cross-platform mobile applications and building robust SaaS products. Focused on delivering scalable business systems, automating workflows, and implementing modern development pipelines.</textarea>
+              <textarea id="adminHeroIntro" rows="3"
+                class="admin-input-field">I specialize in crafting high-performance, cross-platform mobile applications and building robust SaaS products. Focused on delivering scalable business systems, automating workflows, and implementing modern development pipelines.</textarea>
             </div>
 
             <div class="form-group" style="margin-bottom: 15px;">
               <label style="display: block; font-weight: 600; margin-bottom: 6px;">About Me Description Bio</label>
-              <textarea id="adminAboutBio" rows="4" class="admin-input-field">I’m a passionate problem solver and a creative developer with a strong foundation in algorithms, web development, Flutter Development and software engineering. From competitive programming to full-stack development, I love transforming ideas into reality through efficient algorithms and elegant designs.</textarea>
+              <textarea id="adminAboutBio" rows="4"
+                class="admin-input-field">I’m a passionate problem solver and a creative developer with a strong foundation in algorithms, web development, Flutter Development and software engineering. From competitive programming to full-stack development, I love transforming ideas into reality through efficient algorithms and elegant designs.</textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label style="display: block; font-weight: 600; margin-bottom: 6px;">About Me Profile Image (Upload File
+                or Enter URL / Path)</label>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <input type="file" id="adminAboutImgFile" accept="image/*" class="admin-input-field"
+                  style="padding: 8px; font-size: 12px;" />
+                <input type="text" id="adminAboutImgUrl" value="images/profile-1.jpeg"
+                  placeholder="images/profile-1.jpeg or https://..." required class="admin-input-field" />
+              </div>
+              <img id="adminAboutImgPreview" src="images/profile-1.jpeg" alt="Profile Preview"
+                style="height: 70px; margin-top: 8px; border-radius: 8px; border: 1px solid var(--border-card); object-fit: cover;" />
             </div>
 
             <div class="form-group" style="margin-bottom: 25px;">
               <label style="display: block; font-weight: 600; margin-bottom: 6px;">Download CV Link URL</label>
-              <input type="text" id="adminCvLink" value="https://drive.google.com/uc?export=download&id=1mdkyO72reTrHyIzkd8DbEBbvwZTDHnW2" class="admin-input-field" />
+              <input type="text" id="adminCvLink"
+                value="https://drive.google.com/uc?export=download&id=1mdkyO72reTrHyIzkd8DbEBbvwZTDHnW2"
+                class="admin-input-field" />
             </div>
 
-            <button type="submit" id="btnSaveHeroAbout" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Hero & About Changes</button>
+            <button type="submit" id="btnSaveHeroAbout" class="admin-action-btn primary-btn"><i class="fas fa-save"></i>
+              Save Hero & About Changes</button>
           </form>
         </div>
 
         <!-- TAB 3: Manage Services Section -->
-        <div id="tab-services" class="admin-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
+        <div id="tab-services" class="admin-tab-content"
+          style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
           <div class="admin-section-banner">
             <div>
               <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Services Manager</h4>
-              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Add or remove services displayed in the My Services section.</p>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Add or remove services displayed in
+                the My Services section.</p>
             </div>
-            <button id="btnOpenAddService" class="admin-action-btn primary-btn small"><i class="fas fa-plus"></i> Add Service</button>
+            <button id="btnOpenAddService" class="admin-action-btn primary-btn small"><i class="fas fa-plus"></i> Add
+              Service</button>
           </div>
 
           <!-- Add Service Form Box -->
@@ -1692,19 +1810,23 @@
               <div class="form-row">
                 <div class="form-group col-6">
                   <label>Service Title *</label>
-                  <input type="text" id="adminServTitle" placeholder="e.g. App Development" required class="admin-input-field" />
+                  <input type="text" id="adminServTitle" placeholder="e.g. App Development" required
+                    class="admin-input-field" />
                 </div>
                 <div class="form-group col-6">
                   <label>FontAwesome Icon Class *</label>
-                  <input type="text" id="adminServIcon" placeholder="e.g. fas fa-mobile-alt" required class="admin-input-field" />
+                  <input type="text" id="adminServIcon" placeholder="e.g. fas fa-mobile-alt" required
+                    class="admin-input-field" />
                 </div>
               </div>
               <div class="form-group">
                 <label>Service Description *</label>
-                <textarea id="adminServDesc" rows="2" placeholder="Briefly describe what you offer..." required class="admin-input-field"></textarea>
+                <textarea id="adminServDesc" rows="2" placeholder="Briefly describe what you offer..." required
+                  class="admin-input-field"></textarea>
               </div>
               <div class="form-actions-bar">
-                <button type="submit" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Service</button>
+                <button type="submit" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save
+                  Service</button>
                 <button type="button" id="btnCancelServiceForm" class="admin-action-btn cancel-btn">Cancel</button>
               </div>
             </form>
@@ -1720,9 +1842,11 @@
           <div class="admin-section-banner">
             <div>
               <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Skills & Expertise Manager</h4>
-              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Manage skill categories and chips displayed in your portfolio.</p>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Manage skill categories and chips
+                displayed in your portfolio.</p>
             </div>
-            <button id="btnOpenAddSkill" class="admin-action-btn primary-btn small"><i class="fas fa-plus"></i> Add Skill Category</button>
+            <button id="btnOpenAddSkill" class="admin-action-btn primary-btn small"><i class="fas fa-plus"></i> Add
+              Skill Category</button>
           </div>
 
           <!-- Add Skill Form Box -->
@@ -1731,19 +1855,23 @@
               <div class="form-row">
                 <div class="form-group col-6">
                   <label>Category Name *</label>
-                  <input type="text" id="adminSkillCatName" placeholder="e.g. Mobile Development" required class="admin-input-field" />
+                  <input type="text" id="adminSkillCatName" placeholder="e.g. Mobile Development" required
+                    class="admin-input-field" />
                 </div>
                 <div class="form-group col-6">
                   <label>FontAwesome Icon Class *</label>
-                  <input type="text" id="adminSkillCatIcon" placeholder="e.g. fas fa-mobile-alt" required class="admin-input-field" />
+                  <input type="text" id="adminSkillCatIcon" placeholder="e.g. fas fa-mobile-alt" required
+                    class="admin-input-field" />
                 </div>
               </div>
               <div class="form-group">
                 <label>Skill Chips (comma-separated) *</label>
-                <input type="text" id="adminSkillChips" placeholder="Flutter, Dart, GetX, Hive, Geolocation" required class="admin-input-field" />
+                <input type="text" id="adminSkillChips" placeholder="Flutter, Dart, GetX, Hive, Geolocation" required
+                  class="admin-input-field" />
               </div>
               <div class="form-actions-bar">
-                <button type="submit" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Skill Category</button>
+                <button type="submit" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Skill
+                  Category</button>
                 <button type="button" id="btnCancelSkillForm" class="admin-action-btn cancel-btn">Cancel</button>
               </div>
             </form>
@@ -1759,7 +1887,8 @@
           <div class="admin-section-banner">
             <div>
               <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Key Stats & Achievements Counter</h4>
-              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Update the counter numbers displayed live in the Stats section of your website.</p>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Update the counter numbers displayed
+                live in the Stats section of your website.</p>
             </div>
           </div>
 
@@ -1767,7 +1896,8 @@
             <div class="form-group" style="margin-bottom: 18px;">
               <label style="display: block; font-weight: 600; margin-bottom: 6px;">Total Projects Completed</label>
               <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="number" id="statInputCompleted" value="30" min="0" class="admin-input-field" style="width: 120px;" />
+                <input type="number" id="statInputCompleted" value="30" min="0" class="admin-input-field"
+                  style="width: 120px;" />
                 <span style="color: var(--text-sec); font-weight: 600;">+</span>
               </div>
             </div>
@@ -1775,7 +1905,8 @@
             <div class="form-group" style="margin-bottom: 18px;">
               <label style="display: block; font-weight: 600; margin-bottom: 6px;">Delivered Projects</label>
               <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="number" id="statInputDelivered" value="15" min="0" class="admin-input-field" style="width: 120px;" />
+                <input type="number" id="statInputDelivered" value="15" min="0" class="admin-input-field"
+                  style="width: 120px;" />
                 <span style="color: var(--text-sec); font-weight: 600;">+</span>
               </div>
             </div>
@@ -1783,23 +1914,32 @@
             <div class="form-group" style="margin-bottom: 18px;">
               <label style="display: block; font-weight: 600; margin-bottom: 6px;">Published Apps</label>
               <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="number" id="statInputPublished" value="5" min="0" class="admin-input-field" style="width: 120px;" />
+                <input type="number" id="statInputPublished" value="5" min="0" class="admin-input-field"
+                  style="width: 120px;" />
                 <span style="color: var(--text-sec); font-weight: 600;">+</span>
               </div>
             </div>
 
-            <div class="form-group" style="margin-bottom: 18px;">
-              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Career Start Month &amp; Year (Real-time Month-to-Year Counter)</label>
-              <input type="month" id="statInputStartDate" value="2024-02" class="admin-input-field" style="max-width: 250px;" />
-            </div>
-
             <div class="form-group" style="margin-bottom: 25px;">
-              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Custom Text Override (Optional)</label>
-              <input type="text" id="statInputExp" placeholder="Leave empty for real-time month/year calculation" class="admin-input-field" style="max-width: 250px;" />
+              <label style="display: block; font-weight: 600; margin-bottom: 6px;">Years of Experience — Total
+                Months</label>
+              <p style="margin: 0 0 8px; font-size: 12px; color: var(--text-sec);">
+                Enter the total number of months of experience. e.g. <strong>30</strong> = 2 Yrs 6 Mos. The card will
+                animate from 0 days → months → years.
+              </p>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="number" id="statInputExpMonths" min="0" value="30" class="admin-input-field"
+                  style="width: 120px;" />
+                <span style="color: var(--text-sec); font-size: 13px;">months total</span>
+              </div>
+              <p id="statExpPreview"
+                style="margin: 8px 0 0; font-size: 13px; color: var(--primary-color); font-weight: 600;"></p>
             </div>
 
-            <button type="submit" id="btnSaveStats" class="admin-action-btn primary-btn"><i class="fas fa-sync-alt"></i> Update Live Counters</button>
-            <p id="statsUpdateStatus" style="display: none; color: #22c55e; margin-top: 10px; font-weight: 600;">✓ Stats updated live on website!</p>
+            <button type="submit" id="btnSaveStats" class="admin-action-btn primary-btn"><i class="fas fa-sync-alt"></i>
+              Update Live Counters</button>
+            <p id="statsUpdateStatus" style="display: none; color: #22c55e; margin-top: 10px; font-weight: 600;">✓ Stats
+              updated live on website!</p>
           </form>
         </div>
 
@@ -1808,7 +1948,8 @@
           <div class="admin-section-banner">
             <div>
               <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Social Links & Contact Info Manager</h4>
-              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Update your email, location, GitHub, and LinkedIn links.</p>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Update your email, location, GitHub,
+                and LinkedIn links.</p>
             </div>
           </div>
 
@@ -1816,7 +1957,8 @@
             <div class="form-row">
               <div class="form-group col-6" style="margin-bottom: 15px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 6px;">Contact Email</label>
-                <input type="email" id="adminContactEmail" value="hossainahammed627@gmail.com" required class="admin-input-field" />
+                <input type="email" id="adminContactEmail" value="hossainahammed627@gmail.com" required
+                  class="admin-input-field" />
               </div>
               <div class="form-group col-6" style="margin-bottom: 15px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 6px;">Contact Address / City</label>
@@ -1827,15 +1969,18 @@
             <div class="form-row">
               <div class="form-group col-6" style="margin-bottom: 15px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 6px;">GitHub Profile URL</label>
-                <input type="text" id="adminSocialGithub" value="https://github.com/hossainahammed" required class="admin-input-field" />
+                <input type="text" id="adminSocialGithub" value="https://github.com/hossainahammed" required
+                  class="admin-input-field" />
               </div>
               <div class="form-group col-6" style="margin-bottom: 25px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 6px;">LinkedIn Profile URL</label>
-                <input type="text" id="adminSocialLinkedin" value="https://www.linkedin.com/in/hossain-ahammed" required class="admin-input-field" />
+                <input type="text" id="adminSocialLinkedin" value="https://www.linkedin.com/in/hossain-ahammed" required
+                  class="admin-input-field" />
               </div>
             </div>
 
-            <button type="submit" id="btnSaveSocialContact" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Social & Contact Links</button>
+            <button type="submit" id="btnSaveSocialContact" class="admin-action-btn primary-btn"><i
+                class="fas fa-save"></i> Save Social & Contact Links</button>
           </form>
         </div>
 
@@ -1844,9 +1989,11 @@
           <div class="admin-section-banner">
             <div>
               <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Contact Messages Inbox</h4>
-              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Read messages submitted by clients and recruiters from your contact form.</p>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Read messages submitted by clients
+                and recruiters from your contact form.</p>
             </div>
-            <button id="btnClearInbox" class="admin-action-btn cancel-btn small"><i class="fas fa-trash"></i> Clear Read Messages</button>
+            <button id="btnClearInbox" class="admin-action-btn cancel-btn small"><i class="fas fa-trash"></i> Clear Read
+              Messages</button>
           </div>
 
           <div id="adminInboxList" class="admin-inbox-grid" style="margin-top: 20px;">
