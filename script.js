@@ -412,8 +412,8 @@ $(document).ready(function () {
 
     const currentStreakSubtext = (currentStreakStart && currentStreak > 0)
       ? (currentStreakEnd && currentStreakStart !== currentStreakEnd
-          ? `${formatDate(currentStreakStart)} – ${formatDate(currentStreakEnd)}`
-          : `${formatDate(currentStreakStart)}`)
+        ? `${formatDate(currentStreakStart)} – ${formatDate(currentStreakEnd)}`
+        : `${formatDate(currentStreakStart)}`)
       : "Rock - Hard Place";
 
     // Hide any legacy default footer elements
@@ -1938,7 +1938,7 @@ $(document).ready(function () {
       const id = $card.attr("data-id");
       if (id && !deletedIds.has(id)) {
         let rawFeatures = [];
-        $card.find(".proj-features li").each(function() { rawFeatures.push($(this).text()); });
+        $card.find(".proj-features li").each(function () { rawFeatures.push($(this).text()); });
         const githubHref = $card.find("a.code-btn").attr("href") || "";
         domProjects.push({
           id: id,
@@ -1947,9 +1947,9 @@ $(document).ready(function () {
           image: $card.find(".project-img-wrapper img").attr("src") || "",
           desc: $card.find(".proj-desc").text().replace("Problem Solved:", "").trim(),
           badge: $card.find(".client-badge").length && $card.find(".team-badge").length ? "both" :
-                 $card.find(".client-badge").length ? "client" :
-                 $card.find(".team-badge").length ? "team" :
-                 $card.find(".solo-badge").length ? "solo" : "",
+            $card.find(".client-badge").length ? "client" :
+              $card.find(".team-badge").length ? "team" :
+                $card.find(".solo-badge").length ? "solo" : "",
           codeType: $card.find("a.code-btn").length ? "open" : "locked",
           github: githubHref && githubHref !== "#" ? githubHref : "",
           features: rawFeatures
@@ -1979,8 +1979,8 @@ $(document).ready(function () {
     // Group by category
     const groups = {
       flutter: { label: "📱 Flutter / Mobile Apps", icon: "fa-mobile-alt", projects: [] },
-      web:     { label: "🌐 Web Applications",      icon: "fa-globe",      projects: [] },
-      php:     { label: "🖥️ Backend & API",          icon: "fa-server",     projects: [] }
+      web: { label: "🌐 Web Applications", icon: "fa-globe", projects: [] },
+      php: { label: "🖥️ Backend & API", icon: "fa-server", projects: [] }
     };
 
     allProjects.forEach(proj => {
@@ -2012,9 +2012,9 @@ $(document).ready(function () {
       group.projects.forEach((proj) => {
         const codeLabel = proj.codeType === "open" || proj.github ? "🔓 Code" : "🔒 Locked";
         const badgeLabel = proj.badge === "client" ? "Client" :
-                           proj.badge === "team" ? "Team" :
-                           proj.badge === "both" ? "Client+Team" :
-                           proj.badge === "solo" ? "Personal" : "";
+          proj.badge === "team" ? "Team" :
+            proj.badge === "both" ? "Client+Team" :
+              proj.badge === "solo" ? "Personal" : "";
         const cardHtml = `
           <div class="admin-item-card" data-proj-id="${proj.id}" style="border-left: 2px solid var(--border-card);">
             <div style="flex: 1; min-width: 0;">
@@ -2059,18 +2059,18 @@ $(document).ready(function () {
       if ($card.length) {
         const githubHref = $card.find("a.code-btn").attr("href") || "";
         let rawFeatures = [];
-        $card.find(".proj-features li").each(function() { rawFeatures.push($(this).text()); });
+        $card.find(".proj-features li").each(function () { rawFeatures.push($(this).text()); });
         proj = {
           id: projId,
           title: $card.attr("data-title") || $card.find(".proj-title").text() || "",
           category: getCardCategoryFromDOM($card),
           badge: $card.find(".client-badge").length && $card.find(".team-badge").length ? "both" :
-                 $card.find(".client-badge").length ? "client" :
-                 $card.find(".team-badge").length ? "team" :
-                 $card.find(".solo-badge").length ? "solo" : "",
+            $card.find(".client-badge").length ? "client" :
+              $card.find(".team-badge").length ? "team" :
+                $card.find(".solo-badge").length ? "solo" : "",
           image: $card.find(".project-img-wrapper img").attr("src") || "",
           desc: $card.find(".proj-desc").text().replace("Problem Solved:", "").trim(),
-          tech: $card.find(".tech-pill").map(function() { return $(this).text(); }).get().join(", "),
+          tech: $card.find(".tech-pill").map(function () { return $(this).text(); }).get().join(", "),
           features: rawFeatures,
           codeType: $card.find("a.code-btn").length ? "open" : "locked",
           playstore: $card.attr("data-playstoreurl") && $card.attr("data-playstoreurl") !== "#" ? $card.attr("data-playstoreurl") : "",
@@ -2095,7 +2095,7 @@ $(document).ready(function () {
     // Features: join array to newline-separated text
     const featArray = Array.isArray(proj.features)
       ? proj.features
-      : (typeof proj.features === "string" ? proj.features.split(/[\n,]/).map(f=>f.trim()).filter(Boolean) : []);
+      : (typeof proj.features === "string" ? proj.features.split(/[\n,]/).map(f => f.trim()).filter(Boolean) : []);
     $("#pf-features").val(featArray.join("\n"));
     $("#pf-tech").val(proj.tech || "");
     $("#pf-images").val(proj.images || "");
@@ -2696,7 +2696,7 @@ $(document).ready(function () {
             color: #fff; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 10px; z-index: 2;
           ">#${idx + 1}</div>
           <img src="${src}" alt="Tile ${idx + 1}" style="width: 100%; height: 75px; object-fit: contain; border-radius: 4px; margin-bottom: 4px;" onerror="this.src='images/SmartPlanAi.png'" />
-          <div style="font-size: 9px; color: var(--text-sec); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-bottom: 4px;">${file.length > 15 ? file.substring(0,12) + '...' : file}</div>
+          <div style="font-size: 9px; color: var(--text-sec); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-bottom: 4px;">${file.length > 15 ? file.substring(0, 12) + '...' : file}</div>
           <div style="display: flex; justify-content: center; gap: 3px;">
             <button type="button" class="btn-sc-move-left admin-action-btn cancel-btn small" data-idx="${idx}" style="padding: 2px 6px; font-size: 10px;" ${idx === 0 ? "disabled style='opacity:0.3; padding: 2px 6px; font-size: 10px;'" : ""} title="Move Left">&leftarrow;</button>
             <button type="button" class="btn-sc-move-right admin-action-btn cancel-btn small" data-idx="${idx}" style="padding: 2px 6px; font-size: 10px;" ${idx === items.length - 1 ? "disabled style='opacity:0.3; padding: 2px 6px; font-size: 10px;'" : ""} title="Move Right">&rightarrow;</button>
@@ -3229,22 +3229,22 @@ $(document).ready(function () {
     const applyStats = (data) => {
       const comp = String(
         (data && data.comp !== undefined && data.comp !== null && data.comp !== "") ? data.comp :
-        ((data && data.completed !== undefined && data.completed !== null && data.completed !== "") ? data.completed :
-        (localStorage.getItem("stat_completed") || "30"))
+          ((data && data.completed !== undefined && data.completed !== null && data.completed !== "") ? data.completed :
+            (localStorage.getItem("stat_completed") || "30"))
       );
       const deliv = String(
         (data && data.deliv !== undefined && data.deliv !== null && data.deliv !== "") ? data.deliv :
-        ((data && data.delivered !== undefined && data.delivered !== null && data.delivered !== "") ? data.delivered :
-        (localStorage.getItem("stat_delivered") || "15"))
+          ((data && data.delivered !== undefined && data.delivered !== null && data.delivered !== "") ? data.delivered :
+            (localStorage.getItem("stat_delivered") || "15"))
       );
       const pub = String(
         (data && data.pub !== undefined && data.pub !== null && data.pub !== "") ? data.pub :
-        ((data && data.published !== undefined && data.published !== null && data.published !== "") ? data.published :
-        (localStorage.getItem("stat_published") || "5"))
+          ((data && data.published !== undefined && data.published !== null && data.published !== "") ? data.published :
+            (localStorage.getItem("stat_published") || "5"))
       );
       const expMonths = String(
         (data && data.expMonths !== undefined && data.expMonths !== null && data.expMonths !== "") ? data.expMonths :
-        (localStorage.getItem("stat_exp_months") || "30")
+          (localStorage.getItem("stat_exp_months") || "30")
       );
 
       localStorage.setItem("stat_completed", comp);
