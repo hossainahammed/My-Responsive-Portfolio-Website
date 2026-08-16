@@ -2969,14 +2969,31 @@ $(document).ready(function () {
     renderShowcaseSerializer();
   });
 
-  // Move Project Up / Down Serializer Handlers
+  // Move Project Up / Down Serializer Handlers (Category-Aware Reordering)
   $(document).on("click", ".btn-move-proj-up", function () {
     const id = $(this).attr("data-id");
-    const idx = localProjectsCache.findIndex(p => p.id === id);
-    if (idx > 0) {
-      const temp = localProjectsCache[idx];
-      localProjectsCache[idx] = localProjectsCache[idx - 1];
-      localProjectsCache[idx - 1] = temp;
+    const globalIdx = localProjectsCache.findIndex(p => p.id === id);
+    if (globalIdx === -1) return;
+
+    const targetProj = localProjectsCache[globalIdx];
+    const targetCat = normalizeCategory(targetProj.category);
+
+    // Find all project indices belonging to the same category
+    const catIndices = [];
+    localProjectsCache.forEach((p, idx) => {
+      if (normalizeCategory(p.category) === targetCat) {
+        catIndices.push(idx);
+      }
+    });
+
+    const posInCat = catIndices.indexOf(globalIdx);
+    if (posInCat > 0) {
+      const prevGlobalIdx = catIndices[posInCat - 1];
+      // Swap positions in localProjectsCache
+      const temp = localProjectsCache[globalIdx];
+      localProjectsCache[globalIdx] = localProjectsCache[prevGlobalIdx];
+      localProjectsCache[prevGlobalIdx] = temp;
+
       localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
       renderProjectsToDOM(localProjectsCache);
       renderAdminProjects();
@@ -2985,11 +3002,28 @@ $(document).ready(function () {
 
   $(document).on("click", ".btn-move-proj-down", function () {
     const id = $(this).attr("data-id");
-    const idx = localProjectsCache.findIndex(p => p.id === id);
-    if (idx >= 0 && idx < localProjectsCache.length - 1) {
-      const temp = localProjectsCache[idx];
-      localProjectsCache[idx] = localProjectsCache[idx + 1];
-      localProjectsCache[idx + 1] = temp;
+    const globalIdx = localProjectsCache.findIndex(p => p.id === id);
+    if (globalIdx === -1) return;
+
+    const targetProj = localProjectsCache[globalIdx];
+    const targetCat = normalizeCategory(targetProj.category);
+
+    // Find all project indices belonging to the same category
+    const catIndices = [];
+    localProjectsCache.forEach((p, idx) => {
+      if (normalizeCategory(p.category) === targetCat) {
+        catIndices.push(idx);
+      }
+    });
+
+    const posInCat = catIndices.indexOf(globalIdx);
+    if (posInCat >= 0 && posInCat < catIndices.length - 1) {
+      const nextGlobalIdx = catIndices[posInCat + 1];
+      // Swap positions in localProjectsCache
+      const temp = localProjectsCache[globalIdx];
+      localProjectsCache[globalIdx] = localProjectsCache[nextGlobalIdx];
+      localProjectsCache[nextGlobalIdx] = temp;
+
       localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
       renderProjectsToDOM(localProjectsCache);
       renderAdminProjects();
