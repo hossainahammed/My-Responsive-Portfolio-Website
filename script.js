@@ -1242,7 +1242,7 @@ $(document).ready(function () {
   }
 
   /* Projects: card click — Flutter shows phone carousel, web shows iframe */
-  $(".project-card").on("click", function () {
+  $(document).on("click", ".project-card", function () {
     var $card = $(this);
     var url = ($card.attr("data-liveurl") || "").trim();
     var title = $card.attr("data-title") || "";
@@ -1271,7 +1271,7 @@ $(document).ready(function () {
   });
 
   /* Appetize live preview */
-  $(".project-card .appetize-btn").on("click", function (e) {
+  $(document).on("click", ".project-card .appetize-btn", function (e) {
     e.preventDefault();
     e.stopPropagation();
     var $card = $(this).closest(".project-card");
@@ -1290,7 +1290,7 @@ $(document).ready(function () {
   });
 
   /* Live button: Flutter → phone carousel; Web → iframe */
-  $(".project-card .live-btn").on("click", function (e) {
+  $(document).on("click", ".project-card .live-btn", function (e) {
     e.preventDefault();
     e.stopPropagation();
     var $card = $(this).closest(".project-card");
@@ -1320,7 +1320,7 @@ $(document).ready(function () {
   });
 
   // Prevent modal opening when clicking the "Code" button inside project cards
-  $(".project-card .code-btn").on("click", function (e) {
+  $(document).on("click", ".project-card .code-btn", function (e) {
     e.stopPropagation();
   });
 
@@ -1897,7 +1897,9 @@ $(document).ready(function () {
   ];
 
   let localProjectsCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
-
+  if (!Array.isArray(localProjectsCache) || localProjectsCache.length === 0) {
+    localProjectsCache = BASELINE_PROJECTS;
+  }
   localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
 
   function normalizeCategory(cat) {
@@ -2020,7 +2022,8 @@ $(document).ready(function () {
       }
     });
 
-    projects.forEach((proj) => {
+    // Iterate in reverse so that prepending elements preserves array order [proj1, proj2, proj3]
+    projects.slice().reverse().forEach((proj) => {
       const projId = proj.id || ("proj-" + String(proj.title || "").toLowerCase().replace(/[^a-z0-9]+/g, "-"));
       if (deletedIds.has(projId) || (proj.title && proj.title.toLowerCase().includes("dummy"))) {
         $(`.project-card[data-id="${projId}"]`).remove();
@@ -2060,12 +2063,13 @@ $(document).ready(function () {
   function syncProjectsFromBackend() {
     // 1. Initial local cache render with category normalization
     let localCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
-    if (Array.isArray(localCache) && localCache.length > 0) {
-      localCache = localCache.map(p => ({ ...p, category: normalizeCategory(p.category) }));
-      localProjectsCache = localCache;
-      localStorage.setItem("custom_portfolio_projects", JSON.stringify(localCache));
-      renderProjectsToDOM(localCache);
+    if (!Array.isArray(localCache) || localCache.length === 0) {
+      localCache = BASELINE_PROJECTS;
     }
+    localCache = localCache.map(p => ({ ...p, category: normalizeCategory(p.category) }));
+    localProjectsCache = localCache;
+    localStorage.setItem("custom_portfolio_projects", JSON.stringify(localCache));
+    renderProjectsToDOM(localCache);
 
     // 2. Real-time Firestore sync if backend connected
     if (isFirebaseConfigured() && db) {
@@ -2080,18 +2084,31 @@ $(document).ready(function () {
           const deletedIds = new Set(JSON.parse(localStorage.getItem("deleted_project_ids") || "[]"));
           const mergedMap = new Map();
 
-          // 1) Keep existing local cache projects (preserves newly added projects)
-          (localProjectsCache || []).forEach(p => {
-            if (p && p.id && !deletedIds.has(p.id)) {
-              mergedMap.set(p.id, { ...p, category: normalizeCategory(p.category) });
+          // 1) Remote projects from Firestore
+          remoteProjects.forEach(rp => {
+            if (rp && rp.id && !deletedIds.has(rp.id)) {
+              mergedMap.set(rp.id, { ...rp, category: normalizeCategory(rp.category) });
             }
           });
 
-          // 2) Merge remote projects from Firestore
-          remoteProjects.forEach(rp => {
-            if (rp && rp.id && !deletedIds.has(rp.id)) {
-              const existing = mergedMap.get(rp.id) || {};
-              mergedMap.set(rp.id, { ...existing, ...rp, category: normalizeCategory(rp.category || existing.category) });
+          // 2) Merge local cache projects — local updates overwrite remote unless remote is explicitly newer
+          (localProjectsCache || []).forEach(lp => {
+            if (lp && lp.id && !deletedIds.has(lp.id)) {
+              const existingRemote = mergedMap.get(lp.id);
+              if (existingRemote) {
+                const localTime = lp.updatedAt ? new Date(lp.updatedAt).getTime() : 0;
+                const remoteTime = existingRemote.updatedAt
+                  ? (existingRemote.updatedAt.toMillis ? existingRemote.updatedAt.toMillis() : new Date(existingRemote.updatedAt).getTime())
+                  : 0;
+
+                if (localTime >= remoteTime) {
+                  mergedMap.set(lp.id, { ...existingRemote, ...lp, category: normalizeCategory(lp.category || existingRemote.category) });
+                } else {
+                  mergedMap.set(lp.id, { ...lp, ...existingRemote, category: normalizeCategory(existingRemote.category || lp.category) });
+                }
+              } else {
+                mergedMap.set(lp.id, { ...lp, category: normalizeCategory(lp.category) });
+              }
             }
           });
 
@@ -2369,7 +2386,8 @@ $(document).ready(function () {
     const projObj = {
       id: projId,
       title, category, badge, image, desc, tech, features,
-      codeType, github, playstore, apk, live, images, imageFolder
+      codeType, github, playstore, apk, live, images, imageFolder,
+      updatedAt: Date.now()
     };
 
     const newProjectCardHtml = createProjectCardHtml(projObj);
