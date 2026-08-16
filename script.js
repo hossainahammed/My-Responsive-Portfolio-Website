@@ -155,7 +155,8 @@ $(document).ready(function () {
     });
 
     const isMobile = window.innerWidth <= 768;
-    const numParticles = isMobile ? 22 : Math.min(Math.floor(window.innerWidth / 20), 65);
+    const numParticles = isMobile ? 12 : Math.min(Math.floor(window.innerWidth / 20), 55);
+    const maxConnectDist = isMobile ? 85 : 120;
     const particles = [];
     const colors = [
       "rgba(56, 189, 248, 0.7)",  // Cyan
@@ -168,14 +169,14 @@ $(document).ready(function () {
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        radius: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * (isMobile ? 0.35 : 0.5),
+        vy: (Math.random() - 0.5) * (isMobile ? 0.35 : 0.5),
+        radius: Math.random() * 1.8 + 1,
         color: colors[Math.floor(Math.random() * colors.length)],
       });
     }
 
-    // Cache photo element bounding boxes on resize/load (NOT on scroll)
+    // Cache photo element bounding boxes on resize/load
     let photoRects = [];
     function updatePhotoRects() {
       photoRects = [];
@@ -183,10 +184,10 @@ $(document).ready(function () {
         const r = img.getBoundingClientRect();
         if (r.width > 0 && r.height > 0) {
           photoRects.push({
-            left: r.left - 30,
-            right: r.right + 30,
-            top: r.top - 30,
-            bottom: r.bottom + 30
+            left: r.left - 20,
+            right: r.right + 20,
+            top: r.top - 20,
+            bottom: r.bottom + 20
           });
         }
       });
@@ -205,8 +206,14 @@ $(document).ready(function () {
       return false;
     }
 
+    let laserPulseTime = 0;
+    let isCanvasVisible = true;
+    let canvasAnimId = null;
+
     function drawParticles() {
+      if (!isCanvasVisible) return;
       ctx.clearRect(0, 0, width, height);
+      laserPulseTime += 16;
 
       for (let i = 0; i < particles.length; i++) {
         let p = particles[i];
@@ -233,16 +240,28 @@ $(document).ready(function () {
           let dy = p.y - p2.y;
           let dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 110) {
+          if (dist < maxConnectDist) {
+            const alpha = 0.18 * (1 - dist / maxConnectDist);
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(56, 189, 248, ${0.15 * (1 - dist / 110)})`;
-            ctx.lineWidth = 0.8;
+            ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+            ctx.lineWidth = 0.7;
             ctx.stroke();
+
+            // Web3 Laser Energy Pulse traveling along connection line
+            if (!isMobile && (i + j) % 3 === 0) {
+              const progress = ((laserPulseTime * 0.0012 + (i * 0.4)) % 1);
+              const pulseX = p.x + (p2.x - p.x) * progress;
+              const pulseY = p.y + (p2.y - p.y) * progress;
+
+              ctx.beginPath();
+              ctx.arc(pulseX, pulseY, 1.6, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(255, 0, 127, ${Math.min(alpha * 2.5, 0.8)})`;
+              ctx.fill();
+            }
           }
         }
-
         if (window.innerWidth > 991) {
           let mdx = p.x - mouseX;
           let mdy = p.y - mouseY;
