@@ -295,9 +295,11 @@ section {
 }
 
 .max-width {
-  max-width: 1300px;
-  padding: 0 80px;
-  margin: auto;
+  max-width: 1600px;
+  width: 100%;
+  padding: 0 clamp(24px, 4vw, 80px);
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .about,
@@ -2788,7 +2790,7 @@ footer span a:hover {
 
 /* Certifications section styling */
 .certifications {
-  background: var(--bg-sec);
+  background: var(--bg-main);
   color: var(--text-main);
   transition: var(--theme-transition);
 }
