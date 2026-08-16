@@ -287,6 +287,131 @@ $(document).ready(function () {
     this.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)";
   });
 
+  /* ============================================================
+     "Code → App" Live Morphing Animation Engine & Caches
+     ============================================================ */
+  let localCodeMorphCache = [
+    {
+      id: "cm-1",
+      active: true,
+      title: "SmartPlan AI — Live App",
+      filename: "task_manager.dart",
+      compileMsg: "Building Flutter APK...",
+      image: "images/SmartPlanAi.png",
+      code: `class TaskManager extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: TaskScreen(),
+    );
+  }
+}`
+    },
+    {
+      id: "cm-2",
+      active: true,
+      title: "Sova Fitness — Mobile App",
+      filename: "fitness_tracker.dart",
+      compileMsg: "Compiling Dart Bytecode...",
+      image: "images/Sova/1 21.png",
+      code: `class SovaFitness extends StatefulWidget {
+  @override
+  State<SovaFitness> createState() {
+    return _SovaState();
+  }
+}`
+    },
+    {
+      id: "cm-3",
+      active: true,
+      title: "Gym Management App",
+      filename: "gym_workout.dart",
+      compileMsg: "Connecting REST API & State...",
+      image: "images/Gymnasium Complete Project.png",
+      code: `class GymWorkoutApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      home: GymDashboard(),
+    );
+  }
+}`
+    }
+  ];
+
+  let localOrbitCache = ["Flutter", "Dart", "Firebase", "REST API", "Git", "Node.js"];
+  let currentMorphIdx = 0;
+
+  function runCodeToAppCycle() {
+    const $morphLayer = $("#codeAppMorphLayer");
+    if (!$morphLayer.length) return;
+
+    const activeItems = (localCodeMorphCache || []).filter(item => item.active !== false);
+
+    if (!activeItems.length) {
+      $morphLayer.html(`
+        <div class="code-morph-box">
+          <div style="color: #94a3b8; font-size: 11px; text-align: center;">No active Code → App items configured in Admin Dashboard.</div>
+        </div>
+      `);
+      return;
+    }
+
+    currentMorphIdx = currentMorphIdx % activeItems.length;
+    const item = activeItems[currentMorphIdx];
+
+    $("#codeAppFilename").text(item.filename || "app.dart");
+
+    const codeText = item.code || "class TaskManager extends StatelessWidget {}";
+    const safeCode = codeText
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    const highlightedCode = safeCode
+      .replace(/\b(class|extends|StatefulWidget|StatelessWidget|Widget|State|return|override|import)\b/g, '<span class="code-keyword">$1</span>')
+      .replace(/\b(BuildContext|MaterialApp|GetMaterialApp|Container|Text|Column|Row)\b/g, '<span class="code-class">$1</span>');
+
+    // Step 1: Render Code View
+    const codeHtml = `
+      <div class="code-morph-box">
+        <pre class="code-content-pre"><code>${highlightedCode}</code></pre>
+        <div class="compile-status-bar">
+          <i class="fas fa-cog fa-spin"></i> <span>${item.compileMsg || 'Building Flutter APK...'}</span>
+        </div>
+      </div>
+    `;
+    $morphLayer.html(codeHtml).css("opacity", "1");
+
+    // Step 2: Transition to App UI Screenshot after 2.5 seconds
+    setTimeout(() => {
+      $morphLayer.css("opacity", "0");
+
+      setTimeout(() => {
+        const appUiHtml = `
+          <div class="app-ui-morph-box">
+            <img src="${item.image}" alt="${item.title}" onerror="this.src='images/SmartPlanAi.png'" />
+            <div class="app-ui-tag"><i class="fab fa-flutter"></i> ${item.title}</div>
+          </div>
+        `;
+        $morphLayer.html(appUiHtml).css("opacity", "1");
+
+        // Step 3: Transition back & move to next item after 3.0 seconds
+        setTimeout(() => {
+          $morphLayer.css("opacity", "0");
+
+          setTimeout(() => {
+            currentMorphIdx = (currentMorphIdx + 1) % activeItems.length;
+            runCodeToAppCycle();
+          }, 400);
+        }, 3000);
+      }, 400);
+    }, 2500);
+  }
+
+  // Start Code -> App Morphing loop 2 seconds after page load
+  setTimeout(runCodeToAppCycle, 2000);
+
   // Theme toggle functionality
   const $themeToggle = $("#themeToggle");
   const $themeIcon = $themeToggle.find("i");
@@ -1433,12 +1558,14 @@ $(document).ready(function () {
     $("#admin-email").val("");
     $("#admin-key").val("");
     $("#admin-error").hide();
+    $("#adminLogoutBtn, #adminLogoutBtnHeader").hide();
   }
 
   function showAdminDashboard() {
     $("#admin-login-step").hide();
     $("#admin-reset-step").hide();
     $("#admin-dashboard-step").css("display", "flex");
+    $("#adminLogoutBtn, #adminLogoutBtnHeader").css("display", "inline-flex").show();
     if (isFirebaseConfigured()) {
       $("#adminStatusBadge").text("🔥 Firebase Connected").removeClass("offline");
     } else {
@@ -1453,21 +1580,28 @@ $(document).ready(function () {
     e.preventDefault();
     $("#adminModal").show().attr("aria-hidden", "false");
     $("body").addClass("modal-open");
-    showAdminLoginScreen();
+    if (localStorage.getItem("portfolio_admin_logged_in") === "true") {
+      showAdminDashboard();
+    } else {
+      showAdminLoginScreen();
+    }
   });
 
   $(document).on("click", "#openAdminLogin", function (e) {
     e.preventDefault();
     $("#adminModal").show().attr("aria-hidden", "false");
     $("body").addClass("modal-open");
-    showAdminLoginScreen();
+    if (localStorage.getItem("portfolio_admin_logged_in") === "true") {
+      showAdminDashboard();
+    } else {
+      showAdminLoginScreen();
+    }
   });
 
   // Close Admin Modal
   $(".admin-close").on("click", function () {
     $("#adminModal").hide().attr("aria-hidden", "true");
     $("body").removeClass("modal-open");
-    showAdminLoginScreen();
   });
 
   // Tab Navigation
@@ -1478,6 +1612,18 @@ $(document).ready(function () {
 
     $(".admin-tab-content").hide().removeClass("active");
     $("#" + targetTab).show().addClass("active");
+  });
+
+  // Admin Logout Handler
+  $(document).on("click", "#adminLogoutBtn, #adminLogoutBtnHeader", async function () {
+    if (confirm("Are you sure you want to log out of the Admin Dashboard?")) {
+      if (isFirebaseConfigured() && auth) {
+        try { await signOut(auth); } catch (e) { }
+      }
+      localStorage.removeItem("portfolio_admin_logged_in");
+      showAdminLoginScreen();
+      alert("✓ Logged out successfully.");
+    }
   });
 
   // Admin Login Handler
@@ -2493,6 +2639,8 @@ $(document).ready(function () {
   syncProjectsFromBackend();
   syncShowcaseFromBackend();
   syncHeroAboutFromBackend();
+  syncCodeMorphFromBackend();
+  syncOrbitFromBackend();
   syncServicesFromBackend();
   syncSkillsFromBackend();
   syncStatsFromBackend();
@@ -2510,6 +2658,7 @@ $(document).ready(function () {
 
     if (targetTab === "tab-projects") renderAdminProjects();
     else if (targetTab === "tab-hero-about") loadAdminHeroAbout();
+    else if (targetTab === "tab-code-orbit") { renderAdminCodeMorphList(); loadAdminOrbit(); }
     else if (targetTab === "tab-services") renderAdminServices();
     else if (targetTab === "tab-skills") renderAdminSkills();
     else if (targetTab === "tab-stats") loadAdminStats();
@@ -2983,6 +3132,304 @@ $(document).ready(function () {
     }
     syncHeroAboutFromBackend();
     alert("✓ Hero & About Me settings updated live!");
+  });
+
+  /* ============================================================
+     Code → App Animation & Flutter Stack Orbit Manager & Engine
+     ============================================================ */
+
+  // 1. Sync Orbit Pills to DOM
+  function syncOrbitFromBackend() {
+    const applyOrbit = (arr) => {
+      if (!Array.isArray(arr) || !arr.length) return;
+      localOrbitCache = arr;
+      localStorage.setItem("settings_flutter_orbit", JSON.stringify(arr));
+
+      const $orbitContainer = $("#flutterStackOrbit");
+      if (!$orbitContainer.length) return;
+      $orbitContainer.empty();
+
+      const iconMap = {
+        flutter: "fab fa-flutter",
+        dart: "fas fa-code",
+        firebase: "fas fa-fire",
+        "rest api": "fas fa-network-wired",
+        git: "fab fa-github",
+        github: "fab fa-github",
+        "node.js": "fab fa-node-js",
+        node: "fab fa-node-js",
+        react: "fab fa-react",
+        html: "fab fa-html5",
+        css: "fab fa-css3-alt"
+      };
+
+      arr.forEach((tech, idx) => {
+        const key = tech.toLowerCase().trim();
+        const iconClass = iconMap[key] || "fas fa-microchip";
+        const classIdx = (idx % 6) + 1;
+        $orbitContainer.append(`
+          <div class="orbit-item orbit-${classIdx}"><i class="${iconClass}"></i> ${tech}</div>
+        `);
+      });
+    };
+
+    const saved = localStorage.getItem("settings_flutter_orbit");
+    if (saved) {
+      try { applyOrbit(JSON.parse(saved)); } catch (e) { }
+    } else {
+      applyOrbit(localOrbitCache);
+    }
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        onSnapshot(doc(db, "settings", "flutter_orbit"), (docSnap) => {
+          if (docSnap.exists() && Array.isArray(docSnap.data().techs)) applyOrbit(docSnap.data().techs);
+        }, (err) => console.warn("Firestore flutter_orbit listener warning:", err));
+      } catch (e) { }
+    }
+  }
+
+  // 2. Sync Code Morph Items from Backend
+  function syncCodeMorphFromBackend() {
+    const applyCodeMorph = (arr) => {
+      if (!Array.isArray(arr) || !arr.length) return;
+      localCodeMorphCache = arr;
+      localStorage.setItem("settings_code_morph_items", JSON.stringify(arr));
+      if ($("#tab-code-orbit").is(":visible")) renderAdminCodeMorphList();
+    };
+
+    const saved = localStorage.getItem("settings_code_morph_items");
+    if (saved) {
+      try { applyCodeMorph(JSON.parse(saved)); } catch (e) { }
+    } else {
+      localStorage.setItem("settings_code_morph_items", JSON.stringify(localCodeMorphCache));
+    }
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        onSnapshot(doc(db, "settings", "code_morph_items"), (docSnap) => {
+          if (docSnap.exists() && Array.isArray(docSnap.data().items)) applyCodeMorph(docSnap.data().items);
+        }, (err) => console.warn("Firestore code_morph_items listener warning:", err));
+      } catch (e) { }
+    }
+  }
+
+  // 3. Render Admin Code Morph List
+  function renderAdminCodeMorphList() {
+    const $container = $("#adminCodeMorphList");
+    if (!$container.length) return;
+    $container.empty();
+
+    if (!localCodeMorphCache.length) {
+      $container.html('<p style="font-size: 13px; color: var(--text-sec);">No Code → App morph items configured.</p>');
+      return;
+    }
+
+    localCodeMorphCache.forEach((item, idx) => {
+      const isActive = item.active !== false;
+      const $card = $(`
+        <div class="admin-item-card" data-cm-id="${item.id}" style="border-left: 3px solid ${isActive ? '#22c55e' : 'var(--border-card)'};">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" class="chk-cm-active" data-id="${item.id}" ${isActive ? 'checked' : ''} title="Toggle active in animation loop" style="width: 16px; height: 16px; cursor: pointer;" />
+            <img src="${item.image}" alt="${item.title}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover;" onerror="this.src='images/SmartPlanAi.png'" />
+          </div>
+          <div style="flex: 1; min-width: 0; margin-left: 6px;">
+            <div class="admin-item-title">${item.title} <span style="font-size: 11px; font-weight: normal; color: var(--text-sec);">(${item.filename})</span></div>
+            <div class="admin-item-meta">${item.compileMsg || 'Compiling...'} • Status: <strong style="color: ${isActive ? '#22c55e' : '#ef4444'};">${isActive ? 'Active in Home Loop' : 'Hidden'}</strong></div>
+          </div>
+          <div class="admin-item-actions">
+            <button type="button" class="btn-cm-move-up admin-action-btn cancel-btn small" data-id="${item.id}" title="Move Up" ${idx === 0 ? 'disabled style="opacity:0.3;"' : ''}>▲</button>
+            <button type="button" class="btn-cm-move-down admin-action-btn cancel-btn small" data-id="${item.id}" title="Move Down" ${idx === localCodeMorphCache.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>▼</button>
+            <button type="button" class="btn-cm-edit admin-action-btn primary-btn small" data-id="${item.id}"><i class="fas fa-edit"></i> Edit</button>
+            <button type="button" class="btn-cm-delete admin-action-btn danger-btn small" data-id="${item.id}"><i class="fas fa-trash-alt"></i></button>
+          </div>
+        </div>
+      `);
+      $container.append($card);
+    });
+  }
+
+  function loadAdminOrbit() {
+    $("#adminOrbitTechs").val(localOrbitCache.join(", "));
+  }
+
+  // Toggle active checkbox directly from Admin list
+  $(document).on("change", ".chk-cm-active", async function () {
+    const id = $(this).attr("data-id");
+    const isChecked = $(this).is(":checked");
+    const item = localCodeMorphCache.find(x => x.id === id);
+    if (item) {
+      item.active = isChecked;
+      localStorage.setItem("settings_code_morph_items", JSON.stringify(localCodeMorphCache));
+      if (isFirebaseConfigured() && db) {
+        try {
+          await setDoc(doc(db, "settings", "code_morph_items"), { items: localCodeMorphCache, updatedAt: serverTimestamp() });
+        } catch (e) { }
+      }
+      renderAdminCodeMorphList();
+    }
+  });
+
+  // Handle Edit Code Morph Item
+  $(document).on("click", ".btn-cm-edit", function () {
+    const id = $(this).attr("data-id");
+    const item = localCodeMorphCache.find(x => x.id === id);
+    if (item) {
+      $("#cm-id").val(item.id);
+      $("#cm-title").val(item.title || "");
+      $("#cm-filename").val(item.filename || "");
+      $("#cm-compileMsg").val(item.compileMsg || "");
+      $("#cm-image").val(item.image || "");
+      $("#cm-code").val(item.code || "");
+      $("#cm-active").prop("checked", item.active !== false);
+      if (item.image) $("#cm-image-preview").attr("src", item.image).show();
+      else $("#cm-image-preview").hide();
+      $("#codeMorphFormTitle").html('<i class="fas fa-edit"></i> Edit Code → App Morph Item');
+      $("#codeMorphFormContainer").slideDown();
+    }
+  });
+
+  // Handle Delete Code Morph Item
+  $(document).on("click", ".btn-cm-delete", async function () {
+    const id = $(this).attr("data-id");
+    if (id && confirm("Delete this Code → App morphing item?")) {
+      localCodeMorphCache = localCodeMorphCache.filter(x => x.id !== id);
+      localStorage.setItem("settings_code_morph_items", JSON.stringify(localCodeMorphCache));
+      if (isFirebaseConfigured() && db) {
+        try {
+          await setDoc(doc(db, "settings", "code_morph_items"), { items: localCodeMorphCache, updatedAt: serverTimestamp() });
+        } catch (e) { }
+      }
+      renderAdminCodeMorphList();
+    }
+  });
+
+  // Move Code Morph Item Up / Down
+  $(document).on("click", ".btn-cm-move-up", async function () {
+    const id = $(this).attr("data-id");
+    const idx = localCodeMorphCache.findIndex(x => x.id === id);
+    if (idx > 0) {
+      const temp = localCodeMorphCache[idx];
+      localCodeMorphCache[idx] = localCodeMorphCache[idx - 1];
+      localCodeMorphCache[idx - 1] = temp;
+      localStorage.setItem("settings_code_morph_items", JSON.stringify(localCodeMorphCache));
+      if (isFirebaseConfigured() && db) {
+        try {
+          await setDoc(doc(db, "settings", "code_morph_items"), { items: localCodeMorphCache, updatedAt: serverTimestamp() });
+        } catch (e) { }
+      }
+      renderAdminCodeMorphList();
+    }
+  });
+
+  $(document).on("click", ".btn-cm-move-down", async function () {
+    const id = $(this).attr("data-id");
+    const idx = localCodeMorphCache.findIndex(x => x.id === id);
+    if (idx >= 0 && idx < localCodeMorphCache.length - 1) {
+      const temp = localCodeMorphCache[idx];
+      localCodeMorphCache[idx] = localCodeMorphCache[idx + 1];
+      localCodeMorphCache[idx + 1] = temp;
+      localStorage.setItem("settings_code_morph_items", JSON.stringify(localCodeMorphCache));
+      if (isFirebaseConfigured() && db) {
+        try {
+          await setDoc(doc(db, "settings", "code_morph_items"), { items: localCodeMorphCache, updatedAt: serverTimestamp() });
+        } catch (e) { }
+      }
+      renderAdminCodeMorphList();
+    }
+  });
+
+  // Open / Close Form Box
+  $("#btnOpenAddCodeMorph").on("click", function () {
+    $("#adminCodeMorphForm")[0].reset();
+    $("#cm-id").val("");
+    $("#cm-image-preview").hide();
+    $("#cm-active").prop("checked", true);
+    $("#codeMorphFormTitle").html('<i class="fas fa-plus"></i> Add Code → App Morphing Item');
+    $("#codeMorphFormContainer").slideDown();
+  });
+
+  $("#btnCloseCodeMorphForm, #btnCancelCodeMorphForm").on("click", function () {
+    $("#codeMorphFormContainer").slideUp();
+    $("#adminCodeMorphForm")[0].reset();
+    $("#cm-id").val("");
+  });
+
+  // Upload image handler
+  $(document).on("change", "#cm-file-input", function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        const dataUrl = evt.target.result;
+        $("#cm-image").val(dataUrl);
+        $("#cm-image-preview").attr("src", dataUrl).fadeIn();
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  $(document).on("input", "#cm-image", function () {
+    const val = $(this).val().trim();
+    if (val) $("#cm-image-preview").attr("src", val).fadeIn();
+    else $("#cm-image-preview").hide();
+  });
+
+  // Save Code Morph Form
+  $("#adminCodeMorphForm").on("submit", async function (e) {
+    e.preventDefault();
+    const id = $("#cm-id").val().trim();
+    const title = $("#cm-title").val().trim();
+    const filename = $("#cm-filename").val().trim();
+    const compileMsg = $("#cm-compileMsg").val().trim();
+    const image = $("#cm-image").val().trim();
+    const code = $("#cm-code").val().trim();
+    const active = $("#cm-active").is(":checked");
+
+    const isEdit = !!id;
+    const itemId = isEdit ? id : `cm-${Date.now()}`;
+    const itemObj = { id: itemId, title, filename, compileMsg, image, code, active };
+
+    if (isEdit) {
+      const idx = localCodeMorphCache.findIndex(x => x.id === itemId);
+      if (idx !== -1) localCodeMorphCache[idx] = itemObj;
+      else localCodeMorphCache.unshift(itemObj);
+    } else {
+      localCodeMorphCache.unshift(itemObj);
+    }
+
+    localStorage.setItem("settings_code_morph_items", JSON.stringify(localCodeMorphCache));
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        await setDoc(doc(db, "settings", "code_morph_items"), { items: localCodeMorphCache, updatedAt: serverTimestamp() });
+      } catch (err) { }
+    }
+
+    $("#codeMorphFormContainer").slideUp();
+    $("#adminCodeMorphForm")[0].reset();
+    $("#cm-id").val("");
+    renderAdminCodeMorphList();
+    alert(isEdit ? "✓ Code → App item updated live!" : "✓ New Code → App item added live!");
+  });
+
+  // Save Orbit Form
+  $("#adminOrbitForm").on("submit", async function (e) {
+    e.preventDefault();
+    const raw = $("#adminOrbitTechs").val().trim();
+    const techs = raw ? raw.split(",").map(t => t.trim()).filter(Boolean) : localOrbitCache;
+
+    localOrbitCache = techs;
+    localStorage.setItem("settings_flutter_orbit", JSON.stringify(techs));
+
+    if (isFirebaseConfigured() && db) {
+      try {
+        await setDoc(doc(db, "settings", "flutter_orbit"), { techs, updatedAt: serverTimestamp() });
+      } catch (err) { }
+    }
+
+    syncOrbitFromBackend();
+    alert("✓ Orbiting Flutter tech stack updated live!");
   });
 
   // 2. Services Manager Sync

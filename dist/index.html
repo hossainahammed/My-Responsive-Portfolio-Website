@@ -61,8 +61,8 @@
       }
     }
   </script>
-  <script type="module" crossorigin src="./assets/index-DTDi2HkM.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BcUqDeBM.css">
+  <script type="module" crossorigin src="./assets/index-CozC_HkL.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-Bjjr711c.css">
 </head>
 
 <body>
@@ -132,20 +132,53 @@
             <a href="#contact" class="hero-btn contact-btn">Contact Me</a>
             <a href="#projects" class="hero-btn projects-btn">View Projects</a>
           </div>
+
+          <!-- Live Available Status Pill (Moved Below Contact Me & View Projects Buttons) -->
+          <div class="live-status-pill" style="margin-top: 18px; margin-bottom: 0;">
+            <span class="pulsing-green-dot"></span>
+            <span class="status-main">AVAILABLE FOR WORK</span>
+            <span class="status-sep">•</span>
+            <span class="status-sub">Building scalable Flutter &amp; Web apps</span>
+          </div>
         </div>
       </div>
 
-      <!-- Right Side Responsive Developer Avatar Showcase -->
+      <!-- Right Side Responsive Developer Code -> App Showcase & Orbit -->
       <div class="home-avatar-wrapper">
-        <div class="avatar-glass-card">
-          <div class="avatar-glow-ring"></div>
-          <img id="hero-avatar-img" src="./assets/banner-CZUAuUZH.png" alt="Hossain Ahammed — Developer" onerror="this.onerror=null; this.src='images/profile-1.jpeg'" />
-          <div class="floating-badge badge-flutter">
-            <i class="fab fa-flutter"></i> Flutter Dev
+        <div class="code-app-showcase-card" id="homeCodeAppCard">
+          <div class="code-card-header">
+            <span class="mac-dot red"></span>
+            <span class="mac-dot yellow"></span>
+            <span class="mac-dot green"></span>
+            <span class="code-filename" id="codeAppFilename">task_manager.dart</span>
           </div>
-          <div class="floating-badge badge-exp">
-            <i class="fas fa-code"></i> Full-Stack Dev
+
+          <!-- Interactive Code → App Morph Layer (Controlled by Admin Dashboard) -->
+          <div class="code-app-morph-layer active" id="codeAppMorphLayer">
+            <div class="code-morph-box">
+              <pre class="code-content-pre"><code><span class="code-keyword">class</span> <span class="code-class">TaskManager</span> <span class="code-keyword">extends</span> <span class="code-class">StatelessWidget</span> {
+  <span class="code-keyword">@override</span>
+  <span class="code-class">Widget</span> <span class="code-method">build</span>(<span class="code-class">BuildContext</span> context) {
+    <span class="code-keyword">return</span> <span class="code-class">MaterialApp</span>(
+      <span class="code-method">home</span>: <span class="code-class">TaskScreen</span>(),
+    );
+  }
+}</code></pre>
+              <div class="compile-status-bar">
+                <i class="fas fa-cog fa-spin"></i> <span>Building Flutter APK...</span>
+              </div>
+            </div>
           </div>
+        </div>
+
+        <!-- Orbiting Flutter Tech Stack (Controlled by Admin Dashboard) -->
+        <div class="flutter-stack-orbit" id="flutterStackOrbit">
+          <div class="orbit-item orbit-1"><i class="fab fa-flutter"></i> Flutter</div>
+          <div class="orbit-item orbit-2"><i class="fas fa-code"></i> Dart</div>
+          <div class="orbit-item orbit-3"><i class="fas fa-fire"></i> Firebase</div>
+          <div class="orbit-item orbit-4"><i class="fas fa-network-wired"></i> REST API</div>
+          <div class="orbit-item orbit-5"><i class="fab fa-github"></i> Git</div>
+          <div class="orbit-item orbit-6"><i class="fab fa-node-js"></i> Node.js</div>
         </div>
       </div>
     </div>
@@ -201,7 +234,16 @@
       <h2 class="title">About Me</h2>
       <div class="about-content">
         <div class="column left reveal">
-          <img id="about-profile-img" src="./assets/profile-1-CoRAGsnp.jpeg" alt="Hossain Ahammed Profile Picture" />
+          <div class="avatar-glass-card">
+            <div class="avatar-glow-ring"></div>
+            <img id="about-profile-img" src="./assets/banner-CZUAuUZH.png" alt="Hossain Ahammed Profile Picture" onerror="this.onerror=null; this.src='images/profile-1.jpeg'" />
+            <div class="floating-badge badge-flutter">
+              <i class="fab fa-flutter"></i> Flutter Dev
+            </div>
+            <div class="floating-badge badge-exp">
+              <i class="fas fa-code"></i> Full-Stack Dev
+            </div>
+          </div>
         </div>
         <div class="column right reveal">
           <div class="text">
@@ -1450,8 +1492,11 @@
           <i class="fas fa-user-shield"></i>
           <span>Admin Control Panel</span>
         </div>
-        <div class="admin-topbar-right">
+        <div class="admin-topbar-right" style="display: flex; align-items: center; gap: 10px;">
           <span id="adminStatusBadge" class="admin-status-badge">Offline Mode</span>
+          <button id="adminLogoutBtnHeader" class="admin-logout-btn" style="display: none;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
           <button class="live-modal__close admin-close" aria-label="Close">&times;</button>
         </div>
       </div>
@@ -1531,6 +1576,8 @@
               Projects</button>
             <button class="admin-tab-btn" data-tab="tab-hero-about"><i class="fas fa-user-edit"></i> Hero &
               About</button>
+            <button class="admin-tab-btn" data-tab="tab-code-orbit"><i class="fas fa-laptop-code"></i> Code &amp;
+              Orbit</button>
             <button class="admin-tab-btn" data-tab="tab-services"><i class="fas fa-concierge-bell"></i>
               Services</button>
             <button class="admin-tab-btn" data-tab="tab-skills"><i class="fas fa-code"></i> Skills</button>
@@ -1829,6 +1876,89 @@
             <button type="submit" id="btnSaveHeroAbout" class="admin-action-btn primary-btn"><i class="fas fa-save"></i>
               Save Hero & About Changes</button>
           </form>
+        </div>
+
+        <!-- TAB: Manage Code -> App & Flutter Orbit -->
+        <div id="tab-code-orbit" class="admin-tab-content"
+          style="display: none; flex: 1; overflow-y: auto; padding: 25px;">
+          <div class="admin-section-banner">
+            <div>
+              <h4 style="margin: 0; font-size: 17px; font-weight: 700;">Code → App Animation &amp; Flutter Stack Orbit Manager</h4>
+              <p style="margin: 3px 0 0; font-size: 13px; color: var(--text-sec);">Add, edit, reorder, delete, and select which apps appear on the Home section Flutter Code animated showcase, and edit orbiting tech stack pills.</p>
+            </div>
+            <button id="btnOpenAddCodeMorph" class="admin-action-btn primary-btn small"><i class="fas fa-plus"></i> Add Code → App Morph Item</button>
+          </div>
+
+          <!-- Add / Edit Code Morph Form Box -->
+          <div id="codeMorphFormContainer" class="admin-form-box" style="display: none; margin-bottom: 20px;">
+            <div class="admin-form-header">
+              <h4 id="codeMorphFormTitle" style="margin: 0;">Add Code → App Morphing Item</h4>
+              <button type="button" id="btnCloseCodeMorphForm" class="btn-text-close">&times;</button>
+            </div>
+            <form id="adminCodeMorphForm" class="admin-grid-form">
+              <input type="hidden" id="cm-id" />
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label>App Title Tag *</label>
+                  <input type="text" id="cm-title" placeholder="e.g. SmartPlan AI — Live App" required class="admin-input-field" />
+                </div>
+                <div class="form-group col-6">
+                  <label>Code Filename *</label>
+                  <input type="text" id="cm-filename" placeholder="e.g. task_manager.dart" required class="admin-input-field" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label>Compile Status Text *</label>
+                  <input type="text" id="cm-compileMsg" placeholder="e.g. Building Flutter APK..." required class="admin-input-field" />
+                </div>
+                <div class="form-group col-6">
+                  <label>App UI Screenshot (Upload File or Enter Path/URL) *</label>
+                  <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <input type="file" id="cm-file-input" accept="image/*" class="admin-input-field" style="padding: 8px; font-size: 12px;" />
+                    <input type="text" id="cm-image" placeholder="images/SmartPlanAi.png or https://..." required class="admin-input-field" />
+                  </div>
+                  <img id="cm-image-preview" alt="Preview" style="display: none; height: 55px; margin-top: 8px; border-radius: 8px; border: 1px solid var(--border-card); object-fit: cover;" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Flutter/Dart Code Snippet *</label>
+                <textarea id="cm-code" rows="5" placeholder="class TaskManager extends StatelessWidget { ... }" required class="admin-input-field" style="font-family: monospace; font-size: 12px;"></textarea>
+              </div>
+              <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                  <input type="checkbox" id="cm-active" checked style="width: 16px; height: 16px;" />
+                  <span>Show this app in Home Section Code → App Live Animation Loop</span>
+                </label>
+              </div>
+              <div class="form-actions-bar">
+                <button type="submit" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Morph Item</button>
+                <button type="button" id="btnCancelCodeMorphForm" class="admin-action-btn cancel-btn">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Code Morph Items List -->
+          <div style="margin-bottom: 30px;">
+            <h5 style="margin-bottom: 10px; font-size: 14px; font-weight: 700;">Configured Code → App Morph Items</h5>
+            <div id="adminCodeMorphList" class="admin-projects-grid">
+              <!-- Rendered dynamically by JS -->
+            </div>
+          </div>
+
+          <!-- Flutter Orbit Tech Stack Manager -->
+          <div class="admin-form-box">
+            <div class="admin-form-header">
+              <h4 style="margin: 0;"><i class="fas fa-orbit"></i> Orbiting Flutter Tech Stack Manager</h4>
+            </div>
+            <form id="adminOrbitForm" class="admin-grid-form">
+              <div class="form-group">
+                <label>Orbiting Technology Pills (comma-separated tech names) *</label>
+                <input type="text" id="adminOrbitTechs" value="Flutter, Dart, Firebase, REST API, Git, Node.js" required class="admin-input-field" />
+              </div>
+              <button type="submit" class="admin-action-btn primary-btn"><i class="fas fa-save"></i> Save Orbit Stack</button>
+            </form>
+          </div>
         </div>
 
         <!-- TAB 3: Manage Services Section -->
