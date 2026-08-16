@@ -812,27 +812,36 @@ $(document).ready(function () {
   });
 
   // typing text animation script
-  var typed = new Typed(".typing", {
-    strings: [
-      " Flutter Developer",
-      " SaaS Product Builder",
-      " Software Engineer",
-    ],
-    typeSpeed: 100,
-    backSpeed: 60,
-    loop: true,
-  });
+  if (typeof Typed !== "undefined") {
+    try {
+      if (window.typedInstance1) window.typedInstance1.destroy();
+      if (window.typedInstance2) window.typedInstance2.destroy();
+      $(".typed-cursor").remove();
+      window.typedInstance1 = new Typed(".typing", {
+        strings: [
+          " Flutter Developer",
+          " Competitive Programmer",
+          " Mobile App Specialist",
+          " SaaS Product Builder",
+        ],
+        typeSpeed: 90,
+        backSpeed: 50,
+        loop: true,
+      });
 
-  var typed = new Typed(".typing-2", {
-    strings: [
-      " Flutter Developer",
-      " SaaS Product Builder",
-      " Software Engineer",
-    ],
-    typeSpeed: 100,
-    backSpeed: 60,
-    loop: true,
-  });
+      window.typedInstance2 = new Typed(".typing-2", {
+        strings: [
+          " Flutter Developer",
+          " Competitive Programmer",
+          " Mobile App Specialist",
+          " SaaS Product Builder",
+        ],
+        typeSpeed: 90,
+        backSpeed: 50,
+        loop: true,
+      });
+    } catch (e) { }
+  }
 
   // owl carousel script
   $(".carousel").owlCarousel({
@@ -2066,17 +2075,36 @@ $(document).ready(function () {
     // 2. Real-time Firestore sync if backend connected
     if (isFirebaseConfigured() && db) {
       try {
-        const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
+        const q = query(collection(db, "projects"));
         onSnapshot(q, (snapshot) => {
           const remoteProjects = [];
           snapshot.forEach((docSnap) => {
             remoteProjects.push({ id: docSnap.id, ...docSnap.data() });
           });
 
-          if (remoteProjects.length > 0) {
-            localProjectsCache = remoteProjects;
-            localStorage.setItem("custom_portfolio_projects", JSON.stringify(remoteProjects));
-            renderProjectsToDOM(remoteProjects);
+          const deletedIds = new Set(JSON.parse(localStorage.getItem("deleted_project_ids") || "[]"));
+          const mergedMap = new Map();
+
+          // 1) Keep existing local cache projects (preserves newly added projects)
+          (localProjectsCache || []).forEach(p => {
+            if (p && p.id && !deletedIds.has(p.id)) {
+              mergedMap.set(p.id, { ...p, category: normalizeCategory(p.category) });
+            }
+          });
+
+          // 2) Merge remote projects from Firestore
+          remoteProjects.forEach(rp => {
+            if (rp && rp.id && !deletedIds.has(rp.id)) {
+              const existing = mergedMap.get(rp.id) || {};
+              mergedMap.set(rp.id, { ...existing, ...rp, category: normalizeCategory(rp.category || existing.category) });
+            }
+          });
+
+          const mergedList = Array.from(mergedMap.values());
+          if (mergedList.length > 0) {
+            localProjectsCache = mergedList;
+            localStorage.setItem("custom_portfolio_projects", JSON.stringify(mergedList));
+            renderProjectsToDOM(mergedList);
             if ($("#adminModal").is(":visible")) {
               renderAdminProjects();
             }
@@ -2369,24 +2397,7 @@ $(document).ready(function () {
     }
     $(".project-card").addClass("reveal active");
 
-    // Save to Firestore if configured
-    if (isFirebaseConfigured() && db) {
-      try {
-        if (isEdit) {
-          await setDoc(doc(db, "projects", projId), {
-            ...projObj, updatedAt: serverTimestamp()
-          }, { merge: true });
-        } else {
-          await addDoc(collection(db, "projects"), {
-            ...projObj, createdAt: serverTimestamp()
-          });
-        }
-      } catch (err) {
-        console.warn("Firestore project save warning:", err);
-      }
-    }
-
-    // Save/Update LocalStorage cache
+    // 1. Save/Update LocalStorage cache FIRST (guaranteed persistent local save)
     const existingIdx = localProjectsCache.findIndex(p => p.id === projId);
     if (existingIdx !== -1) {
       localProjectsCache[existingIdx] = projObj;
@@ -2394,6 +2405,20 @@ $(document).ready(function () {
       localProjectsCache.unshift(projObj);
     }
     localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
+
+    // 2. Save to Firestore if configured (uses consistent document ID = projId)
+    if (isFirebaseConfigured() && db) {
+      try {
+        await setDoc(doc(db, "projects", projId), {
+          ...projObj,
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp()
+        }, { merge: true });
+        console.log("🔥 Project saved to Firestore:", projId);
+      } catch (err) {
+        console.warn("Firestore project save warning:", err);
+      }
+    }
 
     $("#projectFormContainer").slideUp();
     $("#portfolioProjectForm")[0].reset();
@@ -3032,13 +3057,17 @@ $(document).ready(function () {
       $(".contact .icons .row").eq(0).find(".sub-title").text(name);
       $("#admin-trigger").text(name);
 
-      const roleArray = roles.split(",").map(r => " " + r.trim());
+      const roleArray = roles.split(",").map(r => " " + r.trim()).filter(Boolean);
+      if (roleArray.length === 0) {
+        roleArray.push(" Flutter Developer", " Competitive Programmer");
+      }
       if (typeof Typed !== "undefined") {
         try {
           if (window.typedInstance1) window.typedInstance1.destroy();
           if (window.typedInstance2) window.typedInstance2.destroy();
-          window.typedInstance1 = new Typed(".typing", { strings: roleArray, typeSpeed: 100, backSpeed: 60, loop: true });
-          window.typedInstance2 = new Typed(".typing-2", { strings: roleArray, typeSpeed: 100, backSpeed: 60, loop: true });
+          $(".typed-cursor").remove();
+          window.typedInstance1 = new Typed(".typing", { strings: roleArray, typeSpeed: 90, backSpeed: 50, loop: true });
+          window.typedInstance2 = new Typed(".typing-2", { strings: roleArray, typeSpeed: 90, backSpeed: 50, loop: true });
         } catch (e) { }
       }
     };
