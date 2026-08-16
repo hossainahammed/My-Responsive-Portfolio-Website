@@ -1898,6 +1898,8 @@ $(document).ready(function () {
 
   let localProjectsCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
 
+  localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
+
   function normalizeCategory(cat) {
     if (!cat) return "flutter";
     const c = String(cat).toLowerCase().trim();
@@ -1999,8 +2001,10 @@ $(document).ready(function () {
       const $g = $("#php-projects .projects-grid");
       return $g.length ? $g : $(".title-php").siblings(".projects-grid");
     } else {
-      const $g = $("#projects .projects-grid");
-      return $g.length ? $g : $(".projects-grid").first();
+      const $g = $("#flutter-projects .projects-grid");
+      if ($g.length) return $g;
+      const $fallback = $("#projects .projects-grid").not("#web-projects .projects-grid, #php-projects .projects-grid").first();
+      return $fallback.length ? $fallback : $(".projects-grid").first();
     }
   }
 
@@ -2027,20 +2031,11 @@ $(document).ready(function () {
       const $targetGrid = getCategoryGrid(cat);
       if (!$targetGrid.length) return;
 
-      const $existing = $(`.project-card[data-id="${projId}"]`);
-      const cardHtml = createProjectCardHtml({ ...proj, id: projId, category: cat });
+      // Always purge any duplicate card instances across all grids before rendering to target grid
+      $(`.project-card[data-id="${projId}"]`).remove();
 
-      if ($existing.length > 0) {
-        // If card is currently inside the wrong category grid (e.g. previously misclassified)
-        if ($existing.parent()[0] !== $targetGrid[0]) {
-          $existing.remove();
-          $targetGrid.prepend(cardHtml);
-        } else {
-          $existing.replaceWith(cardHtml);
-        }
-      } else {
-        $targetGrid.prepend(cardHtml);
-      }
+      const cardHtml = createProjectCardHtml({ ...proj, id: projId, category: cat });
+      $targetGrid.prepend(cardHtml);
     });
 
     $(".project-card").addClass("reveal active");
@@ -2380,21 +2375,9 @@ $(document).ready(function () {
     const newProjectCardHtml = createProjectCardHtml(projObj);
     const $targetGrid = getCategoryGrid(category);
 
-    if (isEdit) {
-      const $existingCard = $(`.project-card[data-id="${projId}"]`);
-      if ($existingCard.length) {
-        if ($existingCard.parent()[0] !== $targetGrid[0]) {
-          $existingCard.remove();
-          $targetGrid.prepend(newProjectCardHtml);
-        } else {
-          $existingCard.replaceWith(newProjectCardHtml);
-        }
-      } else {
-        $targetGrid.prepend(newProjectCardHtml);
-      }
-    } else {
-      $targetGrid.prepend(newProjectCardHtml);
-    }
+    // Remove any existing card with this ID across all grids first to prevent duplication
+    $(`.project-card[data-id="${projId}"]`).remove();
+    $targetGrid.prepend(newProjectCardHtml);
     $(".project-card").addClass("reveal active");
 
     // 1. Save/Update LocalStorage cache FIRST (guaranteed persistent local save)
