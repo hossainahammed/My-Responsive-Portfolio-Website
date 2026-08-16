@@ -132,6 +132,20 @@
           </div>
         </div>
       </div>
+
+      <!-- Right Side Responsive Developer Avatar Showcase -->
+      <div class="home-avatar-wrapper">
+        <div class="avatar-glass-card">
+          <div class="avatar-glow-ring"></div>
+          <img id="hero-avatar-img" src="images/banner.png" alt="Hossain Ahammed — Developer" onerror="this.onerror=null; this.src='images/profile-1.jpeg'" />
+          <div class="floating-badge badge-flutter">
+            <i class="fab fa-flutter"></i> Flutter Dev
+          </div>
+          <div class="floating-badge badge-exp">
+            <i class="fas fa-code"></i> Full-Stack Dev
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1758,6 +1772,30 @@
               <label style="display: block; font-weight: 600; margin-bottom: 6px;">Hero Intro Text</label>
               <textarea id="adminHeroIntro" rows="3"
                 class="admin-input-field">I specialize in crafting high-performance, cross-platform mobile applications and building robust SaaS products. Focused on delivering scalable business systems, automating workflows, and implementing modern development pipelines.</textarea>
+            </div>
+
+            <!-- Home Section Circle Avatar Image Control & Upload -->
+            <div class="form-group" style="margin-bottom: 15px; background: rgba(255,0,127,0.05); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,0,127,0.2);">
+              <label style="display: block; font-weight: 700; margin-bottom: 6px; color: var(--primary-color);"><i class="fas fa-camera"></i> Home Section Circle Avatar Image (Upload File or Enter URL / Path)</label>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <input type="file" id="adminHeroAvatarImgFile" accept="image/*" class="admin-input-field"
+                  style="padding: 8px; font-size: 12px;" />
+                <input type="text" id="adminHeroAvatarImgUrl" value="images/banner.png"
+                  placeholder="images/banner.png or https://..." class="admin-input-field" />
+              </div>
+              <img id="adminHeroAvatarImgPreview" src="images/banner.png" alt="Circle Avatar Preview"
+                style="height: 65px; width: 65px; border-radius: 50%; margin-top: 8px; border: 2px solid var(--primary-color); object-fit: cover;" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-6" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px;">Circle Floating Badge 1</label>
+                <input type="text" id="adminHeroBadge1" value="Flutter Dev" class="admin-input-field" />
+              </div>
+              <div class="form-group col-6" style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px;">Circle Floating Badge 2</label>
+                <input type="text" id="adminHeroBadge2" value="Full-Stack Dev" class="admin-input-field" />
+              </div>
             </div>
 
             <div class="form-group" style="margin-bottom: 15px;">

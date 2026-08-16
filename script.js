@@ -2291,7 +2291,7 @@ $(document).ready(function () {
     }
     const yrsNum = totalMonths / 12;
     const yrsStr = yrsNum.toFixed(1).replace(/\.0$/, "");
-    return `${yrsStr} ${yrsStr === "1" ? "Year" : "Years"}+`;
+    return `${yrsStr} Year+`;
   }
 
   /* ── Animated count-up for experience: 0 days → months → years ── */
@@ -2842,6 +2842,9 @@ $(document).ready(function () {
       const name = data.name || "Hossain Ahammed";
       const roles = data.roles || "Flutter Developer, Mobile App Specialist, Frontend Web Dev, Competitive Programmer";
       const heroIntro = data.heroIntro || "I specialize in crafting high-performance, cross-platform mobile applications...";
+      const heroAvatarImg = data.heroAvatarImg || "images/banner.png";
+      const heroBadge1 = data.heroBadge1 || "Flutter Dev";
+      const heroBadge2 = data.heroBadge2 || "Full-Stack Dev";
       const aboutBio = data.aboutBio || "I’m a passionate problem solver...";
       const aboutImg = data.aboutImg || "images/profile-1.jpeg";
       const cvLink = data.cvLink || "https://drive.google.com/uc?export=download&id=1mdkyO72reTrHyIzkd8DbEBbvwZTDHnW2";
@@ -2852,6 +2855,9 @@ $(document).ready(function () {
       $("#home .text-2").text(name);
       $("#about .text").html(`I'm ${name} and I'm a <span class="typing-2"></span>`);
       $(".hero-intro").text(heroIntro);
+      if (heroAvatarImg) $("#hero-avatar-img").attr("src", heroAvatarImg);
+      if (heroBadge1) $(".badge-flutter").html('<i class="fab fa-flutter"></i> ' + heroBadge1);
+      if (heroBadge2) $(".badge-exp").html('<i class="fas fa-code"></i> ' + heroBadge2);
       $(".about-description").text(aboutBio);
       $("#about-profile-img, .about .column.left img").attr("src", aboutImg);
       $(".download-cv").attr("href", cvLink);
@@ -2892,6 +2898,12 @@ $(document).ready(function () {
         if (data.name) $("#adminHeroName").val(data.name);
         if (data.roles) $("#adminHeroRoles").val(data.roles);
         if (data.heroIntro) $("#adminHeroIntro").val(data.heroIntro);
+        if (data.heroAvatarImg) {
+          $("#adminHeroAvatarImgUrl").val(data.heroAvatarImg);
+          $("#adminHeroAvatarImgPreview").attr("src", data.heroAvatarImg).show();
+        }
+        if (data.heroBadge1) $("#adminHeroBadge1").val(data.heroBadge1);
+        if (data.heroBadge2) $("#adminHeroBadge2").val(data.heroBadge2);
         if (data.aboutBio) $("#adminAboutBio").val(data.aboutBio);
         if (data.aboutImg) {
           $("#adminAboutImgUrl").val(data.aboutImg);
@@ -2901,6 +2913,29 @@ $(document).ready(function () {
       } catch (e) { }
     }
   }
+
+  // Handle direct file upload for Hero Circle Avatar Image
+  $(document).on("change", "#adminHeroAvatarImgFile", function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        const dataUrl = evt.target.result;
+        $("#adminHeroAvatarImgUrl").val(dataUrl);
+        $("#adminHeroAvatarImgPreview").attr("src", dataUrl).fadeIn();
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  $(document).on("input", "#adminHeroAvatarImgUrl", function () {
+    const val = $(this).val().trim();
+    if (val) {
+      $("#adminHeroAvatarImgPreview").attr("src", val).fadeIn();
+    } else {
+      $("#adminHeroAvatarImgPreview").hide();
+    }
+  });
 
   // Handle direct file upload for About Profile Image
   $(document).on("change", "#adminAboutImgFile", function (e) {
@@ -2931,11 +2966,14 @@ $(document).ready(function () {
     const name = $("#adminHeroName").val().trim();
     const roles = $("#adminHeroRoles").val().trim();
     const heroIntro = $("#adminHeroIntro").val().trim();
+    const heroAvatarImg = $("#adminHeroAvatarImgUrl").val().trim();
+    const heroBadge1 = $("#adminHeroBadge1").val().trim();
+    const heroBadge2 = $("#adminHeroBadge2").val().trim();
     const aboutBio = $("#adminAboutBio").val().trim();
     const aboutImg = $("#adminAboutImgUrl").val().trim();
     const cvLink = $("#adminCvLink").val().trim();
 
-    const dataObj = { greeting, name, roles, heroIntro, aboutBio, aboutImg, cvLink };
+    const dataObj = { greeting, name, roles, heroIntro, heroAvatarImg, heroBadge1, heroBadge2, aboutBio, aboutImg, cvLink };
     localStorage.setItem("settings_hero_about", JSON.stringify(dataObj));
 
     if (isFirebaseConfigured() && db) {
