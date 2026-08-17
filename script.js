@@ -2494,16 +2494,26 @@ $(document).ready(function () {
         updatedAt: now
       });
 
-      setDoc(doc(db, "projects", projId), cleanData, { merge: true }).then(() => {
-        console.log("🔥 Project successfully saved to Firestore backend:", projId);
-      }).catch((err) => {
-        console.error("❌ Firestore project save failed:", err);
-        if (err.code === "permission-denied") {
-          alert("⚠️ Firestore Permission Denied: Your account needs permission to write to Firestore. Please log in with admin email hossainahammed627@gmail.com.");
-        } else {
-          alert("⚠️ Local update saved, but Firestore error: " + (err.message || err));
+      const executeSave = async () => {
+        if (auth && typeof auth.authStateReady === "function") {
+          try {
+            await auth.authStateReady();
+          } catch (e) { }
         }
-      });
+        try {
+          await setDoc(doc(db, "projects", projId), cleanData, { merge: true });
+          console.log("🔥 Project successfully saved to Firestore backend:", projId);
+        } catch (err) {
+          console.error("❌ Firestore project save failed:", err);
+          if (err.code === "permission-denied") {
+            alert("⚠️ Firestore Permission Denied: Your admin session is unauthenticated. Please log in with admin email hossainahammed627@gmail.com.");
+          } else {
+            alert("⚠️ Local update saved, but Firestore error: " + (err.message || err));
+          }
+        }
+      };
+
+      executeSave();
     }
   }
 
@@ -2531,11 +2541,18 @@ $(document).ready(function () {
     if (confirm("Are you sure you want to delete this project?")) {
       // 1. Delete from Firestore if connected
       if (isFirebaseConfigured() && db) {
-        try {
-          deleteDoc(doc(db, "projects", projId)).catch(err => console.warn("Firestore delete warning:", err));
-        } catch (e) {
-          console.warn("Firestore delete error:", e);
-        }
+        const executeDelete = async () => {
+          if (auth && typeof auth.authStateReady === "function") {
+            try { await auth.authStateReady(); } catch (e) { }
+          }
+          try {
+            await deleteDoc(doc(db, "projects", projId));
+            console.log("🔥 Project successfully deleted from Firestore:", projId);
+          } catch (e) {
+            console.warn("Firestore delete error:", e);
+          }
+        };
+        executeDelete();
       }
 
       // 2. Add to deleted IDs set in localStorage
