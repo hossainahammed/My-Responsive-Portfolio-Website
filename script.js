@@ -1654,13 +1654,18 @@ $(document).ready(function () {
     }
   });
 
-  // Admin Login Handler — Strict Firebase Auth
+  // Admin Login Handler — 100% Strict Firebase Auth
   $("#adminLoginForm").on("submit", async function (e) {
     e.preventDefault();
-    const email = $("#admin-email").val().trim();
-    const key = $("#admin-key").val().trim();
+    const email = ($("#admin-email").val() || "").trim();
+    const key = ($("#admin-key").val() || "").trim();
     const $error = $("#admin-error");
     $error.hide();
+
+    if (!email || !key) {
+      $error.text("Please enter both email and password.").show();
+      return;
+    }
 
     if (isFirebaseConfigured() && auth) {
       try {
@@ -1668,8 +1673,8 @@ $(document).ready(function () {
         localStorage.setItem("portfolio_admin_logged_in", "true");
         showAdminDashboard();
       } catch (err) {
-        console.warn("Firebase Auth login failed:", err);
-        $error.text("Invalid login credentials. Please verify your email and password.").show();
+        console.warn("Firebase Auth login error:", err);
+        $error.text("Firebase Auth Error: " + (err.message || "Invalid credentials")).show();
       }
     } else {
       $error.text("Firebase Auth backend is not configured.").show();
@@ -2385,24 +2390,36 @@ $(document).ready(function () {
     $("#pf-id").val("");
   });
 
+  function cleanFirestoreData(obj) {
+    if (obj === null || obj === undefined) return "";
+    if (typeof obj !== "object") return obj;
+    if (Array.isArray(obj)) return obj.map(cleanFirestoreData);
+    const cleaned = {};
+    for (const key of Object.keys(obj)) {
+      const val = obj[key];
+      cleaned[key] = val !== undefined ? cleanFirestoreData(val) : "";
+    }
+    return cleaned;
+  }
+
   // Save Project Handler (Create & Edit)
   function handlePortfolioProjectFormSubmit(e) {
     if (e) e.preventDefault();
 
-    const existingId = $("#pf-id").val().trim();
-    const title = $("#pf-title").val().trim();
-    const category = normalizeCategory($("#pf-category").val());
-    const badge = $("#pf-badge").val();
-    const image = $("#pf-image").val().trim();
-    const desc = $("#pf-desc").val().trim();
-    const tech = $("#pf-tech").val().trim();
-    const images = $("#pf-images").val().trim();
-    const imageFolder = $("#pf-image-folder").val().trim();
-    const codeType = $("#pf-code-type").val();
-    const github = $("#pf-github").val().trim();
-    const playstore = $("#pf-playstore").val().trim();
-    const apk = $("#pf-apk").val().trim();
-    const live = $("#pf-live").val().trim();
+    const existingId = ($("#pf-id").val() || "").trim();
+    const title = ($("#pf-title").val() || "").trim();
+    const category = normalizeCategory($("#pf-category").val() || "flutter");
+    const badge = $("#pf-badge").val() || "";
+    const image = ($("#pf-image").val() || "").trim();
+    const desc = ($("#pf-desc").val() || "").trim();
+    const tech = ($("#pf-tech").val() || "").trim();
+    const images = ($("#pf-images").val() || "").trim();
+    const imageFolder = ($("#pf-image-folder").val() || "").trim();
+    const codeType = $("#pf-code-type").val() || "locked";
+    const github = ($("#pf-github").val() || "").trim();
+    const playstore = ($("#pf-playstore").val() || "").trim();
+    const apk = ($("#pf-apk").val() || "").trim();
+    const live = ($("#pf-live").val() || "").trim();
 
     if (!title) {
       alert("⚠️ Please enter a Project Title.");
@@ -2415,7 +2432,7 @@ $(document).ready(function () {
       return;
     }
 
-    const featuresRaw = $("#pf-features").val().trim();
+    const featuresRaw = ($("#pf-features").val() || "").trim();
     const features = featuresRaw
       ? featuresRaw.split(/[\n,]/).map(f => f.trim()).filter(Boolean)
       : [];
@@ -2457,13 +2474,15 @@ $(document).ready(function () {
     alert(isEdit ? "✓ Project updated live!" : "✓ Project published live to portfolio!");
 
     if (isFirebaseConfigured() && db) {
-      setDoc(doc(db, "projects", projId), {
+      const cleanData = cleanFirestoreData({
         ...projObj,
         updatedAt: now
-      }, { merge: true }).then(() => {
+      });
+      setDoc(doc(db, "projects", projId), cleanData, { merge: true }).then(() => {
         console.log("🔥 Project successfully saved to Firestore backend:", projId);
       }).catch((err) => {
         console.warn("Firestore project save error:", err);
+        alert("⚠️ Local update saved, but Firestore backend error: " + (err.message || err));
       });
     }
   }
@@ -3651,7 +3670,7 @@ $(document).ready(function () {
 
     if (isFirebaseConfigured() && db) {
       try {
-        await addDoc(collection(db, "services"), { ...servObj, createdAt: serverTimestamp() });
+        setDoc(doc(db, "services", servObj.id), cleanFirestoreData({ ...servObj, createdAt: Date.now() }), { merge: true }).catch(err => console.warn("Firestore service save error:", err));
       } catch (err) { }
     }
 
@@ -3772,7 +3791,7 @@ $(document).ready(function () {
 
     if (isFirebaseConfigured() && db) {
       try {
-        await addDoc(collection(db, "skills"), { ...skillObj, createdAt: serverTimestamp() });
+        setDoc(doc(db, "skills", skillObj.id), cleanFirestoreData({ ...skillObj, createdAt: Date.now() }), { merge: true }).catch(err => console.warn("Firestore skill save error:", err));
       } catch (err) { }
     }
 
