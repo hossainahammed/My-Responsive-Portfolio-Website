@@ -1270,22 +1270,23 @@ $(document).ready(function () {
     }
   });
 
-  /* Appetize live preview */
-  $(document).on("click", ".project-card .appetize-btn", function (e) {
+  /* Download APK button click */
+  $(document).on("click", ".project-card .apk-btn", function (e) {
     e.preventDefault();
     e.stopPropagation();
     var $card = $(this).closest(".project-card");
-    var url = ($card.attr("data-appetizeurl") || "").trim();
-    var btnText = $(this).text().trim() || "Live Preview";
-    var title = $card.attr("data-title") + " - " + btnText;
-    if (url && url !== "#") {
-      $("#liveModalTitle").text(title);
-      $("#liveModalIframe").attr("src", url).show();
-      $("#liveModalImageContainer").hide();
-      $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
-      $("body").addClass("modal-open");
+    var apkUrl = ($card.attr("data-apkurl") || $(this).attr("href") || "").trim();
+    if (apkUrl && apkUrl !== "#") {
+      var a = document.createElement("a");
+      a.href = apkUrl;
+      a.download = apkUrl.split("/").pop() || "app.apk";
+      a.target = "_blank";
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     } else {
-      alert(btnText + " link not provided yet.");
+      alert("APK file for this app is not available for download yet.");
     }
   });
 
@@ -1796,7 +1797,7 @@ $(document).ready(function () {
       desc: "Fragmented athletic training logs, recovery check-ins, and performance readiness tracking for athletes and coaches.",
       tech: "Flutter, Dart, GetX, REST API, PDF & Printing, Chewie / Video, Google Sign-in",
       live: "#",
-      appetize: "#",
+      apk: "#",
       imageFolder: "images/yes_twic/",
       images: "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png,14.png,15.png",
       features: [
@@ -1814,7 +1815,7 @@ $(document).ready(function () {
       desc: "Inefficient study schedules, lack of automated task breakdown, and poor time management for students.",
       tech: "Flutter, Dart, Provider, OpenAI API, SQLite",
       live: "#",
-      appetize: "#",
+      apk: "#",
       github: "https://github.com/hossainahammed/SmartPlan-AI-Study-Planner",
       imageFolder: "images/SmartPlanAi/",
       images: "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,10.png,11.png,12.png,13.png,14.png,15.png,16.png,17.png,18.png,19.png,20.png,21.png,22.png",
@@ -1833,7 +1834,7 @@ $(document).ready(function () {
       desc: "Manual budget tracking and difficulty visualizing daily spending habits.",
       tech: "Flutter, Dart, Hive DB, Fl Chart",
       live: "#",
-      appetize: "#",
+      apk: "#",
       github: "https://github.com/hossainahammed/Expense-Tracker-App",
       imageFolder: "images/ExpensesTracker/",
       images: "1.png,2.png,3.png,4.png,5.png,6.png,7.png,8.png,9.png,11.png,12.png,13.png,14.png,15.png",
@@ -1967,12 +1968,13 @@ $(document).ready(function () {
     }
 
     let linksHtml = "";
-    // Row 1: Live / Play Store / Appetize
+    // Row 1: Live / Play Store / Download APK
     linksHtml += `<span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>`;
     if (playstore && playstore !== "#") {
       linksHtml += `<a href="${playstore}" target="_blank" rel="noopener" class="proj-link-btn playstore-btn" onclick="event.stopPropagation();"><i class="fab fa-google-play"></i> Play Store</a>`;
     } else {
-      linksHtml += `<span class="proj-link-btn appetize-btn"><i class="fas fa-mobile-alt"></i> Appetize</span>`;
+      const apkLink = (apk && apk !== "#") ? apk : "#";
+      linksHtml += `<a href="${apkLink}" ${apk && apk !== "#" ? 'download' : ''} class="proj-link-btn apk-btn" onclick="event.stopPropagation();"><i class="fas fa-download"></i> Download APK</a>`;
     }
 
     // Row 2: Source Code button — controlled by codeType
