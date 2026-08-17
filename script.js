@@ -1977,20 +1977,28 @@ $(document).ready(function () {
     }
 
     let linksHtml = "";
-    // Row 1: Live / Play Store / Download APK
-    linksHtml += `<span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>`;
-    if (playstore && playstore !== "#") {
-      linksHtml += `<a href="${playstore}" target="_blank" rel="noopener" class="proj-link-btn playstore-btn" onclick="event.stopPropagation();"><i class="fab fa-google-play"></i> Play Store</a>`;
+    if (category === "flutter") {
+      // Flutter / Mobile Apps: Row 1 has Live + Play Store/Download APK, Row 2 has Code
+      linksHtml += `<span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>`;
+      if (playstore && playstore !== "#") {
+        linksHtml += `<a href="${playstore}" target="_blank" rel="noopener" class="proj-link-btn playstore-btn" onclick="event.stopPropagation();"><i class="fab fa-google-play"></i> Play Store</a>`;
+      } else {
+        const apkLink = (apk && apk !== "#") ? apk : "#";
+        linksHtml += `<a href="${apkLink}" ${apk && apk !== "#" ? 'download' : ''} class="proj-link-btn apk-btn" onclick="event.stopPropagation();"><i class="fas fa-download"></i> Download APK</a>`;
+      }
+      if (codeType === "open" && github && github !== "#") {
+        linksHtml += `<a href="${github}" target="_blank" rel="noopener" class="proj-link-btn code-btn full-width" onclick="event.stopPropagation();"><i class="fab fa-github"></i> Code</a>`;
+      } else {
+        linksHtml += `<span class="proj-link-btn client-code-btn full-width" onclick="event.stopPropagation();"><i class="fas fa-lock"></i> Locked Code</span>`;
+      }
     } else {
-      const apkLink = (apk && apk !== "#") ? apk : "#";
-      linksHtml += `<a href="${apkLink}" ${apk && apk !== "#" ? 'download' : ''} class="proj-link-btn apk-btn" onclick="event.stopPropagation();"><i class="fas fa-download"></i> Download APK</a>`;
-    }
-
-    // Row 2: Source Code button — controlled by codeType
-    if (codeType === "open" && github && github !== "#") {
-      linksHtml += `<a href="${github}" target="_blank" rel="noopener" class="proj-link-btn code-btn full-width" onclick="event.stopPropagation();"><i class="fab fa-github"></i> Code</a>`;
-    } else {
-      linksHtml += `<span class="proj-link-btn client-code-btn full-width" onclick="event.stopPropagation();"><i class="fas fa-lock"></i> Locked Code</span>`;
+      // Web and PHP projects: 2 buttons only — Live and Code (no APK / Play Store button)
+      linksHtml += `<span class="proj-link-btn live-btn"><i class="fas fa-play"></i> Live</span>`;
+      if (codeType === "open" && github && github !== "#") {
+        linksHtml += `<a href="${github}" target="_blank" rel="noopener" class="proj-link-btn code-btn" onclick="event.stopPropagation();"><i class="fab fa-github"></i> Code</a>`;
+      } else {
+        linksHtml += `<span class="proj-link-btn client-code-btn" onclick="event.stopPropagation();"><i class="fas fa-lock"></i> Locked Code</span>`;
+      }
     }
 
     return `
