@@ -1799,7 +1799,7 @@ $(document).ready(function () {
     },
     {
       id: "flutter-yestwice",
-      title: "Yes Twice — Athletics App",
+      title: "Athletics App",
       category: "flutter",
       badge: "client",
       image: "images/yes_twic/1.png",
