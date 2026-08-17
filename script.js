@@ -1577,7 +1577,17 @@ $(document).ready(function () {
   );
 
   /* ================= Admin Panel Logic ================= */
-  window.currentlyEditingCard = null;
+  // Initialize Firebase Auth listener
+  if (isFirebaseConfigured() && auth) {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("🔥 Firebase Auth Active User:", user.email, "UID:", user.uid);
+        localStorage.setItem("portfolio_admin_logged_in", "true");
+      } else {
+        console.log("ℹ️ Firebase Auth User signed out.");
+      }
+    });
+  }
 
   function showAdminLoginScreen() {
     $("#admin-login-step").show();
@@ -2082,11 +2092,13 @@ $(document).ready(function () {
     if (!Array.isArray(localCache) || localCache.length === 0) {
       localCache = BASELINE_PROJECTS;
     }
-    localCache = localCache.map(p => ({
+    let nowBase = Date.now() - (localCache.length * 10000);
+    localCache = localCache.map((p, idx) => ({
       ...p,
       category: normalizeCategory(p.category),
-      updatedAt: getMillis(p.updatedAt) || Date.now()
+      updatedAt: getMillis(p.updatedAt) || (nowBase + idx * 1000)
     }));
+    localCache.sort((a, b) => getMillis(b.updatedAt) - getMillis(a.updatedAt));
     localProjectsCache = localCache;
     localStorage.setItem("custom_portfolio_projects", JSON.stringify(localCache));
     renderProjectsToDOM(localCache);
@@ -2110,7 +2122,7 @@ $(document).ready(function () {
               mergedMap.set(rp.id, {
                 ...rp,
                 category: normalizeCategory(rp.category),
-                updatedAt: getMillis(rp.updatedAt) || Date.now()
+                updatedAt: getMillis(rp.updatedAt)
               });
             }
           });
@@ -2128,14 +2140,14 @@ $(document).ready(function () {
                     ...existingRemote,
                     ...lp,
                     category: normalizeCategory(lp.category || existingRemote.category),
-                    updatedAt: localTime || remoteTime || Date.now()
+                    updatedAt: Math.max(localTime, remoteTime) || Date.now()
                   });
                 } else {
                   mergedMap.set(lp.id, {
                     ...lp,
                     ...existingRemote,
                     category: normalizeCategory(existingRemote.category || lp.category),
-                    updatedAt: remoteTime || localTime || Date.now()
+                    updatedAt: Math.max(localTime, remoteTime) || Date.now()
                   });
                 }
               } else {
@@ -2149,6 +2161,9 @@ $(document).ready(function () {
           });
 
           const mergedList = Array.from(mergedMap.values());
+          // Sort merged list by updatedAt descending so newest additions ALWAYS stay at the top!
+          mergedList.sort((a, b) => getMillis(b.updatedAt) - getMillis(a.updatedAt));
+
           if (mergedList.length > 0) {
             localProjectsCache = mergedList;
             localStorage.setItem("custom_portfolio_projects", JSON.stringify(mergedList));
@@ -2478,11 +2493,16 @@ $(document).ready(function () {
         ...projObj,
         updatedAt: now
       });
+
       setDoc(doc(db, "projects", projId), cleanData, { merge: true }).then(() => {
         console.log("🔥 Project successfully saved to Firestore backend:", projId);
       }).catch((err) => {
-        console.warn("Firestore project save error:", err);
-        alert("⚠️ Local update saved, but Firestore backend error: " + (err.message || err));
+        console.error("❌ Firestore project save failed:", err);
+        if (err.code === "permission-denied") {
+          alert("⚠️ Firestore Permission Denied: Your account needs permission to write to Firestore. Please log in with admin email hossainahammed627@gmail.com.");
+        } else {
+          alert("⚠️ Local update saved, but Firestore error: " + (err.message || err));
+        }
       });
     }
   }
