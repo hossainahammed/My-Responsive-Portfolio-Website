@@ -2060,13 +2060,34 @@ $(document).ready(function () {
     }
   }
 
+  function getMillis(val) {
+    if (!val) return 0;
+    if (typeof val === "number") return val;
+    if (typeof val === "string") {
+      const parsed = new Date(val).getTime();
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    if (typeof val.toMillis === "function") return val.toMillis();
+    if (typeof val === "object") {
+      if (val.seconds !== undefined) return val.seconds * 1000 + Math.floor((val.nanoseconds || 0) / 1000000);
+      if (val._seconds !== undefined) return val._seconds * 1000 + Math.floor((val._nanoseconds || 0) / 1000000);
+    }
+    const d = new Date(val);
+    const time = d.getTime();
+    return isNaN(time) ? 0 : time;
+  }
+
   function syncProjectsFromBackend() {
     // 1. Initial local cache render with category normalization
     let localCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
     if (!Array.isArray(localCache) || localCache.length === 0) {
       localCache = BASELINE_PROJECTS;
     }
-    localCache = localCache.map(p => ({ ...p, category: normalizeCategory(p.category) }));
+    localCache = localCache.map(p => ({
+      ...p,
+      category: normalizeCategory(p.category),
+      updatedAt: getMillis(p.updatedAt) || Date.now()
+    }));
     localProjectsCache = localCache;
     localStorage.setItem("custom_portfolio_projects", JSON.stringify(localCache));
     renderProjectsToDOM(localCache);
@@ -2087,7 +2108,11 @@ $(document).ready(function () {
           // 1) Remote projects from Firestore
           remoteProjects.forEach(rp => {
             if (rp && rp.id && !deletedIds.has(rp.id)) {
-              mergedMap.set(rp.id, { ...rp, category: normalizeCategory(rp.category) });
+              mergedMap.set(rp.id, {
+                ...rp,
+                category: normalizeCategory(rp.category),
+                updatedAt: getMillis(rp.updatedAt) || Date.now()
+              });
             }
           });
 
@@ -2096,18 +2121,30 @@ $(document).ready(function () {
             if (lp && lp.id && !deletedIds.has(lp.id)) {
               const existingRemote = mergedMap.get(lp.id);
               if (existingRemote) {
-                const localTime = lp.updatedAt ? new Date(lp.updatedAt).getTime() : 0;
-                const remoteTime = existingRemote.updatedAt
-                  ? (existingRemote.updatedAt.toMillis ? existingRemote.updatedAt.toMillis() : new Date(existingRemote.updatedAt).getTime())
-                  : 0;
+                const localTime = getMillis(lp.updatedAt);
+                const remoteTime = getMillis(existingRemote.updatedAt);
 
                 if (localTime >= remoteTime) {
-                  mergedMap.set(lp.id, { ...existingRemote, ...lp, category: normalizeCategory(lp.category || existingRemote.category) });
+                  mergedMap.set(lp.id, {
+                    ...existingRemote,
+                    ...lp,
+                    category: normalizeCategory(lp.category || existingRemote.category),
+                    updatedAt: localTime || remoteTime || Date.now()
+                  });
                 } else {
-                  mergedMap.set(lp.id, { ...lp, ...existingRemote, category: normalizeCategory(existingRemote.category || lp.category) });
+                  mergedMap.set(lp.id, {
+                    ...lp,
+                    ...existingRemote,
+                    category: normalizeCategory(existingRemote.category || lp.category),
+                    updatedAt: remoteTime || localTime || Date.now()
+                  });
                 }
               } else {
-                mergedMap.set(lp.id, { ...lp, category: normalizeCategory(lp.category) });
+                mergedMap.set(lp.id, {
+                  ...lp,
+                  category: normalizeCategory(lp.category),
+                  updatedAt: getMillis(lp.updatedAt) || Date.now()
+                });
               }
             }
           });
@@ -2136,16 +2173,30 @@ $(document).ready(function () {
 
     const deletedIds = new Set(JSON.parse(localStorage.getItem("deleted_project_ids") || "[]"));
 
-    // Collect DOM projects (with full data)
-    const domProjects = [];
+    // Collect cached & DOM projects (localProjectsCache has top priority)
+    const seen = new Set();
+    const allProjects = [];
+
+    (localProjectsCache || []).forEach((p) => {
+      const key = p.id || p.title;
+      if (key && !seen.has(key) && !deletedIds.has(key)) {
+        seen.add(key);
+        allProjects.push({
+          ...p,
+          category: normalizeCategory(p.category)
+        });
+      }
+    });
+
     $(".projects-grid .project-card").each(function () {
       const $card = $(this);
       const id = $card.attr("data-id");
-      if (id && !deletedIds.has(id)) {
+      if (id && !seen.has(id) && !deletedIds.has(id)) {
+        seen.add(id);
         let rawFeatures = [];
         $card.find(".proj-features li").each(function () { rawFeatures.push($(this).text()); });
         const githubHref = $card.find("a.code-btn").attr("href") || "";
-        domProjects.push({
+        allProjects.push({
           id: id,
           title: $card.attr("data-title") || $card.find(".proj-title").text() || "Untitled Project",
           category: getCardCategoryFromDOM($card),
@@ -2158,20 +2209,6 @@ $(document).ready(function () {
           codeType: $card.find("a.code-btn").length ? "open" : "locked",
           github: githubHref && githubHref !== "#" ? githubHref : "",
           features: rawFeatures
-        });
-      }
-    });
-
-    // Dedupe: localProjectsCache takes priority (has full data)
-    const seen = new Set();
-    const allProjects = [];
-    [...localProjectsCache, ...domProjects].forEach((p) => {
-      const key = p.id || p.title;
-      if (key && !seen.has(key) && !deletedIds.has(key)) {
-        seen.add(key);
-        allProjects.push({
-          ...p,
-          category: normalizeCategory(p.category)
         });
       }
     });
@@ -2382,12 +2419,13 @@ $(document).ready(function () {
 
     const isEdit = Boolean(existingId);
     const projId = isEdit ? existingId : `proj-${Date.now()}`;
+    const now = Date.now();
 
     const projObj = {
       id: projId,
       title, category, badge, image, desc, tech, features,
       codeType, github, playstore, apk, live, images, imageFolder,
-      updatedAt: Date.now()
+      updatedAt: now
     };
 
     const newProjectCardHtml = createProjectCardHtml(projObj);
@@ -2412,8 +2450,7 @@ $(document).ready(function () {
       try {
         await setDoc(doc(db, "projects", projId), {
           ...projObj,
-          updatedAt: serverTimestamp(),
-          createdAt: serverTimestamp()
+          updatedAt: now
         }, { merge: true });
         console.log("🔥 Project saved to Firestore:", projId);
       } catch (err) {
