@@ -2376,17 +2376,99 @@ $(document).ready(function () {
     $("#projectFormContainer")[0].scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
 
-  // Handle direct image file upload & live preview
-  $(document).on("change", "#pf-file-input", function (e) {
+  function showAdminLoader(msg = "Saving project to backend...") {
+    $("#adminLoadingText").text(msg);
+    $("#adminLoadingSpinner").css("display", "flex").fadeIn(150);
+  }
+
+  function hideAdminLoader() {
+    $("#adminLoadingSpinner").fadeOut(150);
+  }
+
+  function compressFileToDataUrl(file, maxWidth = 800, maxHeight = 800, quality = 0.75) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const rawUrl = e.target.result;
+        if (!file.type || !file.type.startsWith("image/")) {
+          resolve(rawUrl);
+          return;
+        }
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL("image/jpeg", quality);
+          resolve(compressed);
+        };
+        img.onerror = () => resolve(rawUrl);
+        img.src = rawUrl;
+      };
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function compressDataUrl(dataUrl, maxWidth = 800, maxHeight = 800, quality = 0.75) {
+    return new Promise((resolve) => {
+      if (!dataUrl || !dataUrl.startsWith("data:image/") || dataUrl.length < 400000) {
+        resolve(dataUrl);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressed = canvas.toDataURL("image/jpeg", quality);
+        resolve(compressed);
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }
+
+  // Handle direct image file upload & live preview with auto-compression
+  $(document).on("change", "#pf-file-input", async function (e) {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = function (evt) {
-        const dataUrl = evt.target.result;
-        $("#pf-image").val(dataUrl);
-        $("#pf-image-preview").attr("src", dataUrl).fadeIn();
-      };
-      reader.readAsDataURL(file);
+      showAdminLoader("Optimizing image for fast upload...");
+      try {
+        const compressedUrl = await compressFileToDataUrl(file);
+        $("#pf-image").val(compressedUrl);
+        $("#pf-image-preview").attr("src", compressedUrl).fadeIn();
+      } catch (err) {
+        console.warn("Image compression error:", err);
+      } finally {
+        hideAdminLoader();
+      }
     }
   });
 
@@ -2418,14 +2500,14 @@ $(document).ready(function () {
   }
 
   // Save Project Handler (Create & Edit)
-  function handlePortfolioProjectFormSubmit(e) {
+  async function handlePortfolioProjectFormSubmit(e) {
     if (e) e.preventDefault();
 
     const existingId = ($("#pf-id").val() || "").trim();
     const title = ($("#pf-title").val() || "").trim();
     const category = normalizeCategory($("#pf-category").val() || "flutter");
     const badge = $("#pf-badge").val() || "";
-    const image = ($("#pf-image").val() || "").trim();
+    let image = ($("#pf-image").val() || "").trim();
     const desc = ($("#pf-desc").val() || "").trim();
     const tech = ($("#pf-tech").val() || "").trim();
     const images = ($("#pf-images").val() || "").trim();
@@ -2447,12 +2529,19 @@ $(document).ready(function () {
       return;
     }
 
+    const isEdit = Boolean(existingId);
+    showAdminLoader(isEdit ? "Updating project in Firestore backend..." : "Publishing project to Firestore backend...");
+
+    // Auto-compress image if it is a large data URL
+    if (image && image.startsWith("data:image/") && image.length > 400000) {
+      image = await compressDataUrl(image);
+    }
+
     const featuresRaw = ($("#pf-features").val() || "").trim();
     const features = featuresRaw
       ? featuresRaw.split(/[\n,]/).map(f => f.trim()).filter(Boolean)
       : [];
 
-    const isEdit = Boolean(existingId);
     const projId = isEdit ? existingId : `proj-${Date.now()}`;
     const now = Date.now();
 
@@ -2486,34 +2575,35 @@ $(document).ready(function () {
     $("#pf-image-preview").hide();
     renderAdminProjects();
 
-    alert(isEdit ? "✓ Project updated live!" : "✓ Project published live to portfolio!");
-
     if (isFirebaseConfigured() && db) {
       const cleanData = cleanFirestoreData({
         ...projObj,
         updatedAt: now
       });
 
-      const executeSave = async () => {
-        if (auth && typeof auth.authStateReady === "function") {
-          try {
-            await auth.authStateReady();
-          } catch (e) { }
-        }
+      if (auth && typeof auth.authStateReady === "function") {
         try {
-          await setDoc(doc(db, "projects", projId), cleanData, { merge: true });
-          console.log("🔥 Project successfully saved to Firestore backend:", projId);
-        } catch (err) {
-          console.error("❌ Firestore project save failed:", err);
-          if (err.code === "permission-denied") {
-            alert("⚠️ Firestore Permission Denied: Your admin session is unauthenticated. Please log in with admin email hossainahammed627@gmail.com.");
-          } else {
-            alert("⚠️ Local update saved, but Firestore error: " + (err.message || err));
-          }
-        }
-      };
+          await auth.authStateReady();
+        } catch (e) { }
+      }
 
-      executeSave();
+      try {
+        await setDoc(doc(db, "projects", projId), cleanData, { merge: true });
+        console.log("🔥 Project successfully saved to Firestore backend:", projId);
+        hideAdminLoader();
+        alert(isEdit ? "✓ Project updated live & saved to backend!" : "✓ Project published live & saved to backend!");
+      } catch (err) {
+        console.error("❌ Firestore project save failed:", err);
+        hideAdminLoader();
+        if (err.code === "permission-denied") {
+          alert("⚠️ Firestore Permission Denied: Your admin session is unauthenticated. Please log in with admin email hossainahammed627@gmail.com.");
+        } else {
+          alert("⚠️ Local update saved, but Firestore error: " + (err.message || err));
+        }
+      }
+    } else {
+      hideAdminLoader();
+      alert(isEdit ? "✓ Project updated live!" : "✓ Project published live!");
     }
   }
 
