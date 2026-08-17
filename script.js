@@ -2386,8 +2386,8 @@ $(document).ready(function () {
   });
 
   // Save Project Handler (Create & Edit)
-  $("#portfolioProjectForm").on("submit", async function (e) {
-    e.preventDefault();
+  function handlePortfolioProjectFormSubmit(e) {
+    if (e) e.preventDefault();
 
     const existingId = $("#pf-id").val().trim();
     const title = $("#pf-title").val().trim();
@@ -2398,14 +2398,23 @@ $(document).ready(function () {
     const tech = $("#pf-tech").val().trim();
     const images = $("#pf-images").val().trim();
     const imageFolder = $("#pf-image-folder").val().trim();
-    // Always read codeType and github — codeType controls which button renders on card
     const codeType = $("#pf-code-type").val();
     const github = $("#pf-github").val().trim();
     const playstore = $("#pf-playstore").val().trim();
     const apk = $("#pf-apk").val().trim();
     const live = $("#pf-live").val().trim();
 
-    // Parse features from newline-or-comma textarea
+    if (!title) {
+      alert("⚠️ Please enter a Project Title.");
+      $("#pf-title").focus();
+      return;
+    }
+    if (!desc) {
+      alert("⚠️ Please enter a Problem Solved Description.");
+      $("#pf-desc").focus();
+      return;
+    }
+
     const featuresRaw = $("#pf-features").val().trim();
     const features = featuresRaw
       ? featuresRaw.split(/[\n,]/).map(f => f.trim()).filter(Boolean)
@@ -2417,7 +2426,9 @@ $(document).ready(function () {
 
     const projObj = {
       id: projId,
-      title, category, badge, image, desc, tech, features,
+      title, category, badge,
+      image: image || "images/SmartPlanAi/2.png",
+      desc, tech, features,
       codeType, github, playstore, apk, live, images, imageFolder,
       updatedAt: now
     };
@@ -2425,12 +2436,10 @@ $(document).ready(function () {
     const newProjectCardHtml = createProjectCardHtml(projObj);
     const $targetGrid = getCategoryGrid(category);
 
-    // Remove any existing card with this ID across all grids first to prevent duplication
     $(`.project-card[data-id="${projId}"]`).remove();
     $targetGrid.prepend(newProjectCardHtml);
     $(".project-card").addClass("reveal active");
 
-    // 1. Save/Update LocalStorage cache FIRST (guaranteed persistent local save)
     const existingIdx = localProjectsCache.findIndex(p => p.id === projId);
     if (existingIdx !== -1) {
       localProjectsCache[existingIdx] = projObj;
@@ -2439,15 +2448,14 @@ $(document).ready(function () {
     }
     localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
 
-    // 2. Immediate UI response — slide up, reset form, update admin list & show alert confirmation
     $("#projectFormContainer").slideUp();
     $("#portfolioProjectForm")[0].reset();
     $("#pf-id").val("");
     $("#pf-image-preview").hide();
     renderAdminProjects();
+
     alert(isEdit ? "✓ Project updated live!" : "✓ Project published live to portfolio!");
 
-    // 3. Save to Firestore asynchronously in background (non-blocking)
     if (isFirebaseConfigured() && db) {
       setDoc(doc(db, "projects", projId), {
         ...projObj,
@@ -2458,6 +2466,12 @@ $(document).ready(function () {
         console.warn("Firestore project save error:", err);
       });
     }
+  }
+
+  $(document).on("submit", "#portfolioProjectForm", handlePortfolioProjectFormSubmit);
+  $(document).on("click", "#btnSaveProject", function (e) {
+    e.preventDefault();
+    handlePortfolioProjectFormSubmit(e);
   });
 
   // Toggle GitHub input visibility based on code type
