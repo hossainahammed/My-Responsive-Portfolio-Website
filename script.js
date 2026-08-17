@@ -1654,7 +1654,7 @@ $(document).ready(function () {
     }
   });
 
-  // Admin Login Handler
+  // Admin Login Handler — Strict Firebase Auth
   $("#adminLoginForm").on("submit", async function (e) {
     e.preventDefault();
     const email = $("#admin-email").val().trim();
@@ -1662,23 +1662,17 @@ $(document).ready(function () {
     const $error = $("#admin-error");
     $error.hide();
 
-    // Secret master password fallback
-    if (key === "admin123" || key === "hossain" || (email === "hossainahammed627@gmail.com" && key === "admin123")) {
-      localStorage.setItem("portfolio_admin_logged_in", "true");
-      showAdminDashboard();
-      return;
-    }
-
     if (isFirebaseConfigured() && auth) {
       try {
         await signInWithEmailAndPassword(auth, email, key);
         localStorage.setItem("portfolio_admin_logged_in", "true");
         showAdminDashboard();
       } catch (err) {
+        console.warn("Firebase Auth login failed:", err);
         $error.text("Invalid login credentials. Please verify your email and password.").show();
       }
     } else {
-      $error.text("Invalid credentials. Please verify your email and password.").show();
+      $error.text("Firebase Auth backend is not configured.").show();
     }
   });
 
@@ -2445,25 +2439,25 @@ $(document).ready(function () {
     }
     localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
 
-    // 2. Save to Firestore if configured (uses consistent document ID = projId)
-    if (isFirebaseConfigured() && db) {
-      try {
-        await setDoc(doc(db, "projects", projId), {
-          ...projObj,
-          updatedAt: now
-        }, { merge: true });
-        console.log("🔥 Project saved to Firestore:", projId);
-      } catch (err) {
-        console.warn("Firestore project save warning:", err);
-      }
-    }
-
+    // 2. Immediate UI response — slide up, reset form, update admin list & show alert confirmation
     $("#projectFormContainer").slideUp();
     $("#portfolioProjectForm")[0].reset();
     $("#pf-id").val("");
     $("#pf-image-preview").hide();
     renderAdminProjects();
-    alert(isEdit ? "\u2713 Project updated live!" : "\u2713 Project published live to portfolio!");
+    alert(isEdit ? "✓ Project updated live!" : "✓ Project published live to portfolio!");
+
+    // 3. Save to Firestore asynchronously in background (non-blocking)
+    if (isFirebaseConfigured() && db) {
+      setDoc(doc(db, "projects", projId), {
+        ...projObj,
+        updatedAt: now
+      }, { merge: true }).then(() => {
+        console.log("🔥 Project successfully saved to Firestore backend:", projId);
+      }).catch((err) => {
+        console.warn("Firestore project save error:", err);
+      });
+    }
   });
 
   // Toggle GitHub input visibility based on code type
