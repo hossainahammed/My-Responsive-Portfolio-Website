@@ -1290,11 +1290,21 @@ $(document).ready(function () {
     }
   });
 
-  /* Live button: Flutter → phone carousel; Web → iframe */
+  /* Live button: Go to live URL if provided, otherwise show carousel modal */
   $(document).on("click", ".project-card .live-btn", function (e) {
     e.preventDefault();
     e.stopPropagation();
     var $card = $(this).closest(".project-card");
+    var liveUrl = ($card.attr("data-liveurl") || "").trim();
+
+    // If a live link is provided (and not "#"), directly navigate to that link
+    if (liveUrl && liveUrl !== "#") {
+      if (!/^https?:\/\//i.test(liveUrl)) liveUrl = "https://" + liveUrl;
+      window.open(liveUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    // Otherwise show carousel modal for Flutter apps or fallback preview for web apps
     var isFlutter =
       ($card.attr("data-id") || "").startsWith("flutter") ||
       $card.find(".tech-pill").filter(function () {
@@ -1304,13 +1314,12 @@ $(document).ready(function () {
     if (isFlutter) {
       openFlutterCarouselModal($card);
     } else {
-      var url = ($card.attr("data-videourl") || "").trim();
-      if (!url || url === "#") url = ($card.attr("data-liveurl") || "").trim();
+      var videoUrl = ($card.attr("data-videourl") || "").trim();
       var title = $card.attr("data-title") + " - Live Preview";
-      if (url && url !== "#") {
-        if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+      if (videoUrl && videoUrl !== "#") {
+        if (!/^https?:\/\//i.test(videoUrl)) videoUrl = "https://" + videoUrl;
         $("#liveModalTitle").text(title);
-        $("#liveModalIframe").attr("src", url).show();
+        $("#liveModalIframe").attr("src", videoUrl).show();
         $("#liveModalImageContainer").hide();
         $("#liveViewModal").attr("aria-hidden", "false").fadeIn(180);
         $("body").addClass("modal-open");
