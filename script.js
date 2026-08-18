@@ -2080,7 +2080,9 @@ $(document).ready(function () {
 
   async function seedBaselineProjectsToFirestore() {
     if (!isFirebaseConfigured() || !db) return;
+    if (localStorage.getItem("firestore_projects_seeded") === "true") return;
     try {
+      localStorage.setItem("firestore_projects_seeded", "true");
       for (const proj of BASELINE_PROJECTS) {
         await setDoc(doc(db, "projects", proj.id), cleanFirestoreData({
           ...proj,
@@ -2111,17 +2113,21 @@ $(document).ready(function () {
   }
 
   function syncProjectsFromBackend() {
+    const deletedIds = new Set(JSON.parse(localStorage.getItem("deleted_project_ids") || "[]"));
+
     // 1. Initial local cache render with category normalization
     let localCache = JSON.parse(localStorage.getItem("custom_portfolio_projects") || "[]");
     if (!Array.isArray(localCache) || localCache.length === 0) {
       localCache = BASELINE_PROJECTS;
     }
     let nowBase = Date.now() - (localCache.length * 10000);
-    localCache = localCache.map((p, idx) => ({
-      ...p,
-      category: normalizeCategory(p.category),
-      updatedAt: getMillis(p.updatedAt) || (nowBase + idx * 1000)
-    }));
+    localCache = localCache
+      .filter(p => p && p.id && !deletedIds.has(p.id))
+      .map((p, idx) => ({
+        ...p,
+        category: normalizeCategory(p.category),
+        updatedAt: getMillis(p.updatedAt) || (nowBase + idx * 1000)
+      }));
     localCache.sort((a, b) => getMillis(b.updatedAt) - getMillis(a.updatedAt));
     localProjectsCache = localCache;
     localStorage.setItem("custom_portfolio_projects", JSON.stringify(localCache));
@@ -2137,16 +2143,17 @@ $(document).ready(function () {
             remoteProjects.push({ id: docSnap.id, ...docSnap.data() });
           });
 
-          if (snapshot.empty || remoteProjects.length === 0) {
+          const currentDeletedIds = new Set(JSON.parse(localStorage.getItem("deleted_project_ids") || "[]"));
+
+          if (snapshot.empty && !localStorage.getItem("firestore_projects_seeded") && currentDeletedIds.size === 0) {
             seedBaselineProjectsToFirestore();
           }
 
-          const deletedIds = new Set(JSON.parse(localStorage.getItem("deleted_project_ids") || "[]"));
           const mergedMap = new Map();
 
           // 1) Remote projects from Firestore
           remoteProjects.forEach(rp => {
-            if (rp && rp.id && !deletedIds.has(rp.id)) {
+            if (rp && rp.id && !currentDeletedIds.has(rp.id)) {
               mergedMap.set(rp.id, {
                 ...rp,
                 category: normalizeCategory(rp.category),
@@ -2155,9 +2162,9 @@ $(document).ready(function () {
             }
           });
 
-          // 2) Merge local cache projects — local updates overwrite remote unless remote is explicitly newer
+          // 2) Merge local cache projects
           (localProjectsCache || []).forEach(lp => {
-            if (lp && lp.id && !deletedIds.has(lp.id)) {
+            if (lp && lp.id && !currentDeletedIds.has(lp.id)) {
               const existingRemote = mergedMap.get(lp.id);
               if (existingRemote) {
                 const localTime = getMillis(lp.updatedAt);
@@ -2188,11 +2195,7 @@ $(document).ready(function () {
             }
           });
 
-          let mergedList = Array.from(mergedMap.values());
-          if (mergedList.length === 0) {
-            mergedList = BASELINE_PROJECTS;
-          }
-          // Sort merged list by updatedAt descending so newest additions ALWAYS stay at the top!
+          let mergedList = Array.from(mergedMap.values()).filter(p => p && p.id && !currentDeletedIds.has(p.id));
           mergedList.sort((a, b) => getMillis(b.updatedAt) - getMillis(a.updatedAt));
 
           localProjectsCache = mergedList;
@@ -2486,36 +2489,46 @@ $(document).ready(function () {
 
   async function uploadImageToBackend(fileOrDataUrl, pathFolder = "projects") {
     if (!fileOrDataUrl) return "";
-    
+
     // If it's already a standard HTTP/HTTPS URL or relative asset path, return directly
     if (typeof fileOrDataUrl === "string" && !fileOrDataUrl.startsWith("data:")) {
       return fileOrDataUrl;
     }
 
-    // 1. Attempt upload to Firebase Storage if configured & available
+    // 1. Attempt upload to Firebase Storage with a strict 4-second timeout
     if (isFirebaseConfigured() && storage) {
       try {
-        const ext = (fileOrDataUrl instanceof File && fileOrDataUrl.type)
-          ? (fileOrDataUrl.type.split("/")[1] || "jpg")
-          : "jpg";
-        const fileName = `${pathFolder}/${Date.now()}_${Math.random().toString(36).substr(2, 6)}.${ext}`;
-        const storageRef = ref(storage, fileName);
+        const uploadPromise = (async () => {
+          const ext = (fileOrDataUrl instanceof File && fileOrDataUrl.type)
+            ? (fileOrDataUrl.type.split("/")[1] || "jpg")
+            : "jpg";
+          const fileName = `${pathFolder}/${Date.now()}_${Math.random().toString(36).substr(2, 6)}.${ext}`;
+          const storageRef = ref(storage, fileName);
 
-        if (fileOrDataUrl instanceof File) {
-          await uploadBytes(storageRef, fileOrDataUrl);
-        } else if (typeof fileOrDataUrl === "string" && fileOrDataUrl.startsWith("data:")) {
-          await uploadString(storageRef, fileOrDataUrl, "data_url");
-        }
+          if (fileOrDataUrl instanceof File) {
+            await uploadBytes(storageRef, fileOrDataUrl);
+          } else if (typeof fileOrDataUrl === "string" && fileOrDataUrl.startsWith("data:")) {
+            await uploadString(storageRef, fileOrDataUrl, "data_url");
+          }
 
-        const downloadUrl = await getDownloadURL(storageRef);
-        console.log("🔥 Image successfully uploaded to Firebase Cloud Storage:", downloadUrl);
-        return downloadUrl;
+          const downloadUrl = await getDownloadURL(storageRef);
+          console.log("🔥 Image successfully uploaded to Firebase Cloud Storage:", downloadUrl);
+          return downloadUrl;
+        })();
+
+        // 4-second max timeout race promise
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Storage upload timeout")), 4000)
+        );
+
+        const downloadUrl = await Promise.race([uploadPromise, timeoutPromise]);
+        if (downloadUrl) return downloadUrl;
       } catch (err) {
-        console.warn("⚠️ Firebase Storage upload notice (falling back to optimized inline Data URL):", err);
+        console.warn("⚠️ Firebase Storage notice (using fast compressed base64 fallback):", err.message || err);
       }
     }
 
-    // 2. Fallback: Aggressively compress inline Base64 Data URL so it fits easily within Firestore document limit (<80KB)
+    // 2. Fast Fallback: Aggressively compress inline Base64 Data URL so it fits easily within Firestore document limit (<80KB)
     if (fileOrDataUrl instanceof File) {
       return await compressFileToDataUrl(fileOrDataUrl, 600, 600, 0.6);
     } else if (typeof fileOrDataUrl === "string" && fileOrDataUrl.startsWith("data:")) {
@@ -2571,7 +2584,13 @@ $(document).ready(function () {
 
   // Save Project Handler (Create & Edit)
   async function handlePortfolioProjectFormSubmit(e) {
-    if (e) e.preventDefault();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    if (window._isSavingProject) return;
+    window._isSavingProject = true;
 
     const existingId = ($("#pf-id").val() || "").trim();
     const title = ($("#pf-title").val() || "").trim();
@@ -2591,111 +2610,113 @@ $(document).ready(function () {
     if (!title) {
       alert("⚠️ Please enter a Project Title.");
       $("#pf-title").focus();
+      window._isSavingProject = false;
       return;
     }
     if (!desc) {
       alert("⚠️ Please enter a Problem Solved Description.");
       $("#pf-desc").focus();
+      window._isSavingProject = false;
       return;
     }
 
     const isEdit = Boolean(existingId);
     showAdminLoader(isEdit ? "Uploading image & updating project in backend database..." : "Uploading image & publishing project to backend database...");
 
-    const fileInput = document.getElementById("pf-file-input");
-    const selectedFile = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
-
-    let finalImageUrl = image;
     try {
-      if (selectedFile) {
-        finalImageUrl = await uploadImageToBackend(selectedFile, "projects");
-      } else if (image && image.startsWith("data:")) {
-        finalImageUrl = await uploadImageToBackend(image, "projects");
-      }
-    } catch (err) {
-      console.warn("Project image backend upload warning:", err);
-    }
-    if (!finalImageUrl) finalImageUrl = "images/SmartPlanAi/2.png";
+      const fileInput = document.getElementById("pf-file-input");
+      const selectedFile = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
 
-    // Update input field and preview with stored URL
-    $("#pf-image").val(finalImageUrl);
-    if (finalImageUrl) $("#pf-image-preview").attr("src", finalImageUrl).show();
-
-    const featuresRaw = ($("#pf-features").val() || "").trim();
-    const features = featuresRaw
-      ? featuresRaw.split(/[\n,]/).map(f => f.trim()).filter(Boolean)
-      : [];
-
-    const projId = isEdit ? existingId : `proj-${Date.now()}`;
-    const now = Date.now();
-
-    const projObj = {
-      id: projId,
-      title, category, badge,
-      image: finalImageUrl,
-      desc, tech, features,
-      codeType, github, playstore, apk, live, images, imageFolder,
-      updatedAt: now
-    };
-
-    const newProjectCardHtml = createProjectCardHtml(projObj);
-    const $targetGrid = getCategoryGrid(category);
-
-    $(`.project-card[data-id="${projId}"]`).remove();
-    $targetGrid.prepend(newProjectCardHtml);
-    $(".project-card").addClass("reveal active");
-
-    const existingIdx = localProjectsCache.findIndex(p => p.id === projId);
-    if (existingIdx !== -1) {
-      localProjectsCache[existingIdx] = projObj;
-    } else {
-      localProjectsCache.unshift(projObj);
-    }
-    localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
-
-    $("#projectFormContainer").slideUp();
-    $("#portfolioProjectForm")[0].reset();
-    $("#pf-id").val("");
-    $("#pf-image-preview").hide();
-    renderAdminProjects();
-
-    if (isFirebaseConfigured() && db) {
-      const cleanData = cleanFirestoreData({
-        ...projObj,
-        updatedAt: now
-      });
-
-      if (auth && typeof auth.authStateReady === "function") {
-        try {
-          await auth.authStateReady();
-        } catch (e) { }
-      }
-
+      let finalImageUrl = image;
       try {
-        await setDoc(doc(db, "projects", projId), cleanData, { merge: true });
-        console.log("🔥 Project successfully saved to Firestore backend database:", projId);
-        hideAdminLoader();
-        alert(isEdit ? "✓ Project image & details updated live on backend database!" : "✓ Project image & details saved live to backend database!");
+        if (selectedFile) {
+          finalImageUrl = await uploadImageToBackend(selectedFile, "projects");
+        } else if (image && image.startsWith("data:")) {
+          finalImageUrl = await uploadImageToBackend(image, "projects");
+        }
       } catch (err) {
-        console.error("❌ Firestore project save failed:", err);
-        hideAdminLoader();
-        if (err.code === "permission-denied") {
-          alert("⚠️ Firestore Permission Denied: Your admin session is unauthenticated. Please log in with admin email hossainahammed627@gmail.com.");
-        } else {
-          alert("⚠️ Local update saved, but Firestore error: " + (err.message || err));
+        console.warn("Project image backend upload warning:", err);
+      }
+      if (!finalImageUrl) finalImageUrl = "images/SmartPlanAi/2.png";
+
+      // Update input field and preview with stored URL
+      $("#pf-image").val(finalImageUrl);
+      if (finalImageUrl) $("#pf-image-preview").attr("src", finalImageUrl).show();
+
+      const featuresRaw = ($("#pf-features").val() || "").trim();
+      const features = featuresRaw
+        ? featuresRaw.split(/[\n,]/).map(f => f.trim()).filter(Boolean)
+        : [];
+
+      const projId = isEdit ? existingId : `proj-${Date.now()}`;
+      const now = Date.now();
+
+      const projObj = {
+        id: projId,
+        title, category, badge,
+        image: finalImageUrl,
+        desc, tech, features,
+        codeType, github, playstore, apk, live, images, imageFolder,
+        updatedAt: now
+      };
+
+      const newProjectCardHtml = createProjectCardHtml(projObj);
+      const $targetGrid = getCategoryGrid(category);
+
+      $(`.project-card[data-id="${projId}"]`).remove();
+      $targetGrid.prepend(newProjectCardHtml);
+      $(".project-card").addClass("reveal active");
+
+      const existingIdx = localProjectsCache.findIndex(p => p.id === projId);
+      if (existingIdx !== -1) {
+        localProjectsCache[existingIdx] = projObj;
+      } else {
+        localProjectsCache.unshift(projObj);
+      }
+      localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
+
+      $("#projectFormContainer").slideUp();
+      $("#portfolioProjectForm")[0].reset();
+      $("#pf-id").val("");
+      $("#pf-image-preview").hide();
+      renderAdminProjects();
+
+      if (isFirebaseConfigured() && db) {
+        const cleanData = cleanFirestoreData({
+          ...projObj,
+          updatedAt: now
+        });
+
+        if (auth && typeof auth.authStateReady === "function") {
+          try {
+            await auth.authStateReady();
+          } catch (e) { }
+        }
+
+        try {
+          await setDoc(doc(db, "projects", projId), cleanData, { merge: true });
+          console.log("🔥 Project successfully saved to Firestore backend database:", projId);
+        } catch (err) {
+          console.error("❌ Firestore project save failed:", err);
+          if (err.code === "permission-denied") {
+            alert("⚠️ Firestore Permission Denied: Your admin session is unauthenticated. Please log in with admin email hossainahammed627@gmail.com.");
+          } else {
+            alert("⚠️ Local update saved, but Firestore error: " + (err.message || err));
+          }
         }
       }
-    } else {
+
+      alert(isEdit ? "✓ Project image & details updated live on backend database!" : "✓ Project image & details saved live to backend database!");
+    } catch (error) {
+      console.error("Error in project submit:", error);
+      alert("⚠️ Error saving project: " + (error.message || error));
+    } finally {
       hideAdminLoader();
-      alert(isEdit ? "✓ Project updated live!" : "✓ Project published live!");
+      window._isSavingProject = false;
     }
   }
 
   $(document).on("submit", "#portfolioProjectForm", handlePortfolioProjectFormSubmit);
-  $(document).on("click", "#btnSaveProject", function (e) {
-    e.preventDefault();
-    handlePortfolioProjectFormSubmit(e);
-  });
 
   // Toggle GitHub input visibility based on code type
   $(document).on("change", "#pf-code-type", function () {
@@ -2708,43 +2729,45 @@ $(document).ready(function () {
   });
 
   // Delete Project Action
-  $(document).on("click", ".btn-delete-proj", function () {
+  $(document).on("click", ".btn-delete-proj", async function (e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     const projId = $(this).attr("data-id");
     if (!projId) return;
 
     if (confirm("Are you sure you want to delete this project?")) {
-      // 1. Delete from Firestore if connected
-      if (isFirebaseConfigured() && db) {
-        const executeDelete = async () => {
-          if (auth && typeof auth.authStateReady === "function") {
-            try { await auth.authStateReady(); } catch (e) { }
-          }
-          try {
-            await deleteDoc(doc(db, "projects", projId));
-            console.log("🔥 Project successfully deleted from Firestore:", projId);
-          } catch (e) {
-            console.warn("Firestore delete error:", e);
-          }
-        };
-        executeDelete();
-      }
-
-      // 2. Add to deleted IDs set in localStorage
+      // 1. Instantly record deleted ID to localStorage
       let deletedIds = JSON.parse(localStorage.getItem("deleted_project_ids") || "[]");
       if (!deletedIds.includes(projId)) {
         deletedIds.push(projId);
         localStorage.setItem("deleted_project_ids", JSON.stringify(deletedIds));
       }
 
-      // 3. Remove card from DOM
-      $(`.project-card[data-id="${projId}"]`).fadeOut(300, function () { $(this).remove(); });
-
-      // 4. Filter local Projects Cache
-      localProjectsCache = localProjectsCache.filter(p => p.id !== projId);
+      // 2. Remove from localProjectsCache & localStorage
+      localProjectsCache = (localProjectsCache || []).filter(p => p && p.id !== projId);
       localStorage.setItem("custom_portfolio_projects", JSON.stringify(localProjectsCache));
 
-      // 5. Remove card from Admin list
+      // 3. Remove project cards from main DOM & Admin list immediately
+      $(`.project-card[data-id="${projId}"]`).fadeOut(250, function () { $(this).remove(); });
       $(`.admin-item-card[data-proj-id="${projId}"]`).slideUp(200, function () { $(this).remove(); });
+
+      // 4. Delete document from Firestore database asynchronously
+      if (isFirebaseConfigured() && db) {
+        try {
+          if (auth && typeof auth.authStateReady === "function") {
+            try { await auth.authStateReady(); } catch (e) { }
+          }
+          await deleteDoc(doc(db, "projects", projId));
+          console.log("🔥 Project permanently deleted from Firestore:", projId);
+        } catch (err) {
+          console.warn("Firestore delete notice:", err);
+        }
+      }
+
+      // 5. Re-render Admin project list
+      renderAdminProjects();
     }
   });
 
