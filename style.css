@@ -3211,9 +3211,9 @@ footer span a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  font-size: 13px;
+  gap: 5px;
+  padding: 7px 8px;
+  font-size: 12px;
   font-weight: 600;
   border-radius: 6px;
   border: 1px solid var(--border-card);
@@ -3224,6 +3224,7 @@ footer span a:hover {
   font-family: var(--font-title);
   flex: 1 1 calc(50% - 4px);
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 [data-theme="light"] .project-card .proj-link-btn {
@@ -3247,13 +3248,15 @@ footer span a:hover {
   background: var(--bg-card);
 }
 
-.project-card .proj-link-btn.playstore-btn {
+.project-card .proj-link-btn.playstore-btn,
+.project-card .proj-link-btn.apk-btn {
   background: var(--bg-card);
   color: #3ddc84;
   border-color: rgba(61, 220, 132, 0.3);
 }
 
-.project-card .proj-link-btn.playstore-btn:hover {
+.project-card .proj-link-btn.playstore-btn:hover,
+.project-card .proj-link-btn.apk-btn:hover {
   background: linear-gradient(135deg, #00c853, #00e676);
   border-color: transparent;
   color: #fff !important;
@@ -3279,20 +3282,6 @@ footer span a:hover {
   color: #f97316 !important;
   transform: none;
   box-shadow: none;
-}
-
-.project-card .proj-link-btn.apk-btn {
-  background: var(--bg-card);
-  color: #38bdf8;
-  border-color: rgba(56, 189, 248, 0.35);
-}
-
-.project-card .proj-link-btn.apk-btn:hover {
-  background: linear-gradient(135deg, #0284c7, #38bdf8);
-  border-color: transparent;
-  color: #fff !important;
-  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.4);
-  transform: translateY(-2px);
 }
 
 .project-card .proj-link-btn:hover {

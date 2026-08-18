@@ -21,6 +21,13 @@ import {
   orderBy,
   serverTimestamp 
 } from "firebase/firestore";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  uploadString,
+  getDownloadURL
+} from "firebase/storage";
 
 // =========================================================================
 // YOUR FIREBASE CONFIGURATION
@@ -49,13 +56,15 @@ export const isFirebaseConfigured = () => {
 let app = null;
 let auth = null;
 let db = null;
+let storage = null;
 
 if (isFirebaseConfigured()) {
   try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
-    console.log("🔥 Firebase Backend Initialized Successfully!");
+    storage = getStorage(app);
+    console.log("🔥 Firebase Backend & Storage Initialized Successfully!");
   } catch (err) {
     console.warn("Firebase initialization warning:", err);
   }
@@ -67,6 +76,11 @@ export {
   app, 
   auth, 
   db, 
+  storage,
+  ref,
+  uploadBytes,
+  uploadString,
+  getDownloadURL,
   signInWithEmailAndPassword, 
   sendPasswordResetEmail,
   signOut, 
@@ -83,3 +97,4 @@ export {
   orderBy,
   serverTimestamp 
 };
+

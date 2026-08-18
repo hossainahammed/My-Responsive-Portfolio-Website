@@ -1,6 +1,11 @@
 import {
   auth,
   db,
+  storage,
+  ref,
+  uploadBytes,
+  uploadString,
+  getDownloadURL,
   isFirebaseConfigured,
   signInWithEmailAndPassword,
   signOut,
@@ -2077,10 +2082,10 @@ $(document).ready(function () {
     if (!isFirebaseConfigured() || !db) return;
     try {
       for (const proj of BASELINE_PROJECTS) {
-        await addDoc(collection(db, "projects"), {
+        await setDoc(doc(db, "projects", proj.id), cleanFirestoreData({
           ...proj,
-          createdAt: serverTimestamp()
-        });
+          updatedAt: Date.now()
+        }), { merge: true });
       }
       console.log("🌱 Baseline projects successfully seeded to Firestore!");
     } catch (err) {
@@ -2132,6 +2137,10 @@ $(document).ready(function () {
             remoteProjects.push({ id: docSnap.id, ...docSnap.data() });
           });
 
+          if (snapshot.empty || remoteProjects.length === 0) {
+            seedBaselineProjectsToFirestore();
+          }
+
           const deletedIds = new Set(JSON.parse(localStorage.getItem("deleted_project_ids") || "[]"));
           const mergedMap = new Map();
 
@@ -2179,17 +2188,18 @@ $(document).ready(function () {
             }
           });
 
-          const mergedList = Array.from(mergedMap.values());
+          let mergedList = Array.from(mergedMap.values());
+          if (mergedList.length === 0) {
+            mergedList = BASELINE_PROJECTS;
+          }
           // Sort merged list by updatedAt descending so newest additions ALWAYS stay at the top!
           mergedList.sort((a, b) => getMillis(b.updatedAt) - getMillis(a.updatedAt));
 
-          if (mergedList.length > 0) {
-            localProjectsCache = mergedList;
-            localStorage.setItem("custom_portfolio_projects", JSON.stringify(mergedList));
-            renderProjectsToDOM(mergedList);
-            if ($("#adminModal").is(":visible")) {
-              renderAdminProjects();
-            }
+          localProjectsCache = mergedList;
+          localStorage.setItem("custom_portfolio_projects", JSON.stringify(mergedList));
+          renderProjectsToDOM(mergedList);
+          if ($("#adminModal").is(":visible")) {
+            renderAdminProjects();
           }
         }, (err) => {
           console.warn("Firestore projects snapshot warning:", err);
@@ -2474,17 +2484,58 @@ $(document).ready(function () {
     });
   }
 
+  async function uploadImageToBackend(fileOrDataUrl, pathFolder = "projects") {
+    if (!fileOrDataUrl) return "";
+    
+    // If it's already a standard HTTP/HTTPS URL or relative asset path, return directly
+    if (typeof fileOrDataUrl === "string" && !fileOrDataUrl.startsWith("data:")) {
+      return fileOrDataUrl;
+    }
+
+    // 1. Attempt upload to Firebase Storage if configured & available
+    if (isFirebaseConfigured() && storage) {
+      try {
+        const ext = (fileOrDataUrl instanceof File && fileOrDataUrl.type)
+          ? (fileOrDataUrl.type.split("/")[1] || "jpg")
+          : "jpg";
+        const fileName = `${pathFolder}/${Date.now()}_${Math.random().toString(36).substr(2, 6)}.${ext}`;
+        const storageRef = ref(storage, fileName);
+
+        if (fileOrDataUrl instanceof File) {
+          await uploadBytes(storageRef, fileOrDataUrl);
+        } else if (typeof fileOrDataUrl === "string" && fileOrDataUrl.startsWith("data:")) {
+          await uploadString(storageRef, fileOrDataUrl, "data_url");
+        }
+
+        const downloadUrl = await getDownloadURL(storageRef);
+        console.log("🔥 Image successfully uploaded to Firebase Cloud Storage:", downloadUrl);
+        return downloadUrl;
+      } catch (err) {
+        console.warn("⚠️ Firebase Storage upload notice (falling back to optimized inline Data URL):", err);
+      }
+    }
+
+    // 2. Fallback: Aggressively compress inline Base64 Data URL so it fits easily within Firestore document limit (<80KB)
+    if (fileOrDataUrl instanceof File) {
+      return await compressFileToDataUrl(fileOrDataUrl, 600, 600, 0.6);
+    } else if (typeof fileOrDataUrl === "string" && fileOrDataUrl.startsWith("data:")) {
+      return await compressDataUrl(fileOrDataUrl, 600, 600, 0.6);
+    }
+
+    return fileOrDataUrl;
+  }
+
   // Handle direct image file upload & live preview with auto-compression
   $(document).on("change", "#pf-file-input", async function (e) {
     const file = e.target.files[0];
     if (file) {
-      showAdminLoader("Optimizing image for fast upload...");
+      showAdminLoader("Generating fast image preview...");
       try {
-        const compressedUrl = await compressFileToDataUrl(file);
+        const compressedUrl = await compressFileToDataUrl(file, 600, 600, 0.6);
         $("#pf-image").val(compressedUrl);
         $("#pf-image-preview").attr("src", compressedUrl).fadeIn();
       } catch (err) {
-        console.warn("Image compression error:", err);
+        console.warn("Image preview error:", err);
       } finally {
         hideAdminLoader();
       }
@@ -2549,12 +2600,26 @@ $(document).ready(function () {
     }
 
     const isEdit = Boolean(existingId);
-    showAdminLoader(isEdit ? "Updating project in Firestore backend..." : "Publishing project to Firestore backend...");
+    showAdminLoader(isEdit ? "Uploading image & updating project in backend database..." : "Uploading image & publishing project to backend database...");
 
-    // Auto-compress image if it is a large data URL
-    if (image && image.startsWith("data:image/") && image.length > 400000) {
-      image = await compressDataUrl(image);
+    const fileInput = document.getElementById("pf-file-input");
+    const selectedFile = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+
+    let finalImageUrl = image;
+    try {
+      if (selectedFile) {
+        finalImageUrl = await uploadImageToBackend(selectedFile, "projects");
+      } else if (image && image.startsWith("data:")) {
+        finalImageUrl = await uploadImageToBackend(image, "projects");
+      }
+    } catch (err) {
+      console.warn("Project image backend upload warning:", err);
     }
+    if (!finalImageUrl) finalImageUrl = "images/SmartPlanAi/2.png";
+
+    // Update input field and preview with stored URL
+    $("#pf-image").val(finalImageUrl);
+    if (finalImageUrl) $("#pf-image-preview").attr("src", finalImageUrl).show();
 
     const featuresRaw = ($("#pf-features").val() || "").trim();
     const features = featuresRaw
@@ -2567,7 +2632,7 @@ $(document).ready(function () {
     const projObj = {
       id: projId,
       title, category, badge,
-      image: image || "images/SmartPlanAi/2.png",
+      image: finalImageUrl,
       desc, tech, features,
       codeType, github, playstore, apk, live, images, imageFolder,
       updatedAt: now
@@ -2608,9 +2673,9 @@ $(document).ready(function () {
 
       try {
         await setDoc(doc(db, "projects", projId), cleanData, { merge: true });
-        console.log("🔥 Project successfully saved to Firestore backend:", projId);
+        console.log("🔥 Project successfully saved to Firestore backend database:", projId);
         hideAdminLoader();
-        alert(isEdit ? "✓ Project updated live & saved to backend!" : "✓ Project published live & saved to backend!");
+        alert(isEdit ? "✓ Project image & details updated live on backend database!" : "✓ Project image & details saved live to backend database!");
       } catch (err) {
         console.error("❌ Firestore project save failed:", err);
         hideAdminLoader();
@@ -3408,12 +3473,31 @@ $(document).ready(function () {
     const name = $("#adminHeroName").val().trim();
     const roles = $("#adminHeroRoles").val().trim();
     const heroIntro = $("#adminHeroIntro").val().trim();
-    const heroAvatarImg = $("#adminHeroAvatarImgUrl").val().trim();
+    let heroAvatarImg = $("#adminHeroAvatarImgUrl").val().trim();
     const heroBadge1 = $("#adminHeroBadge1").val().trim();
     const heroBadge2 = $("#adminHeroBadge2").val().trim();
     const aboutBio = $("#adminAboutBio").val().trim();
-    const aboutImg = $("#adminAboutImgUrl").val().trim();
+    let aboutImg = $("#adminAboutImgUrl").val().trim();
     const cvLink = $("#adminCvLink").val().trim();
+
+    showAdminLoader("Uploading images & saving Hero/About settings...");
+    const heroAvatarFile = $("#adminHeroAvatarImgFile")[0]?.files[0];
+    if (heroAvatarFile) {
+      heroAvatarImg = await uploadImageToBackend(heroAvatarFile, "hero");
+      $("#adminHeroAvatarImgUrl").val(heroAvatarImg);
+    } else if (heroAvatarImg && heroAvatarImg.startsWith("data:")) {
+      heroAvatarImg = await uploadImageToBackend(heroAvatarImg, "hero");
+      $("#adminHeroAvatarImgUrl").val(heroAvatarImg);
+    }
+
+    const aboutImgFile = $("#adminAboutImgFile")[0]?.files[0];
+    if (aboutImgFile) {
+      aboutImg = await uploadImageToBackend(aboutImgFile, "about");
+      $("#adminAboutImgUrl").val(aboutImg);
+    } else if (aboutImg && aboutImg.startsWith("data:")) {
+      aboutImg = await uploadImageToBackend(aboutImg, "about");
+      $("#adminAboutImgUrl").val(aboutImg);
+    }
 
     const dataObj = { greeting, name, roles, heroIntro, heroAvatarImg, heroBadge1, heroBadge2, aboutBio, aboutImg, cvLink };
     localStorage.setItem("settings_hero_about", JSON.stringify(dataObj));
@@ -3423,6 +3507,7 @@ $(document).ready(function () {
         await setDoc(doc(db, "settings", "hero_about"), { ...dataObj, updatedAt: serverTimestamp() });
       } catch (err) { }
     }
+    hideAdminLoader();
     syncHeroAboutFromBackend();
     alert("✓ Hero & About Me settings updated live!");
   });
@@ -3675,9 +3760,19 @@ $(document).ready(function () {
     const title = $("#cm-title").val().trim();
     const filename = $("#cm-filename").val().trim();
     const compileMsg = $("#cm-compileMsg").val().trim();
-    const image = $("#cm-image").val().trim();
+    let image = $("#cm-image").val().trim();
     const code = $("#cm-code").val().trim();
     const active = $("#cm-active").is(":checked");
+
+    showAdminLoader("Uploading image & saving Code Morph item...");
+    const cmFile = $("#cm-file-input")[0]?.files[0];
+    if (cmFile) {
+      image = await uploadImageToBackend(cmFile, "codemorph");
+      $("#cm-image").val(image);
+    } else if (image && image.startsWith("data:")) {
+      image = await uploadImageToBackend(image, "codemorph");
+      $("#cm-image").val(image);
+    }
 
     const isEdit = !!id;
     const itemId = isEdit ? id : `cm-${Date.now()}`;
@@ -3699,6 +3794,7 @@ $(document).ready(function () {
       } catch (err) { }
     }
 
+    hideAdminLoader();
     $("#codeMorphFormContainer").slideUp();
     $("#adminCodeMorphForm")[0].reset();
     $("#cm-id").val("");
